@@ -58,7 +58,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `chore(scaffold): pass quality checkpoint` (only if fixes needed)
 - **References**: NFR-6, NFR-7.
 
-### Task 1.5 — Implement `NautilusConfig` + `SourceConfig` Pydantic models
+### Task 1.5 — Implement `NautilusConfig` + `SourceConfig` Pydantic models [x]
 - **Do**:
   - Create `nautilus/config/models.py` with `SourceConfig`, `AttestationConfig`, `RulesConfig`, `AuditConfig`, `AnalysisConfig`, `NautilusConfig` matching design §4.1, §4.10 verbatim.
   - Use `Literal["postgres", "pgvector"]` for `SourceConfig.type`; `Literal["<=>","<->","<#>"]` default `"<=>"` for `distance_operator`.
