@@ -3,6 +3,8 @@
 Public exports:
 - :class:`PolicyEngineError` — raised by :class:`FathomRouter` for engine
   construction or fact-assertion failures (design §3.4 failure modes).
+- :class:`Broker` — public facade (design §3.1).
+- :class:`BrokerResponse` — response model (design §4.8).
 """
 
 from __future__ import annotations
@@ -17,4 +19,10 @@ class PolicyEngineError(Exception):
     """
 
 
-__all__ = ["PolicyEngineError"]
+# Re-exports for ``from nautilus.core import Broker, BrokerResponse``.
+# Placed after ``PolicyEngineError`` definition because
+# ``nautilus.core.broker`` imports it at module load time.
+from nautilus.core.broker import Broker  # noqa: E402
+from nautilus.core.models import BrokerResponse  # noqa: E402
+
+__all__ = ["Broker", "BrokerResponse", "PolicyEngineError"]

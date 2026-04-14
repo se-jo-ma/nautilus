@@ -170,7 +170,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(adapters): add PgVectorAdapter and Embedder protocol with NoopEmbedder`
 - **References**: FR-9, AC-5.1, AC-5.2, AC-5.3, AC-5.4, UQ-3, design §3.10, §7.
 
-### Task 1.16 — Implement `BasicSynthesizer`, `AuditLogger`, `SessionStore`, `Broker` facade
+### Task 1.16 — Implement `BasicSynthesizer`, `AuditLogger`, `SessionStore`, `Broker` facade [x]
 - **Do**:
   - `nautilus/synthesis/base.py`: `Synthesizer` Protocol. `nautilus/synthesis/basic.py`: `BasicSynthesizer.merge(results)` returns `{source_id: rows}`; never raises on partial failure (failed adapters are pre-filtered to `sources_errored`).
   - `nautilus/audit/logger.py`: `AuditLogger(sink)` with `emit(entry: AuditEntry) -> None`; default sink is `fathom.audit.FileSink(path)`.
