@@ -26,7 +26,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `chore(scaffold): create nautilus subpackage skeleton`
 - **References**: design §11, UQ-1.
 
-### Task 1.2 — Extend `pyproject.toml` with deps + tooling
+### Task 1.2 — Extend `pyproject.toml` with deps + tooling [x]
 - **Do**:
   - Add runtime deps `asyncpg>=0.30.0`, `pgvector>=0.3.0` to `[project].dependencies`.
   - Add `[project.optional-dependencies].dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "pytest-cov>=5.0", "testcontainers[postgres]>=4.0", "ruff>=0.5", "pyright>=1.1.370", "pip-licenses>=5.0"]`.

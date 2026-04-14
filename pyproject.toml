@@ -1,0 +1,41 @@
+[project]
+name = "nautilus"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fathom-rules>=0.1.0",
+    "asyncpg>=0.30.0",
+    "pgvector>=0.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "testcontainers[postgres]>=4.0",
+    "ruff>=0.5",
+    "pyright>=1.1.370",
+    "pip-licenses>=5.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "ASYNC"]
+
+[tool.pyright]
+strict = ["nautilus", "tests"]
+include = ["nautilus", "tests"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+]
+addopts = "--strict-markers --cov=nautilus --cov-branch --cov-fail-under=80"
