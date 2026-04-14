@@ -341,7 +341,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(adapters): add PgVectorAdapter embedder precedence + query shape tests`
 - **References**: AC-5.1, AC-5.2, AC-5.3, FR-9, UQ-3.
 
-### [VERIFY] Task 3.8 — Quality checkpoint (test batch 2)
+### [VERIFY] Task 3.8 — Quality checkpoint (test batch 2) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 
