@@ -24,6 +24,7 @@ import asyncio
 import hashlib
 import time
 import uuid
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
@@ -57,7 +58,107 @@ from nautilus.synthesis.basic import BasicSynthesizer
 
 if TYPE_CHECKING:
     from nautilus.analysis.base import IntentAnalyzer
+    from nautilus.core.fathom_router import RouteResult
     from nautilus.synthesis.base import Synthesizer
+
+
+@dataclass
+class _RequestState:
+    """Mutable per-request scratchpad shared by ``arequest`` helpers.
+
+    Pre-declared so the broker's except blocks can still emit a best-effort
+    audit entry even when the pipeline fails mid-flight (design §9.2).
+    """
+
+    request_id: str
+    session_id: str
+    started: float
+    intent: str
+    intent_analysis: IntentAnalysis
+    routing_decisions: list[RoutingDecision] = field(default_factory=list[RoutingDecision])
+    scope_by_source: dict[str, list[ScopeConstraint]] = field(
+        default_factory=dict[str, list[ScopeConstraint]]
+    )
+    denial_records: list[Any] = field(default_factory=list[Any])
+    rule_trace: list[str] = field(default_factory=list[str])
+    facts_summary: dict[str, int] = field(default_factory=dict[str, int])
+    sources_queried: list[str] = field(default_factory=list[str])
+    sources_denied: list[str] = field(default_factory=list[str])
+    sources_skipped: list[str] = field(default_factory=list[str])
+    errored: list[ErrorRecord] = field(default_factory=list[ErrorRecord])
+    data: dict[str, list[dict[str, Any]]] = field(default_factory=dict[str, list[dict[str, Any]]])
+    attestation_token: str | None = None
+
+    def apply_route_result(self, route_result: RouteResult) -> None:
+        """Copy router output into the mutable request state."""
+        self.routing_decisions = route_result.routing_decisions
+        self.scope_by_source = route_result.scope_constraints
+        self.denial_records = route_result.denial_records
+        self.rule_trace = list(route_result.rule_trace)
+        self.facts_summary = dict(route_result.facts_asserted_summary)
+
+    def duration_ms(self) -> int:
+        """Integer millisecond delta since ``started`` (design §4.1)."""
+        return int((time.perf_counter() - self.started) * 1000)
+
+
+def _new_request_state(context: dict[str, Any], intent: str) -> _RequestState:
+    """Factory for a fresh per-request scratchpad."""
+    return _RequestState(
+        request_id=str(uuid.uuid4()),
+        session_id=str(context.get("session_id", "")),
+        started=time.perf_counter(),
+        intent=intent,
+        intent_analysis=IntentAnalysis(raw_intent=intent, data_types_needed=[], entities=[]),
+    )
+
+
+def _broker_error(exc: BaseException, request_id: str) -> ErrorRecord:
+    """Wrap an unexpected broker-level exception as an :class:`ErrorRecord`."""
+    return ErrorRecord(
+        source_id="<broker>",
+        error_type=type(exc).__name__,
+        message=str(exc),
+        trace_id=request_id,
+    )
+
+
+def _source_error(source_id: str, error_type: str, message: str, request_id: str) -> ErrorRecord:
+    """Build a per-source :class:`ErrorRecord` tagged with the request trace id."""
+    return ErrorRecord(
+        source_id=source_id,
+        error_type=error_type,
+        message=message,
+        trace_id=request_id,
+    )
+
+
+def _build_audit_entry(
+    agent_id: str,
+    state: _RequestState,
+    attestation_token: str | None,
+) -> AuditEntry:
+    """Materialize a flat :class:`AuditEntry` from pipeline state (design §4.9)."""
+    return AuditEntry(
+        timestamp=AuditLogger.utcnow(),
+        request_id=state.request_id,
+        agent_id=agent_id,
+        session_id=state.session_id or None,
+        raw_intent=state.intent,
+        intent_analysis=state.intent_analysis,
+        facts_asserted_summary=state.facts_summary,
+        routing_decisions=state.routing_decisions,
+        scope_constraints=[c for cs in state.scope_by_source.values() for c in cs],
+        denial_records=state.denial_records,
+        error_records=state.errored,
+        rule_trace=state.rule_trace,
+        sources_queried=state.sources_queried,
+        sources_denied=state.sources_denied,
+        sources_skipped=state.sources_skipped,
+        sources_errored=[e.source_id for e in state.errored],
+        attestation_token=attestation_token,
+        duration_ms=state.duration_ms(),
+    )
 
 
 class Broker:
@@ -235,234 +336,179 @@ class Broker:
     ) -> BrokerResponse:
         """Async request pipeline (design §3.1, §8, §9).
 
-        Steps:
-        1. Intent analysis.
-        2. Session read.
-        3. Fathom routing → routing decisions, scope constraints, denials.
-        4. Concurrent adapter execution via ``asyncio.gather``.
-        5. Split success/error results; pre-filter errors out of synthesis.
-        6. Synthesize merged ``{source_id: rows}``.
-        7. Sign attestation (if enabled).
-        8. Emit single :class:`AuditEntry` — success OR failure.
-        9. Session update, return :class:`BrokerResponse`.
+        Linear sequence of awaits; heavy lifting lives in private helpers
+        (`_run_pipeline`, `_build_adapter_jobs`, `_gather_adapter_results`,
+        `_build_response`, `_emit_audit`). On policy-engine or unexpected
+        failure, a single audit entry is still emitted before re-raising.
         """
         context = dict(context) if context else {}
-        request_id = str(uuid.uuid4())
-        session_id = str(context.get("session_id", ""))
-        started = time.perf_counter()
-
-        # Pre-declared so the except block can still emit an audit entry.
-        intent_analysis: IntentAnalysis = IntentAnalysis(
-            raw_intent=intent,
-            data_types_needed=[],
-            entities=[],
-        )
-        routing_decisions: list[RoutingDecision] = []
-        scope_by_source: dict[str, list[ScopeConstraint]] = {}
-        denial_records: list[Any] = []
-        rule_trace: list[str] = []
-        facts_summary: dict[str, int] = {}
-        sources_queried: list[str] = []
-        sources_denied: list[str] = []
-        sources_skipped: list[str] = []
-        sources_errored_records: list[ErrorRecord] = []
-        data: dict[str, list[dict[str, Any]]] = {}
-        attestation_token: str | None = None
-
+        state = _new_request_state(context, intent)
         try:
-            intent_analysis = self._intent_analyzer.analyze(intent, context)
-
-            session_state = self._session_store.get(session_id) if session_id else {}
-            if session_id:
-                session_state.setdefault("id", session_id)
-
-            route_result = self._router.route(
-                agent_id=agent_id,
-                context=context,
-                intent=intent_analysis,
-                sources=self._registry.sources,
-                session=session_state,
-            )
-            routing_decisions = route_result.routing_decisions
-            scope_by_source = route_result.scope_constraints
-            denial_records = route_result.denial_records
-            rule_trace = list(route_result.rule_trace)
-            facts_summary = dict(route_result.facts_asserted_summary)
-
-            selected_ids = {rd.source_id for rd in routing_decisions}
-            denied_ids = {d.source_id for d in denial_records}
-            sources_denied = sorted(denied_ids)
-            sources_skipped = sorted(
-                s.id for s in self._registry if s.id not in selected_ids and s.id not in denied_ids
-            )
-
-            # Concurrent adapter fan-out — design §3.1 / NFR-3.
-            adapter_tasks: list[asyncio.Task[AdapterResult]] = []
-            task_source_ids: list[str] = []
-            for rd in routing_decisions:
-                source_id = rd.source_id
-                adapter = self._adapters.get(source_id)
-                if adapter is None:
-                    sources_errored_records.append(
-                        ErrorRecord(
-                            source_id=source_id,
-                            error_type="AdapterError",
-                            message=f"No adapter registered for source '{source_id}'",
-                            trace_id=request_id,
-                        )
-                    )
-                    continue
-                # Lazy-connect: the first time we dispatch to an adapter we
-                # invoke its ``connect(config)`` method so the async pool is
-                # built inside the event loop (asyncpg refuses cross-loop
-                # pools). Connection failures become per-source errors.
-                if source_id not in self._connected_adapters:
-                    try:
-                        await adapter.connect(self._registry.get(source_id))
-                    except Exception as exc:  # noqa: BLE001 — surface as per-source error
-                        sources_errored_records.append(
-                            ErrorRecord(
-                                source_id=source_id,
-                                error_type=type(exc).__name__,
-                                message=f"connect() failed: {exc}",
-                                trace_id=request_id,
-                            )
-                        )
-                        continue
-                    self._connected_adapters.add(source_id)
-                scope = scope_by_source.get(source_id, [])
-                adapter_tasks.append(
-                    asyncio.create_task(
-                        self._execute_adapter(adapter, source_id, intent_analysis, scope, context)
-                    )
-                )
-                task_source_ids.append(source_id)
-
-            raw_results = await asyncio.gather(*adapter_tasks, return_exceptions=True)
-
-            successful_results: list[AdapterResult] = []
-            for source_id, res in zip(task_source_ids, raw_results, strict=True):
-                if isinstance(res, BaseException):
-                    sources_errored_records.append(
-                        ErrorRecord(
-                            source_id=source_id,
-                            error_type=type(res).__name__,
-                            message=str(res),
-                            trace_id=request_id,
-                        )
-                    )
-                    continue
-                if res.error is not None:
-                    sources_errored_records.append(res.error)
-                    continue
-                successful_results.append(res)
-                sources_queried.append(source_id)
-
-            data = self._synthesizer.merge(successful_results)
-
-            if self._attestation is not None:
-                attestation_token = self._sign(
-                    request_id=request_id,
-                    agent_id=agent_id,
-                    sources_queried=sources_queried,
-                    scope_by_source=scope_by_source,
-                    rule_trace=rule_trace,
-                    session_id=session_id,
-                )
-
-            # Phase 1: cumulative-exposure bookkeeping per design §3.9 (get at
-            # start, update at end). Concrete reasoning rules land in Phase 2.
-            if session_id:
-                self._session_store.update(
-                    session_id,
-                    {
-                        "last_request_id": request_id,
-                        "last_sources_queried": sources_queried,
-                    },
-                )
+            await self._run_pipeline(agent_id, intent, context, state)
         except PolicyEngineError:
-            duration_ms = int((time.perf_counter() - started) * 1000)
-            self._emit_audit(
-                request_id=request_id,
-                agent_id=agent_id,
-                session_id=session_id,
-                intent=intent,
-                intent_analysis=intent_analysis,
-                facts_summary=facts_summary,
-                routing_decisions=routing_decisions,
-                scope_by_source=scope_by_source,
-                denial_records=denial_records,
-                errored=sources_errored_records,
-                rule_trace=rule_trace,
-                sources_queried=sources_queried,
-                sources_denied=sources_denied,
-                sources_skipped=sources_skipped,
-                attestation_token=None,
-                duration_ms=duration_ms,
-            )
+            self._emit_audit(agent_id, state, None)
             raise
         except Exception as exc:  # noqa: BLE001 — any unexpected error must still audit
-            sources_errored_records.append(
-                ErrorRecord(
-                    source_id="<broker>",
-                    error_type=type(exc).__name__,
-                    message=str(exc),
-                    trace_id=request_id,
+            state.errored.append(_broker_error(exc, state.request_id))
+            self._emit_audit(agent_id, state, None)
+            raise
+        self._emit_audit(agent_id, state, state.attestation_token)
+        return self._build_response(state)
+
+    async def _run_pipeline(
+        self,
+        agent_id: str,
+        intent: str,
+        context: dict[str, Any],
+        state: _RequestState,
+    ) -> None:
+        """Happy-path pipeline body — mutates ``state`` in place."""
+        state.intent_analysis = self._intent_analyzer.analyze(intent, context)
+        self._route(agent_id, context, state)
+        tasks, task_source_ids = await self._build_adapter_jobs(state, context)
+        successful = await self._gather_adapter_results(state, tasks, task_source_ids)
+        state.data = self._synthesizer.merge(successful)
+        if self._attestation is not None:
+            state.attestation_token = self._sign(
+                request_id=state.request_id,
+                agent_id=agent_id,
+                sources_queried=state.sources_queried,
+                scope_by_source=state.scope_by_source,
+                rule_trace=state.rule_trace,
+                session_id=state.session_id,
+            )
+        self._update_session(state)
+
+    def _route(self, agent_id: str, context: dict[str, Any], state: _RequestState) -> None:
+        """Invoke the Fathom router and classify sources into queried/denied/skipped."""
+        session_state = self._session_store.get(state.session_id) if state.session_id else {}
+        if state.session_id:
+            session_state.setdefault("id", state.session_id)
+        route_result = self._router.route(
+            agent_id=agent_id,
+            context=context,
+            intent=state.intent_analysis,
+            sources=self._registry.sources,
+            session=session_state,
+        )
+        state.apply_route_result(route_result)
+        state.sources_denied = sorted({d.source_id for d in state.denial_records})
+        selected_ids = {rd.source_id for rd in state.routing_decisions}
+        denied_ids = set(state.sources_denied)
+        state.sources_skipped = sorted(
+            s.id for s in self._registry if s.id not in selected_ids and s.id not in denied_ids
+        )
+
+    def _update_session(self, state: _RequestState) -> None:
+        """Phase 1 cumulative-exposure bookkeeping (design §3.9 — update at end)."""
+        if not state.session_id:
+            return
+        self._session_store.update(
+            state.session_id,
+            {
+                "last_request_id": state.request_id,
+                "last_sources_queried": state.sources_queried,
+            },
+        )
+
+    async def _build_adapter_jobs(
+        self,
+        state: _RequestState,
+        context: dict[str, Any],
+    ) -> tuple[list[asyncio.Task[AdapterResult]], list[str]]:
+        """Lazy-connect + spawn one task per routing decision (design §3.1)."""
+        tasks: list[asyncio.Task[AdapterResult]] = []
+        task_source_ids: list[str] = []
+        for rd in state.routing_decisions:
+            adapter = await self._prepare_adapter(rd.source_id, state)
+            if adapter is None:
+                continue
+            scope = state.scope_by_source.get(rd.source_id, [])
+            tasks.append(
+                asyncio.create_task(
+                    self._execute_adapter(
+                        adapter, rd.source_id, state.intent_analysis, scope, context
+                    )
                 )
             )
-            duration_ms = int((time.perf_counter() - started) * 1000)
-            self._emit_audit(
-                request_id=request_id,
-                agent_id=agent_id,
-                session_id=session_id,
-                intent=intent,
-                intent_analysis=intent_analysis,
-                facts_summary=facts_summary,
-                routing_decisions=routing_decisions,
-                scope_by_source=scope_by_source,
-                denial_records=denial_records,
-                errored=sources_errored_records,
-                rule_trace=rule_trace,
-                sources_queried=sources_queried,
-                sources_denied=sources_denied,
-                sources_skipped=sources_skipped,
-                attestation_token=None,
-                duration_ms=duration_ms,
+            task_source_ids.append(rd.source_id)
+        return tasks, task_source_ids
+
+    async def _prepare_adapter(self, source_id: str, state: _RequestState) -> Adapter | None:
+        """Resolve and lazy-connect the adapter for ``source_id``.
+
+        Records per-source :class:`ErrorRecord`\\ s on lookup / connect failure
+        and returns ``None`` so the caller can skip this source.
+        """
+        adapter = self._adapters.get(source_id)
+        if adapter is None:
+            state.errored.append(
+                _source_error(
+                    source_id,
+                    "AdapterError",
+                    f"No adapter registered for source '{source_id}'",
+                    state.request_id,
+                )
             )
-            raise
+            return None
+        if source_id in self._connected_adapters:
+            return adapter
+        try:
+            await adapter.connect(self._registry.get(source_id))
+        except Exception as exc:  # noqa: BLE001 — surface as per-source error
+            state.errored.append(
+                _source_error(
+                    source_id, type(exc).__name__, f"connect() failed: {exc}", state.request_id
+                )
+            )
+            return None
+        self._connected_adapters.add(source_id)
+        return adapter
 
-        duration_ms = int((time.perf_counter() - started) * 1000)
+    async def _gather_adapter_results(
+        self,
+        state: _RequestState,
+        tasks: list[asyncio.Task[AdapterResult]],
+        task_source_ids: list[str],
+    ) -> list[AdapterResult]:
+        """Await ``tasks`` and split into successes / errors (into state)."""
+        raw = await asyncio.gather(*tasks, return_exceptions=True)
+        successful: list[AdapterResult] = []
+        for source_id, res in zip(task_source_ids, raw, strict=True):
+            if isinstance(res, BaseException):
+                state.errored.append(
+                    _source_error(source_id, type(res).__name__, str(res), state.request_id)
+                )
+                continue
+            if res.error is not None:
+                state.errored.append(res.error)
+                continue
+            successful.append(res)
+            state.sources_queried.append(source_id)
+        return successful
 
-        self._emit_audit(
-            request_id=request_id,
-            agent_id=agent_id,
-            session_id=session_id,
-            intent=intent,
-            intent_analysis=intent_analysis,
-            facts_summary=facts_summary,
-            routing_decisions=routing_decisions,
-            scope_by_source=scope_by_source,
-            denial_records=denial_records,
-            errored=sources_errored_records,
-            rule_trace=rule_trace,
-            sources_queried=sources_queried,
-            sources_denied=sources_denied,
-            sources_skipped=sources_skipped,
-            attestation_token=attestation_token,
-            duration_ms=duration_ms,
-        )
-
+    def _build_response(self, state: _RequestState) -> BrokerResponse:
+        """Materialize the user-facing :class:`BrokerResponse` from ``state``."""
         return BrokerResponse(
-            request_id=request_id,
-            data=data,
-            sources_queried=sorted(sources_queried),
-            sources_denied=sources_denied,
-            sources_skipped=sources_skipped,
-            sources_errored=sources_errored_records,
-            scope_restrictions=scope_by_source,
-            attestation_token=attestation_token,
-            duration_ms=duration_ms,
+            request_id=state.request_id,
+            data=state.data,
+            sources_queried=sorted(state.sources_queried),
+            sources_denied=state.sources_denied,
+            sources_skipped=state.sources_skipped,
+            sources_errored=state.errored,
+            scope_restrictions=state.scope_by_source,
+            attestation_token=state.attestation_token,
+            duration_ms=state.duration_ms(),
         )
+
+    def _emit_audit(
+        self,
+        agent_id: str,
+        state: _RequestState,
+        attestation_token: str | None,
+    ) -> None:
+        """Build and hand the :class:`AuditEntry` to the logger (NFR-8, §9.2)."""
+        self._audit_logger.emit(_build_audit_entry(agent_id, state, attestation_token))
 
     async def _execute_adapter(
         self,
@@ -560,52 +606,6 @@ class Broker:
             session_id=session_ref,
             input_facts=input_facts,
         )
-
-    def _emit_audit(
-        self,
-        *,
-        request_id: str,
-        agent_id: str,
-        session_id: str,
-        intent: str,
-        intent_analysis: IntentAnalysis,
-        facts_summary: dict[str, int],
-        routing_decisions: list[RoutingDecision],
-        scope_by_source: dict[str, list[ScopeConstraint]],
-        denial_records: list[Any],
-        errored: list[ErrorRecord],
-        rule_trace: list[str],
-        sources_queried: list[str],
-        sources_denied: list[str],
-        sources_skipped: list[str],
-        attestation_token: str | None,
-        duration_ms: int,
-    ) -> None:
-        """Build the :class:`AuditEntry` and hand it to the logger (NFR-8)."""
-        flat_scope: list[ScopeConstraint] = [
-            c for constraints in scope_by_source.values() for c in constraints
-        ]
-        entry = AuditEntry(
-            timestamp=AuditLogger.utcnow(),
-            request_id=request_id,
-            agent_id=agent_id,
-            session_id=session_id or None,
-            raw_intent=intent,
-            intent_analysis=intent_analysis,
-            facts_asserted_summary=facts_summary,
-            routing_decisions=routing_decisions,
-            scope_constraints=flat_scope,
-            denial_records=denial_records,
-            error_records=errored,
-            rule_trace=rule_trace,
-            sources_queried=sources_queried,
-            sources_denied=sources_denied,
-            sources_skipped=sources_skipped,
-            sources_errored=[e.source_id for e in errored],
-            attestation_token=attestation_token,
-            duration_ms=duration_ms,
-        )
-        self._audit_logger.emit(entry)
 
     # ------------------------------------------------------------------
     # Lifecycle

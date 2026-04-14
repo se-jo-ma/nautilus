@@ -240,7 +240,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Done when**: All four exit 0.
 - **Commit**: `chore(refactor): pass quality checkpoint` (if fixes needed)
 
-### Task 2.5 — Split `broker.py` request pipeline into private helpers
+### Task 2.5 — Split `broker.py` request pipeline into private helpers [x]
 - **Do**: Within `Broker`, extract `_build_adapter_jobs`, `_gather_adapter_results`, `_build_response`, `_emit_audit` as async private methods; `arequest` becomes a linear sequence of awaits.
 - **Files**: `nautilus/core/broker.py`.
 - **Done when**: Each helper is ≤ 30 LOC; `arequest` body ≤ 40 LOC; public surface unchanged.
