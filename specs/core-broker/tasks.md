@@ -219,7 +219,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor(core): promote RouteResult to models module`
 - **References**: design §3.4, §4.
 
-### Task 2.2 — Introduce explicit `EmbeddingUnavailableError` hierarchy
+### Task 2.2 — Introduce explicit `EmbeddingUnavailableError` hierarchy [x]
 - **Do**: Move `EmbeddingUnavailableError` from `embedder.py` to `nautilus/adapters/base.py` as subclass of `AdapterError`; keep re-export for back-compat.
 - **Files**: `nautilus/adapters/base.py`, `nautilus/adapters/embedder.py`, `nautilus/adapters/__init__.py`.
 - **Done when**: `issubclass(EmbeddingUnavailableError, AdapterError)` is True.

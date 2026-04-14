@@ -13,15 +13,10 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from nautilus.adapters.base import AdapterError
-
-
-class EmbeddingUnavailableError(AdapterError):
-    """Raised when no embedder can produce a vector for a pgvector request.
-
-    Design §10 error table: surfaces as a ``sources_errored`` entry rather than
-    propagating to the agent.
-    """
+# ``EmbeddingUnavailableError`` lives in ``nautilus.adapters.base`` alongside the
+# rest of the adapter exception hierarchy (Task 2.2). Re-exported here for
+# backward compatibility with existing imports.
+from nautilus.adapters.base import EmbeddingUnavailableError
 
 
 @runtime_checkable

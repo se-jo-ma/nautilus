@@ -29,6 +29,15 @@ class ScopeEnforcementError(AdapterError):
     """
 
 
+class EmbeddingUnavailableError(AdapterError):
+    """Raised when no embedder can produce a vector for a pgvector request.
+
+    Design §10 error table: surfaces as a ``sources_errored`` entry rather than
+    propagating to the agent. Lives here (rather than in ``embedder.py``) so the
+    full adapter exception hierarchy is defined in a single module.
+    """
+
+
 # Runtime operator allowlist — keep in sync with the ``Literal[...]`` on
 # ``ScopeConstraint.operator`` in ``nautilus/core/models.py`` (design §6.1).
 _OPERATOR_ALLOWLIST: frozenset[str] = frozenset(
@@ -95,6 +104,7 @@ class Adapter(Protocol):
 __all__ = [
     "Adapter",
     "AdapterError",
+    "EmbeddingUnavailableError",
     "ScopeEnforcementError",
     "validate_field",
     "validate_operator",
