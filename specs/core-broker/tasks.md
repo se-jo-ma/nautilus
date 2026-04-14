@@ -135,7 +135,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(rules): add Nautilus templates, module, default rules, overlaps external`
 - **References**: FR-4, FR-5, AC-3.1, AC-3.6, AC-3.7, design §5, §17.
 
-### Task 1.13 — Implement `FathomRouter`
+### Task 1.13 — Implement `FathomRouter` [x]
 - **Do**:
   - Create `nautilus/core/fathom_router.py` with `FathomRouter(built_in_rules_dir, user_rules_dirs, attestation=None)`; constructor builds `fathom.Engine`, loads built-in templates+module+rules, registers `overlaps` and `not-in-list` externals, then loads user rules.
   - Implement `route()` per design §3.4 + §5.4: clear facts, encode multislot list fields to space-separated strings (quote values with whitespace), assert `agent`, `intent`, each `source`, `session`; `engine.evaluate()`; query `routing_decision`, `scope_constraint`, `denial_record`; capture `rule_trace`; return `RouteResult` dataclass.
