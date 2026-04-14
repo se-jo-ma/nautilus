@@ -289,7 +289,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 
 ## Phase 3: Testing
 
-### Task 3.1 — `tests/unit/test_config_loader.py`
+### Task 3.1 — `tests/unit/test_config_loader.py` [x]
 - **Do**: Test cases: (a) valid YAML produces `NautilusConfig`, (b) missing env var → `ConfigError` naming var + source id, (c) unknown `type` → `ConfigError`, (d) duplicate id → `ConfigError`, (e) env interpolation in `connection` works, (f) optional `allowed_purposes` omitted → None.
 - **Files**: `tests/unit/test_config_loader.py`.
 - **Done when**: 6 test cases pass.
