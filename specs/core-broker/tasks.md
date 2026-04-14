@@ -68,7 +68,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(config): add NautilusConfig and SourceConfig Pydantic models`
 - **References**: FR-1, AC-1.1, design §4.1, §4.10.
 
-### Task 1.6 — Implement config loader with env interpolation
+### Task 1.6 — Implement config loader with env interpolation [x]
 - **Do**:
   - Create `nautilus/config/loader.py` with `class ConfigError(Exception)` and `def load_config(path: Path) -> NautilusConfig`.
   - Implement `EnvInterpolator` that replaces `${VAR}` patterns in any string field of the dict loaded from `yaml.safe_load`; missing var → raise `ConfigError(f"Missing env var '{var}' referenced by source id='{source_id}'")`.
