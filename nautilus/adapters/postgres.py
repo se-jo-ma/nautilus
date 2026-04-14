@@ -163,7 +163,12 @@ class PostgresAdapter:
         params.append(limit)
         return sql, params
 
-    async def execute(
+    # Method definition — the grep guard's DB-call regex (Task 3.13) matches
+    # ``execute(`` and this sits within 5 lines of the ``_build_sql`` f-string
+    # at the tail of ``_build_sql``. The f-string uses only ``$N`` positional
+    # placeholders (hardened in Task 2.8); tag the method line so the guard
+    # treats it as a non-call.
+    async def execute(  # noqa: SQLGREP
         self,
         intent: IntentAnalysis,
         scope: list[ScopeConstraint],

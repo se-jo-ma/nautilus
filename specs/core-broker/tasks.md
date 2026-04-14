@@ -377,7 +377,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 
-### Task 3.13 — `tests/unit/test_sql_injection_static.py` (grep test)
+### Task 3.13 — `tests/unit/test_sql_injection_static.py` (grep test) [x]
 - **Do**: Write a unit test that walks every `.py` file under `nautilus/adapters/` and scans each file with a **5-line sliding window** for a co-occurring f-string + DB-call pair. Use these canonical patterns (pinned here, copy verbatim into the test):
   - f-string pattern: `FSTRING = re.compile(r"f['\"][^'\"]*\{[^}]+\}")`
   - db-call pattern: `DBCALL = re.compile(r"\b(execute|executemany|fetch|fetchrow|fetchval)\s*\(")`
