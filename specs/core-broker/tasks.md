@@ -38,7 +38,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `chore(tooling): add asyncpg/pgvector/ruff/pyright/pytest deps`
 - **References**: design §11 pyproject block, NFR-6, NFR-10, NFR-11.
 
-### Task 1.3 — Create `tests/` skeleton with markers + shared `conftest.py`
+### Task 1.3 — Create `tests/` skeleton with markers + shared `conftest.py` [x]
 - **Do**:
   - Create `tests/__init__.py`, `tests/unit/__init__.py`, `tests/integration/__init__.py`, `tests/fixtures/` directory.
   - Create `tests/conftest.py` exposing session-scoped fixtures: `fake_intent_analyzer` (returns fixed `IntentAnalysis`), `in_memory_audit_sink` (collects entries into a list), `fake_adapter` (callable-configurable return/raise). Stubs may return `None` for now; body fills in later tasks.
