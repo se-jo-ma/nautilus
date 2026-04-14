@@ -59,12 +59,8 @@ def test_scope_hash_is_canonical_across_key_order() -> None:
 @pytest.mark.unit
 def test_nested_dict_key_order_does_not_affect_hash() -> None:
     """Nested structures are canonicalized recursively via ``sort_keys``."""
-    a = build_payload(
-        "r", "a", ["s"], [{"outer": {"x": 1, "y": {"p": 2, "q": 3}}}], []
-    )
-    b = build_payload(
-        "r", "a", ["s"], [{"outer": {"y": {"q": 3, "p": 2}, "x": 1}}], []
-    )
+    a = build_payload("r", "a", ["s"], [{"outer": {"x": 1, "y": {"p": 2, "q": 3}}}], [])
+    b = build_payload("r", "a", ["s"], [{"outer": {"y": {"q": 3, "p": 2}, "x": 1}}], [])
     assert a["scope_hash"] == b["scope_hash"]
 
 

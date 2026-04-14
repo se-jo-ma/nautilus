@@ -272,7 +272,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor(adapters): tighten field identifier quoting`
 - **References**: NFR-4, design §6.2, §7.3.
 
-### [VERIFY] Task 2.9 — Quality checkpoint (refactor batch 2)
+### [VERIFY] Task 2.9 — Quality checkpoint (refactor batch 2) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 - **Commit**: `chore(refactor): pass quality checkpoint` (if fixes needed)
