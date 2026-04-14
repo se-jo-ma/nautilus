@@ -22,7 +22,11 @@ from nautilus.audit.logger import (
 )
 from nautilus.core.models import (
     AuditEntry,
+    DenialRecord,
+    ErrorRecord,
     IntentAnalysis,
+    RoutingDecision,
+    ScopeConstraint,
 )
 
 
@@ -187,3 +191,257 @@ def test_audit_logger_multiple_writes_append_lines(tmp_path: Path) -> None:
     for line in lines:
         outer = json.loads(line)
         AuditEntry.model_validate_json(outer["metadata"][NAUTILUS_METADATA_KEY])
+
+
+# ---------------------------------------------------------------------------
+# Task 3.10 — Done-when cases (a)–(e)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_audit_entry_schema_shape_matches_ac_7_2() -> None:
+    """AC-7.2: ``AuditEntry`` must carry the documented field set (shape).
+
+    The requirement pins a minimum field list. We assert each of those
+    fields is declared on the Pydantic model so a future accidental
+    rename / removal fails loudly here rather than in an integration run.
+    """
+    required_fields = {
+        "timestamp",
+        "request_id",
+        "agent_id",
+        "session_id",
+        "raw_intent",
+        "intent_analysis",
+        "facts_asserted_summary",
+        "routing_decisions",
+        "scope_constraints",
+        "denial_records",
+        "rule_trace",
+        "sources_queried",
+        "sources_denied",
+        "sources_skipped",
+        "attestation_token",
+        "duration_ms",
+    }
+    declared = set(AuditEntry.model_fields.keys())
+    missing = required_fields - declared
+    assert not missing, f"AuditEntry missing AC-7.2 fields: {sorted(missing)}"
+
+    # A concrete instance must serialise with every required key present
+    # and of the expected kind (so an accidental ``exclude`` default would
+    # also be caught).
+    entry = _make_entry(datetime(2026, 4, 14, tzinfo=UTC))
+    dumped = json.loads(entry.model_dump_json())
+    for field in required_fields:
+        assert field in dumped, f"AC-7.2 field {field!r} absent from JSON dump"
+
+
+@pytest.mark.unit
+def test_audit_logger_append_only_first_line_byte_identical(tmp_path: Path) -> None:
+    """AC-7.3: after a second ``emit``, the first line's bytes must not change.
+
+    Reads the file after the first write, snapshots the first line, writes
+    a second entry, then re-reads and confirms the first line is byte-for-byte
+    identical (no in-place rewrite, no re-ordering, no truncation).
+    """
+    path = tmp_path / "audit.jsonl"
+    sink = FileSink(path)
+    logger = AuditLogger(sink)
+
+    ts1 = datetime(2026, 4, 14, 10, 0, 0, tzinfo=UTC)
+    ts2 = datetime(2026, 4, 14, 10, 0, 1, tzinfo=UTC)
+
+    logger.emit(_make_entry(ts1))
+    raw_after_first = path.read_bytes()
+    assert raw_after_first.count(b"\n") == 1, (
+        f"expected 1 newline after first write, got {raw_after_first.count(b'\n')}"
+    )
+    first_line_snapshot = raw_after_first  # whole file == first line
+
+    logger.emit(_make_entry(ts2))
+    raw_after_second = path.read_bytes()
+    assert raw_after_second.count(b"\n") == 2, (
+        f"expected 2 newlines after second write, got {raw_after_second.count(b'\n')}"
+    )
+    # The first ``len(first_line_snapshot)`` bytes must be identical — the
+    # new entry only appends, never mutates existing content (AC-7.3).
+    assert raw_after_second.startswith(first_line_snapshot), (
+        "first audit line changed after second write — append-only violated"
+    )
+
+
+@pytest.mark.unit
+def test_audit_logger_round_trip_on_every_line(tmp_path: Path) -> None:
+    """AC-7.5: every JSONL line must round-trip via ``AuditEntry.model_validate_json``."""
+    path = tmp_path / "audit.jsonl"
+    sink = FileSink(path)
+    logger = AuditLogger(sink)
+
+    timestamps = [
+        datetime(2026, 4, 14, 9, 0, i, tzinfo=UTC) for i in range(5)
+    ]
+    originals = [_make_entry(ts) for ts in timestamps]
+    for entry in originals:
+        logger.emit(entry)
+
+    raw = path.read_text(encoding="utf-8")
+    lines = [ln for ln in raw.splitlines() if ln.strip()]
+    assert len(lines) == len(originals), (
+        f"expected {len(originals)} lines, got {len(lines)}"
+    )
+
+    for idx, line in enumerate(lines):
+        outer = json.loads(line)
+        entry_json = outer["metadata"][NAUTILUS_METADATA_KEY]
+        parsed = AuditEntry.model_validate_json(entry_json)
+        # Timestamps must survive the JSON round-trip exactly (UTC-normalised).
+        assert parsed.timestamp == timestamps[idx]
+        assert parsed.request_id == originals[idx].request_id
+
+
+@pytest.mark.unit
+def test_audit_logger_written_on_full_denial(tmp_path: Path) -> None:
+    """AC-7.4: a record must be emitted even when every source is denied.
+
+    Builds an ``AuditEntry`` whose ``sources_queried`` is empty and
+    ``sources_denied`` / ``denial_records`` carry the refusal rationale,
+    then asserts the logger (a) writes exactly one JSONL line, (b) tags
+    the Fathom ``AuditRecord.decision`` as ``"deny"``, and (c) the
+    round-tripped Nautilus entry preserves the denial records.
+    """
+    path = tmp_path / "audit.jsonl"
+    sink = FileSink(path)
+    logger = AuditLogger(sink)
+
+    ts = datetime(2026, 4, 14, 11, 0, 0, tzinfo=UTC)
+    entry = AuditEntry(
+        timestamp=ts,
+        request_id="req-denied",
+        agent_id="agent-42",
+        session_id=None,
+        raw_intent="read confidential customer PII",
+        intent_analysis=IntentAnalysis(
+            raw_intent="read confidential customer PII",
+            data_types_needed=["customer_pii"],
+            entities=["customer"],
+        ),
+        facts_asserted_summary={"deny": 2},
+        routing_decisions=[
+            RoutingDecision(source_id="pg", reason="policy:deny"),
+            RoutingDecision(source_id="vec", reason="policy:deny"),
+        ],
+        scope_constraints=[],
+        denial_records=[
+            DenialRecord(
+                source_id="pg",
+                reason="intent not allowlisted",
+                rule_name="routing/no-pii",
+            ),
+            DenialRecord(
+                source_id="vec",
+                reason="intent not allowlisted",
+                rule_name="routing/no-pii",
+            ),
+        ],
+        error_records=[],
+        rule_trace=["rule:routing/no-pii"],
+        sources_queried=[],
+        sources_denied=["pg", "vec"],
+        sources_skipped=[],
+        sources_errored=[],
+        attestation_token=None,
+        duration_ms=3,
+    )
+
+    logger.emit(entry)
+
+    raw = path.read_text(encoding="utf-8")
+    lines = [ln for ln in raw.splitlines() if ln.strip()]
+    assert len(lines) == 1, f"expected 1 audit line on full denial, got {len(lines)}"
+
+    outer = json.loads(lines[0])
+    # AC-7.4: the sink received a record even though no source was queried.
+    assert outer["decision"] == "deny", (
+        f"decision summary must be 'deny' when only denials present, got {outer['decision']!r}"
+    )
+    parsed = AuditEntry.model_validate_json(outer["metadata"][NAUTILUS_METADATA_KEY])
+    assert parsed.sources_queried == []
+    assert parsed.sources_denied == ["pg", "vec"]
+    assert [d.rule_name for d in parsed.denial_records] == [
+        "routing/no-pii",
+        "routing/no-pii",
+    ]
+
+
+@pytest.mark.unit
+def test_audit_logger_written_on_adapter_exception(tmp_path: Path) -> None:
+    """AC-7.4: a record must be emitted even when every queried adapter errors.
+
+    Builds an ``AuditEntry`` where a source was queried but errored out
+    (``error_records`` populated, ``sources_errored`` non-empty, no successful
+    rows). Asserts the logger writes the line, that the Fathom decision
+    summary is ``"error"``, and the error detail round-trips.
+    """
+    path = tmp_path / "audit.jsonl"
+    sink = FileSink(path)
+    logger = AuditLogger(sink)
+
+    ts = datetime(2026, 4, 14, 11, 5, 0, tzinfo=UTC)
+    err = ErrorRecord(
+        source_id="pg",
+        error_type="AdapterError",
+        message="connection refused",
+        trace_id="req-err",
+    )
+    entry = AuditEntry(
+        timestamp=ts,
+        request_id="req-err",
+        agent_id="agent-42",
+        session_id=None,
+        raw_intent="list customers",
+        intent_analysis=IntentAnalysis(
+            raw_intent="list customers",
+            data_types_needed=["customer"],
+            entities=["customer"],
+        ),
+        facts_asserted_summary={"source": 1},
+        routing_decisions=[RoutingDecision(source_id="pg", reason="allow")],
+        scope_constraints=[
+            ScopeConstraint(
+                source_id="pg",
+                field="tenant_id",
+                operator="=",
+                value="t-1",
+            )
+        ],
+        denial_records=[],
+        error_records=[err],
+        rule_trace=["rule:routing/allow-basic"],
+        sources_queried=[],  # adapter errored before returning rows
+        sources_denied=[],
+        sources_skipped=[],
+        sources_errored=["pg"],
+        attestation_token=None,
+        duration_ms=7,
+    )
+
+    logger.emit(entry)
+
+    raw = path.read_text(encoding="utf-8")
+    lines = [ln for ln in raw.splitlines() if ln.strip()]
+    assert len(lines) == 1, f"expected 1 audit line on adapter exception, got {len(lines)}"
+
+    outer = json.loads(lines[0])
+    assert outer["decision"] == "error", (
+        f"decision must be 'error' when only errors present, got {outer['decision']!r}"
+    )
+    parsed = AuditEntry.model_validate_json(outer["metadata"][NAUTILUS_METADATA_KEY])
+    assert parsed.sources_errored == ["pg"]
+    assert len(parsed.error_records) == 1
+    assert parsed.error_records[0].error_type == "AdapterError"
+    assert parsed.error_records[0].message == "connection refused"
+    # Scope constraints survive the round-trip even under error paths.
+    assert [(sc.source_id, sc.field, sc.operator) for sc in parsed.scope_constraints] == [
+        ("pg", "tenant_id", "=")
+    ]

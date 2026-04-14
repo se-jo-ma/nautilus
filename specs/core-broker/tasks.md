@@ -353,7 +353,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(synthesis): add BasicSynthesizer partial-failure tests`
 - **References**: AC-6.1, AC-6.2, AC-6.4, FR-10, FR-18.
 
-### Task 3.10 — `tests/unit/test_audit_logger.py`
+### Task 3.10 — `tests/unit/test_audit_logger.py` [x]
 - **Do**: Test cases: (a) `AuditEntry` shape matches AC-7.2 schema, (b) append-only — 2 requests produce 2 lines, first line byte-identical after second write (AC-7.3), (c) round-trip `AuditEntry.model_validate_json` on every line (AC-7.5), (d) audit written even on full denial (AC-7.4), (e) audit written on adapter exception (AC-7.4).
 - **Files**: `tests/unit/test_audit_logger.py`.
 - **Done when**: 5 cases pass.
