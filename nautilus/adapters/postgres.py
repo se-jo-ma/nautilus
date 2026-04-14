@@ -17,7 +17,8 @@ import asyncpg  # pyright: ignore[reportMissingTypeStubs]
 from nautilus.adapters.base import (
     AdapterError,
     ScopeEnforcementError,
-    validate_field,
+    quote_identifier,
+    render_field,
     validate_operator,
 )
 from nautilus.config.models import SourceConfig
@@ -85,11 +86,10 @@ class PostgresAdapter:
 
         Each operator branch renders per the §6.1 template table.
         """
-        validate_field(table.split(".")[-1])  # defensive: per-segment id check
-        # Quote the table as a SQL identifier (double-quote; embedded quotes
-        # escaped by doubling). This is identifier quoting, not value quoting
-        # — user values never reach here.
-        quoted_table = _quote_ident(table)
+        # ``table`` is trusted config (validated at config-load time) but
+        # still routed through :func:`quote_identifier` so the regex guard and
+        # double-quoting happen in one vetted helper (NFR-4, Task 2.8).
+        quoted_table = quote_identifier(table.split(".")[-1])
 
         where_clauses: list[str] = []
         params: list[Any] = []
@@ -97,8 +97,10 @@ class PostgresAdapter:
 
         for constraint in scope:
             validate_operator(constraint.operator)
-            validate_field(constraint.field)
-            field_sql = _render_field(constraint.field)
+            # ``render_field`` re-runs ``validate_field`` so invalid idents
+            # (e.g. leading digit, embedded quote) raise before any SQL is
+            # composed — no injection vector reaches the f-string.
+            field_sql = render_field(constraint.field)
             op = constraint.operator
             value = constraint.value
 
@@ -177,27 +179,6 @@ class PostgresAdapter:
             rows=rows,
             duration_ms=duration_ms,
         )
-
-
-def _render_field(field: str) -> str:
-    """Render a validated field reference as SQL.
-
-    Plain identifier ``col`` → ``"col"``.
-    Dotted identifier ``jsonb_col.key`` → ``"jsonb_col"->>'key'`` (JSONB text
-    accessor). Both halves are regex-validated by ``validate_field`` upstream,
-    so they are safe to splice.
-    """
-    if "." in field:
-        parent, child = field.split(".", 1)
-        # child is regex-clean — no quoting needed for the JSONB key literal
-        # beyond wrapping in single quotes.
-        return f"{_quote_ident(parent)}->>'{child}'"
-    return _quote_ident(field)
-
-
-def _quote_ident(ident: str) -> str:
-    """Quote a SQL identifier by wrapping in ``"`` and doubling inner quotes."""
-    return '"' + ident.replace('"', '""') + '"'
 
 
 __all__ = ["PostgresAdapter"]

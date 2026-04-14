@@ -21,7 +21,7 @@ from pgvector.asyncpg import (  # pyright: ignore[reportMissingTypeStubs]
     register_vector as _register_vector_raw,  # pyright: ignore[reportUnknownVariableType]
 )
 
-from nautilus.adapters.base import AdapterError
+from nautilus.adapters.base import AdapterError, quote_identifier
 from nautilus.adapters.embedder import Embedder, EmbeddingUnavailableError, NoopEmbedder
 from nautilus.adapters.postgres import PostgresAdapter
 from nautilus.config.models import SourceConfig
@@ -175,9 +175,13 @@ class PgVectorAdapter(PostgresAdapter):
         else:
             where_sql = ""
 
-        quoted_table = '"' + table.replace('"', '""') + '"'
-        quoted_metadata = '"' + metadata_column.replace('"', '""') + '"'
-        quoted_embedding = '"' + embedding_column.replace('"', '""') + '"'
+        # Route every identifier through the shared ``quote_identifier`` helper
+        # (Task 2.8): centralises the regex check + double-quote escaping so
+        # ``pgvector`` and ``postgres`` agree byte-for-byte on identifier
+        # rendering (NFR-4, design §6.2, §7.3).
+        quoted_table = quote_identifier(table.split(".")[-1])
+        quoted_metadata = quote_identifier(metadata_column)
+        quoted_embedding = quote_identifier(embedding_column)
 
         # Allocate the two new positional placeholders. The base renderer
         # consumed $1..$len(scope_params); $E and $L come next.

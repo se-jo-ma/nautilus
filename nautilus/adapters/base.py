@@ -83,6 +83,47 @@ def validate_field(f: str) -> None:
         raise ScopeEnforcementError(f"Invalid field identifier '{f}'")
 
 
+def quote_identifier(ident: str) -> str:
+    """Quote a SQL identifier safely (double-quote, doubled-quote escape).
+
+    ``asyncpg`` does not expose a public identifier-quoting helper; this is the
+    vetted one-liner used throughout the adapter layer (NFR-4, design §6.2,
+    §7.3). ``ident`` is first run through :func:`validate_field` so an attacker
+    cannot smuggle SQL through a crafted identifier — the regex pins the first
+    character to ``[A-Za-z_]`` and forbids everything outside ``[A-Za-z0-9_]``
+    (plus a single dot for JSONB access, which callers split before quoting).
+
+    Raises ``ScopeEnforcementError`` when ``ident`` fails the regex check
+    (e.g. leading digit ``"1bad"`` or embedded quote ``'x"; DROP TABLE ...``).
+    """
+    validate_field(ident)
+    # Double any embedded quote for belt-and-braces defense; the regex already
+    # forbids ``"`` so ``replace`` is a no-op on validated inputs. Kept so the
+    # helper remains correct if :func:`validate_field` ever loosens.
+    return '"' + ident.replace('"', '""') + '"'
+
+
+def render_field(field: str) -> str:
+    """Render a scope field reference as SQL per design §6.2.
+
+    Plain identifier ``col`` → ``"col"``.
+    Dotted identifier ``jsonb_col.key`` → ``"jsonb_col"->>'key'`` (JSONB text
+    accessor, NFR-4).
+
+    ``field`` is validated in full (``parent.child`` or plain), and each
+    segment is re-validated before quoting so a dotted input cannot introduce
+    a segment that individually fails the regex. The JSONB key literal is
+    wrapped in single quotes; the regex-cleaned key cannot contain a quote.
+    """
+    validate_field(field)
+    if "." in field:
+        parent, child = field.split(".", 1)
+        # Child is regex-clean (``validate_field`` covers both halves); no
+        # quoting beyond single-quoting the literal.
+        return f"{quote_identifier(parent)}->>'{child}'"
+    return quote_identifier(field)
+
+
 @runtime_checkable
 class Adapter(Protocol):
     """Adapter Protocol mirroring design §3.5 verbatim."""
@@ -106,6 +147,8 @@ __all__ = [
     "AdapterError",
     "EmbeddingUnavailableError",
     "ScopeEnforcementError",
+    "quote_identifier",
+    "render_field",
     "validate_field",
     "validate_operator",
 ]

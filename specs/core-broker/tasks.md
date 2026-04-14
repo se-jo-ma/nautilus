@@ -264,7 +264,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor: mark all plug-in Protocols as runtime_checkable`
 - **References**: design §3 (Protocol-first).
 
-### Task 2.8 — Harden field-identifier quoting in Postgres adapter
+### Task 2.8 — Harden field-identifier quoting in Postgres adapter [x]
 - **Do**: Replace manual quoting with `asyncpg`'s identifier-quoting helper (or a vetted one-liner); add explicit test cases for dotted JSONB field `metadata.classification`.
 - **Files**: `nautilus/adapters/postgres.py`, `nautilus/adapters/pgvector.py`.
 - **Done when**: Field `metadata.classification` emits `metadata->>'classification'`; field `valid_name` emits `"valid_name"`; field `1bad` raises `ScopeEnforcementError`.

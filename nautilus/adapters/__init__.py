@@ -9,6 +9,8 @@ from nautilus.adapters.base import (
     Adapter,
     AdapterError,
     ScopeEnforcementError,
+    quote_identifier,
+    render_field,
     validate_field,
     validate_operator,
 )
@@ -29,6 +31,8 @@ __all__ = [
     "PgVectorAdapter",
     "PostgresAdapter",
     "ScopeEnforcementError",
+    "quote_identifier",
+    "render_field",
     "validate_field",
     "validate_operator",
 ]
