@@ -227,7 +227,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor(adapters): unify error hierarchy under AdapterError`
 - **References**: design §10.1.
 
-### Task 2.3 — Extract CLIPS multislot encoder to dedicated helper
+### Task 2.3 — Extract CLIPS multislot encoder to dedicated helper [x]
 - **Do**: Pull `encode_multislot(value: list[str]) -> str` out of `FathomRouter` into `nautilus/core/clips_encoding.py`. Add docstring with quoting rules (values containing whitespace get quoted).
 - **Files**: `nautilus/core/clips_encoding.py`, `nautilus/core/fathom_router.py`.
 - **Done when**: `encode_multislot(["a b", "c"])` returns `'"a b" c'`; all router call sites use helper.

@@ -26,6 +26,7 @@ from fathom import Engine
 
 from nautilus.config.models import SourceConfig
 from nautilus.core import PolicyEngineError
+from nautilus.core.clips_encoding import encode_multislot
 from nautilus.core.models import (
     DenialRecord,
     IntentAnalysis,
@@ -37,27 +38,6 @@ from nautilus.rules.functions import register_not_in_list, register_overlaps
 
 if TYPE_CHECKING:
     pass
-
-
-def _encode_multislot(values: list[str] | None) -> str:
-    """Encode a ``list[str]`` slot as a CLIPS-safe space-separated string.
-
-    Per design §5.4: list-typed multislot fields are joined with single
-    spaces; any token containing whitespace is wrapped in double quotes so
-    ``explode$`` / Python ``str.split`` reconstructs it as a single token.
-    """
-    if not values:
-        return ""
-    out: list[str] = []
-    for raw in values:
-        token = str(raw)
-        if any(ch.isspace() for ch in token):
-            # Quote the token so it survives split-on-whitespace round-trip.
-            escaped = token.replace('"', '\\"')
-            out.append(f'"{escaped}"')
-        else:
-            out.append(token)
-    return " ".join(out)
 
 
 class FathomRouter:
@@ -126,8 +106,8 @@ class FathomRouter:
 
             intent_fact = {
                 "raw": intent.raw_intent,
-                "data_types_needed": _encode_multislot(intent.data_types_needed),
-                "entities": _encode_multislot(intent.entities),
+                "data_types_needed": encode_multislot(intent.data_types_needed),
+                "entities": encode_multislot(intent.entities),
             }
             self._engine.assert_fact("intent", intent_fact)
 
@@ -136,8 +116,8 @@ class FathomRouter:
                     "id": source.id,
                     "type": source.type,
                     "classification": source.classification,
-                    "data_types": _encode_multislot(source.data_types),
-                    "allowed_purposes": _encode_multislot(source.allowed_purposes),
+                    "data_types": encode_multislot(source.data_types),
+                    "allowed_purposes": encode_multislot(source.allowed_purposes),
                 }
                 self._engine.assert_fact("source", source_fact)
 
