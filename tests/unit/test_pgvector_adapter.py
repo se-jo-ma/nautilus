@@ -100,9 +100,7 @@ def test_pgvector_build_sql_shape_with_one_scope_and_context_embedding() -> None
     # (b) WHERE must precede ORDER BY.
     where_idx = sql.index(" WHERE ")
     order_idx = sql.index(" ORDER BY ")
-    assert where_idx < order_idx, (
-        f"ORDER BY appeared before WHERE in SQL: {sql!r}"
-    )
+    assert where_idx < order_idx, f"ORDER BY appeared before WHERE in SQL: {sql!r}"
 
     # Scope params come first, then embedding, then top_k (design §7.3).
     assert params[0] == "secret"
@@ -135,9 +133,7 @@ def test_pgvector_build_sql_dotted_metadata_field_uses_jsonb_accessor() -> None:
         embedding=[0.1, 0.2, 0.3],
         top_k=source.top_k,
     )
-    assert "\"metadata\"->>'classification'" in sql, (
-        f"JSONB accessor not rendered in {sql!r}"
-    )
+    assert "\"metadata\"->>'classification'" in sql, f"JSONB accessor not rendered in {sql!r}"
 
 
 @pytest.mark.unit

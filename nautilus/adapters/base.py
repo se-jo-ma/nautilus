@@ -49,9 +49,7 @@ _OPERATOR_ALLOWLIST: frozenset[str] = frozenset(
 
 
 # Field-identifier regex from design §6.2.
-_FIELD_PATTERN: re.Pattern[str] = re.compile(
-    r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$"
-)
+_FIELD_PATTERN: re.Pattern[str] = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
 
 
 def validate_operator(op: str) -> None:

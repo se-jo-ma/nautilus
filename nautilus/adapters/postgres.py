@@ -132,13 +132,9 @@ class PostgresAdapter:
                 pidx += 1
             elif op == "BETWEEN":
                 if not (isinstance(value, (list, tuple)) and len(cast(Any, value)) == 2):
-                    raise ScopeEnforcementError(
-                        "Operator 'BETWEEN' requires a 2-tuple/list value"
-                    )
+                    raise ScopeEnforcementError("Operator 'BETWEEN' requires a 2-tuple/list value")
                 value_seq: list[Any] = list(cast(Any, value))
-                where_clauses.append(
-                    f"{field_sql} BETWEEN ${pidx} AND ${pidx + 1}"
-                )
+                where_clauses.append(f"{field_sql} BETWEEN ${pidx} AND ${pidx + 1}")
                 params.extend(value_seq)
                 pidx += 2
             elif op == "IS NULL":
@@ -166,9 +162,7 @@ class PostgresAdapter:
             raise AdapterError("PostgresAdapter.execute called before connect()")
         table = self._config.table
         if table is None:
-            raise AdapterError(
-                f"PostgresAdapter missing 'table' for source '{self._config.id}'"
-            )
+            raise AdapterError(f"PostgresAdapter missing 'table' for source '{self._config.id}'")
 
         sql, params = self._build_sql(table, scope, _DEFAULT_LIMIT)
 

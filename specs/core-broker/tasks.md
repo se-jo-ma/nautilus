@@ -201,7 +201,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 
 > **POC MILESTONE ACHIEVED** — broker.request() succeeds end-to-end against real PostgreSQL + pgvector, emits exactly one complete audit entry, produces a non-empty rule trace, and returns a signed attestation token. FR-16 / AC-9.3 satisfied.
 
-### [VERIFY] Task 1.18 — Full gate after POC (unit + integration)
+### [VERIFY] Task 1.18 — Full gate after POC (unit + integration) [x]
 - **Do**: Run full quality gate (integration tier included since testcontainers are now wired).
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest -m integration`
 - **Done when**: All five commands exit 0.
