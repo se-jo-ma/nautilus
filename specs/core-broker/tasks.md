@@ -297,7 +297,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(config): add config loader unit tests`
 - **References**: AC-1.1, AC-1.2, AC-1.3, NFR-5, FR-1, FR-2.
 
-### Task 3.2 — `tests/unit/test_source_registry.py`
+### Task 3.2 — `tests/unit/test_source_registry.py` [x]
 - **Do**: Snapshot test for AC-1.4 — registry exposes all fields identical to YAML dict; `.get("unknown")` raises `KeyError`; `len(registry) == N`.
 - **Files**: `tests/unit/test_source_registry.py`.
 - **Done when**: 3 test cases pass.
