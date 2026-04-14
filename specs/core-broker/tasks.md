@@ -104,7 +104,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(core): add shared Pydantic models (IntentAnalysis, ScopeConstraint, BrokerResponse, AuditEntry)`
 - **References**: FR-6, FR-13, AC-7.2, AC-8.3, UQ-5, UQ-6, design §4.
 
-### Task 1.10 — Implement `IntentAnalyzer` Protocol + `PatternMatchingIntentAnalyzer`
+### Task 1.10 — Implement `IntentAnalyzer` Protocol + `PatternMatchingIntentAnalyzer` [x]
 - **Do**:
   - `nautilus/analysis/base.py`: `class IntentAnalyzer(Protocol)` with `analyze(intent: str, context: dict) -> IntentAnalysis`.
   - `nautilus/analysis/pattern_matching.py`: `class PatternMatchingIntentAnalyzer` — constructor accepts `keyword_map: dict[str, list[str]]`. `analyze()` scans intent for keyword matches, regex-extracts CVE IDs (`CVE-\d{4}-\d{4,}`), applies deterministic ordering (sort output lists), returns `IntentAnalysis`.
