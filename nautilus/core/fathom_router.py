@@ -11,13 +11,14 @@ Owns:
   ``scope_constraint`` / ``denial_record``.
 - Removal of denied sources from the routing set (design §5.4 last line).
 
-``RouteResult`` is defined inline here for Phase 1; Task 2.1 promotes it to
-``nautilus/core/models.py`` once the module shape stabilises.
+``RouteResult`` was defined inline here for Phase 1; Task 2.1 promoted it to
+``nautilus/core/models.py`` as a Pydantic model. It is re-exported from this
+module for back-compat so existing ``from nautilus.core.fathom_router import
+RouteResult`` imports keep working.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -28,6 +29,7 @@ from nautilus.core import PolicyEngineError
 from nautilus.core.models import (
     DenialRecord,
     IntentAnalysis,
+    RouteResult,
     RoutingDecision,
     ScopeConstraint,
 )
@@ -35,18 +37,6 @@ from nautilus.rules.functions import register_not_in_list, register_overlaps
 
 if TYPE_CHECKING:
     pass
-
-
-@dataclass
-class RouteResult:
-    """Output of :meth:`FathomRouter.route` (design §3.4)."""
-
-    routing_decisions: list[RoutingDecision]
-    scope_constraints: dict[str, list[ScopeConstraint]]
-    denial_records: list[DenialRecord]
-    rule_trace: list[str]
-    duration_us: int = 0
-    facts_asserted_summary: dict[str, int] = field(default_factory=dict[str, int])
 
 
 def _encode_multislot(values: list[str] | None) -> str:

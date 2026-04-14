@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class IntentAnalysis(BaseModel):
@@ -50,6 +50,23 @@ class DenialRecord(BaseModel):
     source_id: str
     reason: str
     rule_name: str
+
+
+class RouteResult(BaseModel):
+    """Output of ``FathomRouter.route`` — design §3.4.
+
+    Promoted from an inline dataclass in ``nautilus/core/fathom_router.py``
+    (Task 2.1). ``duration_us`` is integer microseconds per design §3.4
+    (timestamps/durations normalised to ``int`` microseconds across the
+    core models module).
+    """
+
+    routing_decisions: list[RoutingDecision]
+    scope_constraints: dict[str, list[ScopeConstraint]]
+    denial_records: list[DenialRecord]
+    rule_trace: list[str]
+    duration_us: int = 0
+    facts_asserted_summary: dict[str, int] = Field(default_factory=dict)
 
 
 class ErrorRecord(BaseModel):
