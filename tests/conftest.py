@@ -1,16 +1,25 @@
 """Shared pytest fixtures for Nautilus test suite.
 
-Fixture bodies are intentionally stub-minimal for the scaffold task;
-later tasks (1.10+, 1.14+, 1.16) flesh out real return values once the
-`IntentAnalysis`, `AuditEntry`, and `Adapter` types exist.
+Phase-1 MVP fixtures land here. The ``pg_container`` fixture boots a
+``pgvector/pgvector:pg17`` testcontainer once per session, enables the
+``vector`` extension, and loads ``tests/fixtures/seed.sql`` so both the
+``PostgresAdapter`` and ``PgVectorAdapter`` integration paths can share a
+single database (design §13.3 / §15 step 13).
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import os
+from collections.abc import Callable, Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
+from testcontainers.postgres import PostgresContainer  # pyright: ignore[reportMissingTypeStubs]
+
+# Resolve the seed SQL alongside this conftest so the file stays portable
+# regardless of the pytest invocation cwd.
+_SEED_SQL_PATH: Path = Path(__file__).parent / "fixtures" / "seed.sql"
 
 
 @pytest.fixture(scope="session")
@@ -48,3 +57,53 @@ def fake_adapter() -> Callable[..., Any]:
         return {"args": args, "kwargs": kwargs}
 
     return _factory
+
+
+@pytest.fixture(scope="session")
+def pg_container() -> Iterator[str]:
+    """Session-scoped ``pgvector/pgvector:pg17`` container (design §15 step 13).
+
+    Steps on startup:
+    1. Launch the container (``driver=None`` so the URL is a plain
+       ``postgresql://`` DSN that ``asyncpg`` accepts natively).
+    2. Connect once via psycopg / asyncpg to ``CREATE EXTENSION vector``
+       and execute ``tests/fixtures/seed.sql``.
+    3. Export ``TEST_PG_DSN`` and ``TEST_PGV_DSN`` into ``os.environ`` —
+       both point to the same container database. The ``nautilus.yaml``
+       fixture uses two distinct tables (``vulns`` and ``vuln_embeddings``)
+       inside the single DB.
+
+    Yields the asyncpg-compatible DSN for callers that want it directly
+    (most integration tests consume it via the env vars above).
+    """
+    import asyncio
+
+    import asyncpg  # pyright: ignore[reportMissingTypeStubs]
+
+    container = PostgresContainer("pgvector/pgvector:pg17", driver=None)
+    container.start()
+    try:
+        dsn: str = container.get_connection_url()
+        seed_sql = _SEED_SQL_PATH.read_text(encoding="utf-8")
+
+        async def _init() -> None:
+            conn: Any = await asyncpg.connect(dsn=dsn)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType, reportAny]
+            try:
+                # ``CREATE EXTENSION`` cannot run inside an asyncpg "simple
+                # query" if the seed file also starts with it, so issue it
+                # once here explicitly and let the seed ``IF NOT EXISTS``
+                # guard handle idempotence.
+                await conn.execute("CREATE EXTENSION IF NOT EXISTS vector")  # pyright: ignore[reportUnknownMemberType]
+                await conn.execute(seed_sql)  # pyright: ignore[reportUnknownMemberType]
+            finally:
+                await conn.close()  # pyright: ignore[reportUnknownMemberType]
+
+        asyncio.run(_init())
+
+        os.environ["TEST_PG_DSN"] = dsn
+        os.environ["TEST_PGV_DSN"] = dsn
+        yield dsn
+    finally:
+        os.environ.pop("TEST_PG_DSN", None)
+        os.environ.pop("TEST_PGV_DSN", None)
+        container.stop()

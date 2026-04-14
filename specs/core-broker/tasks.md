@@ -184,7 +184,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(core): add Broker facade with event-loop guard, attestation, audit wiring`
 - **References**: FR-10, FR-11, FR-12, FR-13, FR-14, FR-17, FR-18, AC-6.1, AC-6.2, AC-6.3, AC-7.1, AC-7.2, AC-8.1, AC-8.2, AC-8.3, AC-8.4, AC-8.5, AC-8.6, UQ-2, UQ-4, UQ-5, design §3.1, §3.6, §3.7, §3.8, §3.9, §8.
 
-### Task 1.17 — **POC MILESTONE**: MVP e2e integration test (AC-9.3)
+### Task 1.17 — **POC MILESTONE**: MVP e2e integration test (AC-9.3) [x]
 - **Do**:
   - Create `tests/integration/test_mvp_e2e.py` marked `@pytest.mark.integration`.
   - Use `testcontainers.postgres.PostgresContainer("pgvector/pgvector:pg17")` session-scoped fixture (in `tests/conftest.py`); on startup execute `tests/fixtures/seed.sql` inside container after `CREATE EXTENSION vector`.

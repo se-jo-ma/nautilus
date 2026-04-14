@@ -13,13 +13,26 @@ embedding vector + top_k to the parameter list.
 from __future__ import annotations
 
 import time
+from collections.abc import Awaitable, Callable
 from typing import Any, ClassVar, cast
+
+import asyncpg  # pyright: ignore[reportMissingTypeStubs]
+from pgvector.asyncpg import (  # pyright: ignore[reportMissingTypeStubs]
+    register_vector as _register_vector_raw,  # pyright: ignore[reportUnknownVariableType]
+)
 
 from nautilus.adapters.base import AdapterError
 from nautilus.adapters.embedder import Embedder, EmbeddingUnavailableError, NoopEmbedder
 from nautilus.adapters.postgres import PostgresAdapter
 from nautilus.config.models import SourceConfig
 from nautilus.core.models import AdapterResult, IntentAnalysis, ScopeConstraint
+
+# asyncpg's ``init`` hook has signature ``async (conn) -> None``; we re-export
+# ``register_vector`` under a fully-typed alias so the ``create_pool(init=...)``
+# call site does not leak ``Unknown`` types into strict pyright mode.
+_register_vector: Callable[[Any], Awaitable[None]] = cast(
+    "Callable[[Any], Awaitable[None]]", _register_vector_raw
+)
 
 # Default distance operator when ``SourceConfig.distance_operator`` is None
 # (Pydantic default on SourceConfig is already "<=>" — this is belt-and-braces
@@ -58,9 +71,28 @@ class PgVectorAdapter(PostgresAdapter):
         # is surfaced via ``EmbeddingUnavailableError`` rather than silent
         # zero-vector garbage (design §3.10 rationale).
         self._broker_default_embedder: Embedder = (
-            broker_default_embedder if broker_default_embedder is not None
+            broker_default_embedder
+            if broker_default_embedder is not None
             else NoopEmbedder(strict=True)
         )
+
+    async def connect(self, config: SourceConfig) -> None:
+        """Create the pgvector-aware ``asyncpg.Pool`` (design §7.1).
+
+        Overrides :meth:`PostgresAdapter.connect` to pass ``init=register_vector``
+        so every pooled connection installs the pgvector codec for the
+        ``vector`` / ``halfvec`` / ``sparsevec`` types. Without this codec,
+        asyncpg tries to bind Python ``list[float]`` as ``str`` and raises
+        ``DataError: invalid input for query argument``.
+        """
+        if config.table is None:
+            raise AdapterError(f"PgVectorAdapter requires 'table' on source '{config.id}'")
+        self._config = config
+        if self._pool is None:
+            self._pool = await asyncpg.create_pool(  # pyright: ignore[reportUnknownMemberType]
+                dsn=config.connection,
+                init=_register_vector,
+            )
 
     def _resolve_embedding(
         self,
@@ -76,8 +108,7 @@ class PgVectorAdapter(PostgresAdapter):
         if override is not None:
             if not isinstance(override, list):
                 raise EmbeddingUnavailableError(
-                    f"context['embedding'] must be list[float], "
-                    f"got {type(override).__name__}"
+                    f"context['embedding'] must be list[float], got {type(override).__name__}"
                 )
             # Cast via list comprehension preserves float-ness defensively;
             # trust-but-verify (pyright treats ``override`` as ``list[Unknown]``
@@ -176,9 +207,7 @@ class PgVectorAdapter(PostgresAdapter):
         config: SourceConfig = self._config
         table = config.table
         if table is None:
-            raise AdapterError(
-                f"PgVectorAdapter missing 'table' for source '{config.id}'"
-            )
+            raise AdapterError(f"PgVectorAdapter missing 'table' for source '{config.id}'")
 
         embedding_column = config.embedding_column or _DEFAULT_EMBEDDING_COLUMN
         metadata_column = config.metadata_column or "metadata"

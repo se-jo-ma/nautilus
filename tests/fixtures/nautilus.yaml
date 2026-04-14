@@ -7,6 +7,7 @@ sources:
     data_types: [cve, vulnerability, patch]
     allowed_purposes: [threat-analysis, incident-response]
     connection: ${TEST_PG_DSN}
+    table: vulns
 
   - id: internal_vulns
     type: pgvector

@@ -90,6 +90,10 @@ class Broker:
         self._attestation = attestation
         self._session_store = session_store
         self._closed: bool = False
+        # Tracks which adapter ids have already been ``connect()``-ed so
+        # ``arequest`` can lazy-connect on first use and skip on subsequent
+        # calls (design §3.5 — adapter lifecycle is owned by the broker).
+        self._connected_adapters: set[str] = set()
 
     # ------------------------------------------------------------------
     # Construction
@@ -308,6 +312,24 @@ class Broker:
                         )
                     )
                     continue
+                # Lazy-connect: the first time we dispatch to an adapter we
+                # invoke its ``connect(config)`` method so the async pool is
+                # built inside the event loop (asyncpg refuses cross-loop
+                # pools). Connection failures become per-source errors.
+                if source_id not in self._connected_adapters:
+                    try:
+                        await adapter.connect(self._registry.get(source_id))
+                    except Exception as exc:  # noqa: BLE001 — surface as per-source error
+                        sources_errored_records.append(
+                            ErrorRecord(
+                                source_id=source_id,
+                                error_type=type(exc).__name__,
+                                message=f"connect() failed: {exc}",
+                                trace_id=request_id,
+                            )
+                        )
+                        continue
+                    self._connected_adapters.add(source_id)
                 scope = scope_by_source.get(source_id, [])
                 adapter_tasks.append(
                     asyncio.create_task(
