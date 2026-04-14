@@ -80,7 +80,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(config): add YAML loader with env interpolation and ConfigError`
 - **References**: FR-1, FR-2, AC-1.1, AC-1.2, AC-1.3, NFR-5.
 
-### Task 1.7 — Implement `SourceRegistry`
+### Task 1.7 — Implement `SourceRegistry` [x]
 - **Do**:
   - Create `nautilus/config/registry.py` with `class SourceRegistry` wrapping `list[SourceConfig]`; methods `get(source_id: str) -> SourceConfig` (raises `KeyError`) and `__iter__()` / `__len__()`.
   - Expose `SourceRegistry` from `nautilus/config/__init__.py`.

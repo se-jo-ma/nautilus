@@ -9,6 +9,7 @@ from nautilus.config.models import (
     RulesConfig,
     SourceConfig,
 )
+from nautilus.config.registry import SourceRegistry
 
 __all__ = [
     "AnalysisConfig",
@@ -19,5 +20,6 @@ __all__ = [
     "NautilusConfig",
     "RulesConfig",
     "SourceConfig",
+    "SourceRegistry",
     "load_config",
 ]
