@@ -6,11 +6,12 @@ Merges per-source :class:`AdapterResult` objects into the
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 from nautilus.core.models import AdapterResult
 
 
+@runtime_checkable
 class Synthesizer(Protocol):
     """Merges successful adapter results (design §3.6).
 

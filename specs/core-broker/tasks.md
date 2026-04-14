@@ -256,7 +256,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor(core): isolate attestation payload builder with stable hashing`
 - **References**: design §9.3, NFR-14.
 
-### Task 2.7 — Convert `Adapter`, `Synthesizer`, `Embedder`, `IntentAnalyzer`, `SessionStore` to runtime-checkable Protocols
+### Task 2.7 — Convert `Adapter`, `Synthesizer`, `Embedder`, `IntentAnalyzer`, `SessionStore` to runtime-checkable Protocols [x]
 - **Do**: Add `@runtime_checkable` to all 5 Protocols. Verify `isinstance(PostgresAdapter(), Adapter)` works for duck typing in tests.
 - **Files**: `nautilus/adapters/base.py`, `nautilus/adapters/embedder.py`, `nautilus/synthesis/base.py`, `nautilus/analysis/base.py`, `nautilus/core/session.py`.
 - **Done when**: `pyright --strict` still clean; runtime isinstance check works.
