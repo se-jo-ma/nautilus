@@ -159,7 +159,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(adapters): add Adapter protocol, operator allowlist, PostgresAdapter with asyncpg`
 - **References**: FR-8, FR-17, FR-18, AC-4.1, AC-4.2, AC-4.3, AC-4.5, NFR-4, design §3.5, §6.
 
-### Task 1.15 — Implement `PgVectorAdapter` + `Embedder` Protocol + `NoopEmbedder`
+### Task 1.15 — Implement `PgVectorAdapter` + `Embedder` Protocol + `NoopEmbedder` [x]
 - **Do**:
   - `nautilus/adapters/embedder.py`: `class Embedder(Protocol)` + `class NoopEmbedder(strict: bool = True)`; `embed()` raises `EmbeddingUnavailableError` when strict, else returns zero vector.
   - `nautilus/adapters/pgvector.py`: `class PgVectorAdapter` extending `PostgresAdapter` mechanics. Resolve embedding via `context["embedding"]` → per-source embedder → broker-default embedder (design §7.2). Build query `SELECT id, metadata, embedding FROM <table> WHERE <scope> ORDER BY <embedding_column> <op> $E LIMIT $L` per design §7.3. Dotted field `metadata.foo` → `metadata->>'foo'`.
