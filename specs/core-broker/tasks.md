@@ -277,7 +277,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Done when**: All four exit 0.
 - **Commit**: `chore(refactor): pass quality checkpoint` (if fixes needed)
 
-### Task 2.10 — Audit JSON serialization hardening
+### Task 2.10 — Audit JSON serialization hardening [x]
 - **Do**: Make `AuditLogger.emit` call `entry.model_dump_json(by_alias=False)`; assert newline appended; add `flush()` after every write. Ensure `timestamp` serializes as ISO8601 UTC with `Z` suffix.
 - **Files**: `nautilus/audit/logger.py`.
 - **Done when**: Written JSONL line re-parses via `AuditEntry.model_validate_json`; timestamp field ends with `Z`.
