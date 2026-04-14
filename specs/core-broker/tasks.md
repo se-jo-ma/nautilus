@@ -361,7 +361,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(audit): add audit logger round-trip + append-only tests`
 - **References**: AC-7.1, AC-7.2, AC-7.3, AC-7.4, AC-7.5, FR-11, NFR-8.
 
-### Task 3.11 — `tests/unit/test_broker.py`
+### Task 3.11 — `tests/unit/test_broker.py` [x]
 - **Do**: Test cases: (a) AC-8.5 nested-loop detection — call inside running loop raises `RuntimeError` mentioning `arequest`, (b) AC-8.6 `close()` idempotency — call twice, second is no-op, (c) attestation token present on successful response (UQ-2), (d) `attestation.enabled=false` → token is `None`, (e) FR-18 one adapter raising does not break the others (use `fake_adapter` from conftest), (f) NFR-3 concurrent execution — two sleep-instrumented adapters overlap ≥50% of their durations (patch adapters with `asyncio.sleep(0.1)` and measure wall time).
 - **Files**: `tests/unit/test_broker.py`.
 - **Done when**:
