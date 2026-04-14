@@ -1,0 +1,39 @@
+# DOC ONLY — see nautilus/rules/functions/nautilus_routing_rules.yaml for the
+# actual compiled defrule body.
+#
+# fathom-rules 0.2.0 ``rules/*.yaml`` does not expose a syntax for emitting
+# ``(test (<external> ?a ?b))`` LHS conditional elements, which the
+# ``match-sources-by-data-type`` rule requires. The rule is therefore shipped
+# as a raw-CLIPS ``type: raw`` function entry; this file documents the
+# design-intent YAML shape per design §5.3 and exists to satisfy the task
+# file manifest. It is loaded by the compiler as an empty ruleset (``rules: []``)
+# so it is safe against future ``from_rules`` autodiscovery.
+#
+# Design-intent shape (NOT a currently compilable rule):
+# ----
+# rules:
+#   - name: match-sources-by-data-type
+#     salience: 100
+#     when:
+#       - template: intent
+#         conditions:
+#           - slot: data_types_needed
+#             bind: ?needed
+#       - template: source
+#         conditions:
+#           - slot: id
+#             bind: ?sid
+#           - slot: data_types
+#             bind: ?have
+#           - expression: "overlaps(?needed ?have)"   # <- not YAML-expressible today
+#     then:
+#       assert:
+#         - template: routing_decision
+#           slots:
+#             source_id: "?sid"
+#             reason: "data_types overlap"
+# ----
+module: nautilus-routing
+ruleset: nautilus-default-routing
+version: "1.0"
+rules: []

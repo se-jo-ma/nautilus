@@ -120,7 +120,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Done when**: All four commands exit 0.
 - **Commit**: `chore(analysis): pass quality checkpoint` (if fixes needed)
 
-### Task 1.12 — Author Nautilus Fathom templates + module + default rules (SPIKE)
+### Task 1.12 — Author Nautilus Fathom templates + module + default rules (SPIKE) [x]
 - **Do**:
   - Create `nautilus/rules/templates/nautilus.yaml` with the 7 templates from design §5.1 (agent, intent, source, session, routing_decision, scope_constraint, denial_record).
   - Create `nautilus/rules/modules/nautilus-routing.yaml` with the module declaration from design §5.1b.

@@ -1,0 +1,56 @@
+# Nautilus built-in Fathom templates (design §5.1).
+#
+# Multislot-shaped fields (data_types_needed, data_types, allowed_purposes)
+# are encoded at the router layer as space-separated strings before fact
+# assertion; CLIPS rules decompose them with ``explode$`` on the LHS.
+#
+templates:
+  - name: agent
+    description: "Requesting agent principal (id, clearance, purpose)."
+    slots:
+      - { name: id,        type: string, required: true }
+      - { name: clearance, type: string, required: true }
+      - { name: purpose,   type: string, required: true }
+
+  - name: intent
+    description: "Parsed user intent with requested data types."
+    slots:
+      - { name: raw,               type: string, required: true }
+      - { name: data_types_needed, type: string, required: true }  # space-separated multislot
+      - { name: entities,          type: string, default: "" }
+
+  - name: source
+    description: "Registered data source (postgres/pgvector/http)."
+    slots:
+      - { name: id,               type: string, required: true }
+      - { name: type,             type: symbol, required: true }
+      - { name: classification,   type: string, required: true }
+      - { name: data_types,       type: string, required: true }   # space-separated
+      - { name: allowed_purposes, type: string, default: "" }      # space-separated
+
+  - name: session
+    description: "Per-request session counters."
+    slots:
+      - { name: id,                   type: string,  required: true }
+      - { name: pii_sources_accessed, type: integer, default: 0 }
+
+  - name: routing_decision
+    description: "Router output: a source selected for the request."
+    slots:
+      - { name: source_id, type: string, required: true }
+      - { name: reason,    type: string, required: true }
+
+  - name: scope_constraint
+    description: "Row-level scope predicate attached to a source."
+    slots:
+      - { name: source_id, type: string, required: true }
+      - { name: field,     type: string, required: true }
+      - { name: operator,  type: symbol, required: true }
+      - { name: value,     type: string, required: true }  # stringified; typed at broker layer
+
+  - name: denial_record
+    description: "Per-source denial with firing rule name."
+    slots:
+      - { name: source_id, type: string, required: true }
+      - { name: reason,    type: string, required: true }
+      - { name: rule_name, type: string, required: true }

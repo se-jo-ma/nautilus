@@ -1,0 +1,11 @@
+# Nautilus built-in Fathom module (design §5.1b).
+#
+# fathom-rules 0.2.0 parse_module_file requires a top-level ``modules:``
+# list; ``focus_order`` wires the evaluation order for ``engine.evaluate``.
+#
+modules:
+  - name: nautilus-routing
+    description: "Nautilus built-in routing and denial rules"
+
+focus_order:
+  - nautilus-routing
