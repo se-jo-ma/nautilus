@@ -96,7 +96,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Done when**: All four commands exit 0.
 - **Commit**: `chore(config): pass quality checkpoint` (if fixes needed)
 
-### Task 1.9 — Implement shared core models
+### Task 1.9 — Implement shared core models [x]
 - **Do**: Create `nautilus/core/models.py` containing `IntentAnalysis`, `RoutingDecision`, `ScopeConstraint`, `DenialRecord`, `ErrorRecord`, `AdapterResult`, `BrokerResponse`, `AuditEntry` exactly per design §4.2–§4.9. Use `Literal` for `ScopeConstraint.operator` allowlist per design §6.1.
 - **Files**: `nautilus/core/models.py`.
 - **Done when**: All 8 models import, and instantiating `ScopeConstraint(source_id='x', field='y', operator='BADOP', value=1)` raises `pydantic.ValidationError` (Literal enforces allowlist — UQ-6).
