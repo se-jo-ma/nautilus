@@ -373,7 +373,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(core): add Broker unit tests (loop guard, close, attestation, concurrency, absence guards)`
 - **References**: AC-1.5, AC-8.5, AC-8.6, AC-8.7, FR-17, FR-18, NFR-3, UQ-2, UQ-4.
 
-### [VERIFY] Task 3.12 — Quality checkpoint (test batch 3)
+### [VERIFY] Task 3.12 — Quality checkpoint (test batch 3) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 

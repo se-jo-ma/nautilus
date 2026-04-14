@@ -278,18 +278,14 @@ def test_audit_logger_round_trip_on_every_line(tmp_path: Path) -> None:
     sink = FileSink(path)
     logger = AuditLogger(sink)
 
-    timestamps = [
-        datetime(2026, 4, 14, 9, 0, i, tzinfo=UTC) for i in range(5)
-    ]
+    timestamps = [datetime(2026, 4, 14, 9, 0, i, tzinfo=UTC) for i in range(5)]
     originals = [_make_entry(ts) for ts in timestamps]
     for entry in originals:
         logger.emit(entry)
 
     raw = path.read_text(encoding="utf-8")
     lines = [ln for ln in raw.splitlines() if ln.strip()]
-    assert len(lines) == len(originals), (
-        f"expected {len(originals)} lines, got {len(lines)}"
-    )
+    assert len(lines) == len(originals), f"expected {len(originals)} lines, got {len(lines)}"
 
     for idx, line in enumerate(lines):
         outer = json.loads(line)
