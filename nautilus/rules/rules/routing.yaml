@@ -1,39 +1,39 @@
-# DOC ONLY — see nautilus/rules/functions/nautilus_routing_rules.yaml for the
-# actual compiled defrule body.
+# Nautilus default routing rule (fathom-rules >= 0.3.0).
 #
-# fathom-rules 0.2.0 ``rules/*.yaml`` does not expose a syntax for emitting
-# ``(test (<external> ?a ?b))`` LHS conditional elements, which the
-# ``match-sources-by-data-type`` rule requires. The rule is therefore shipped
-# as a raw-CLIPS ``type: raw`` function entry; this file documents the
-# design-intent YAML shape per design §5.3 and exists to satisfy the task
-# file manifest. It is loaded by the compiler as an empty ruleset (``rules: []``)
-# so it is safe against future ``from_rules`` autodiscovery.
+# Emits one ``routing_decision`` fact per ``source`` whose ``data_types``
+# advertise overlaps with the active ``intent``'s ``data_types_needed``.
+# Both slots are space-separated strings (see template doc); the LHS
+# delegates the actual set-overlap check to the ``overlaps`` external
+# registered via ``register_overlaps`` (Engine.register_function).
 #
-# Design-intent shape (NOT a currently compilable rule):
-# ----
-# rules:
-#   - name: match-sources-by-data-type
-#     salience: 100
-#     when:
-#       - template: intent
-#         conditions:
-#           - slot: data_types_needed
-#             bind: ?needed
-#       - template: source
-#         conditions:
-#           - slot: id
-#             bind: ?sid
-#           - slot: data_types
-#             bind: ?have
-#           - expression: "overlaps(?needed ?have)"   # <- not YAML-expressible today
-#     then:
-#       assert:
-#         - template: routing_decision
-#           slots:
-#             source_id: "?sid"
-#             reason: "data_types overlap"
-# ----
+# ``then.action: route`` is required so the rule emits a
+# ``__fathom_decision`` fact and surfaces in
+# ``EvaluationResult.rule_trace`` — pure ``then.assert`` rules are
+# invisible to the trace (see fathom evaluator._capture_trace).
 module: nautilus-routing
 ruleset: nautilus-default-routing
 version: "1.0"
-rules: []
+rules:
+  - name: match-sources-by-data-type
+    description: "Match sources whose data_types overlap the intent's data_types_needed."
+    salience: 100
+    when:
+      - template: intent
+        conditions:
+          - slot: data_types_needed
+            bind: ?needed
+      - template: source
+        conditions:
+          - slot: id
+            bind: ?sid
+          - slot: data_types
+            bind: ?have
+          - test: "(overlaps ?needed ?have)"
+    then:
+      action: route
+      reason: "data_types overlap"
+      assert:
+        - template: routing_decision
+          slots:
+            source_id: "?sid"
+            reason: "data_types overlap"

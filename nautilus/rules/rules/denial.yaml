@@ -1,41 +1,44 @@
-# DOC ONLY — see nautilus/rules/functions/nautilus_routing_rules.yaml for the
-# actual compiled defrule body.
+# Nautilus default denial rule (fathom-rules >= 0.3.0).
 #
-# fathom-rules 0.2.0 ``rules/*.yaml`` does not expose a syntax for emitting
-# ``(test (not-in-list ?purpose ?allowed))`` LHS conditional elements, which
-# the ``deny-purpose-mismatch`` rule requires. The rule is therefore shipped
-# as a raw-CLIPS ``type: raw`` function entry; this file documents the
-# design-intent YAML shape per design §5.3 and exists to satisfy the task
-# file manifest. It is loaded by the compiler as an empty ruleset
-# (``rules: []``) so it is safe against future ``from_rules`` autodiscovery.
+# Emits one ``denial_record`` fact per ``source`` whose
+# ``allowed_purposes`` is non-empty AND does not include the requesting
+# ``agent.purpose``. The membership check is delegated to the
+# ``not-in-list`` external registered via ``register_not_in_list``
+# (Engine.register_function); the empty-string guard is a plain CLIPS
+# ``neq`` test.
 #
-# Design-intent shape (NOT a currently compilable rule):
-# ----
-# rules:
-#   - name: deny-purpose-mismatch
-#     salience: 200
-#     when:
-#       - template: agent
-#         conditions:
-#           - slot: purpose
-#             bind: ?purpose
-#       - template: source
-#         conditions:
-#           - slot: id
-#             bind: ?sid
-#           - slot: allowed_purposes
-#             bind: ?allowed
-#           - expression: "(neq ?allowed \"\")"             # <- not YAML-expressible today
-#           - expression: "not-in-list(?purpose ?allowed)"  # <- not YAML-expressible today
-#     then:
-#       assert:
-#         - template: denial_record
-#           slots:
-#             source_id: "?sid"
-#             reason: "purpose not authorized"
-#             rule_name: "deny-purpose-mismatch"
-# ----
+# Salience 200 > the routing rule (100), so denials win the focus when
+# both apply against the same source set.
+#
+# ``then.action: deny`` is required so the rule emits a
+# ``__fathom_decision`` fact and surfaces in
+# ``EvaluationResult.rule_trace``.
 module: nautilus-routing
 ruleset: nautilus-default-denial
 version: "1.0"
-rules: []
+rules:
+  - name: deny-purpose-mismatch
+    description: "Deny sources whose allowed_purposes excludes the agent's purpose."
+    salience: 200
+    when:
+      - template: agent
+        conditions:
+          - slot: purpose
+            bind: ?purpose
+      - template: source
+        conditions:
+          - slot: id
+            bind: ?sid
+          - slot: allowed_purposes
+            bind: ?allowed
+          - test: '(neq ?allowed "")'
+          - test: "(not-in-list ?purpose ?allowed)"
+    then:
+      action: deny
+      reason: "purpose not authorized"
+      assert:
+        - template: denial_record
+          slots:
+            source_id: "?sid"
+            reason: "purpose not authorized"
+            rule_name: "deny-purpose-mismatch"

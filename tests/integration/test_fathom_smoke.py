@@ -1,27 +1,27 @@
 """Integration smoke test for the Nautilus Fathom rules tree (Task 1.12 SPIKE).
 
-Purpose: prove that the YAML/raw-CLIPS tree under ``nautilus/rules/`` loads
-into a ``fathom.Engine`` and that the two default rules
+Purpose: prove that the YAML tree under ``nautilus/rules/`` loads into a
+``fathom.Engine`` and that the two default rules
 (``match-sources-by-data-type`` salience 100,
 ``deny-purpose-mismatch`` salience 200) fire end-to-end against realistic
 fact inputs and populate the ``routing_decision`` / ``denial_record``
-templates via the new ``then.asserts`` (fathom-rules 0.2.0) path.
+templates via the ``then.assert`` (fathom-rules >= 0.3.0) path.
 
-The rules themselves are shipped as raw-CLIPS ``type: raw`` function entries
-(not YAML rule files) because fathom-rules 0.2.0 YAML ``expression:`` does
-not expose a way to emit ``(test (<external> ?a ?b))`` LHS conditional
-elements — see nautilus/rules/functions/nautilus_routing_rules.yaml for
-the escape-hatch rationale. The YAML files under ``nautilus/rules/rules/``
-are doc-only stubs (``rules: []``).
+The rules are now expressed as native YAML rule files under
+``nautilus/rules/rules/``, using the fathom-rules 0.3.0 ``ConditionEntry.test``
+escape hatch to invoke the ``overlaps`` and ``not-in-list`` Python externals
+on the LHS. Because they are loaded via ``load_rules`` they appear in the
+``Engine.rule_registry`` and (when fired with a ``then.action``) in
+``EvaluationResult.rule_trace``.
 
 Loading order (must not change — externals must be registered BEFORE
-``load_functions`` or CLIPS ``build`` errors with EXPRNPSR3):
+``load_functions`` / ``load_rules`` or CLIPS ``build`` errors with EXPRNPSR3):
 
   1. templates
   2. modules
   3. register_overlaps + register_not_in_list
-  4. functions (loads the raw-CLIPS defrule bodies)
-  5. rules (loads the doc-only empty rulesets — no-op)
+  4. functions (no-op — directory holds no function YAMLs anymore)
+  5. rules (loads routing.yaml + denial.yaml)
 """
 
 from __future__ import annotations
@@ -38,8 +38,8 @@ def _load_nautilus_engine() -> Engine:
     engine = Engine()
     engine.load_templates(str(BUILT_IN_RULES_DIR / "templates"))
     engine.load_modules(str(BUILT_IN_RULES_DIR / "modules"))
-    # Externals MUST be registered before load_functions — the raw defrule
-    # bodies reference (overlaps ...) and (not-in-list ...) at build time.
+    # Externals MUST be registered before load_rules — the YAML rule LHS
+    # references (overlaps ...) and (not-in-list ...) at build time.
     register_overlaps(engine)
     register_not_in_list(engine)
     engine.load_functions(str(BUILT_IN_RULES_DIR / "functions"))
@@ -66,6 +66,11 @@ def test_engine_constructs_from_builtin_tree() -> None:
 
     # nautilus-routing module registered (plus implicit MAIN).
     assert "nautilus-routing" in engine.module_registry
+
+    # Both default rules registered via load_rules.
+    assert {"match-sources-by-data-type", "deny-purpose-mismatch"} <= set(
+        engine.rule_registry.keys()
+    )
 
 
 @pytest.mark.integration
@@ -110,12 +115,15 @@ def test_routing_rule_asserts_routing_decision_for_matching_sources() -> None:
     )
     engine.assert_fact("session", {"id": "sess-1", "pii_sources_accessed": 0})
 
-    engine.evaluate()
+    result = engine.evaluate()
 
     routing = engine.query("routing_decision")
     assert len(routing) == 1, f"expected 1 routing_decision, got {routing!r}"
     assert routing[0]["source_id"] == "vuln-db"
     assert routing[0]["reason"] == "data_types overlap"
+
+    # rule_trace surfaces the fired rule (module-qualified).
+    assert "nautilus-routing::match-sources-by-data-type" in result.rule_trace
 
 
 @pytest.mark.integration
@@ -160,10 +168,13 @@ def test_denial_rule_asserts_denial_record_on_purpose_mismatch() -> None:
     )
     engine.assert_fact("session", {"id": "sess-2", "pii_sources_accessed": 0})
 
-    engine.evaluate()
+    result = engine.evaluate()
 
     denials = engine.query("denial_record")
     assert len(denials) == 1, f"expected 1 denial_record, got {denials!r}"
     assert denials[0]["source_id"] == "pii-db"
     assert denials[0]["rule_name"] == "deny-purpose-mismatch"
     assert denials[0]["reason"] == "purpose not authorized"
+
+    # rule_trace surfaces the fired denial rule (module-qualified).
+    assert "nautilus-routing::deny-purpose-mismatch" in result.rule_trace
