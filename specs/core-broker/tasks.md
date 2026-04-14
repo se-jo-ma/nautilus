@@ -325,7 +325,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(core): add FathomRouter unit tests incl. rule_trace determinism`
 - **References**: AC-3.1, AC-3.2, AC-3.3, AC-3.4, AC-3.5, FR-6, FR-7, NFR-14.
 
-### Task 3.6 — `tests/unit/test_postgres_adapter.py`
+### Task 3.6 — `tests/unit/test_postgres_adapter.py` [x]
 - **Do**: Test cases (using `unittest.mock.AsyncMock` for pool): (a) each operator in allowlist emits correct SQL template, (b) unknown operator → `ScopeEnforcementError`, (c) bad field name → `ScopeEnforcementError`, (d) multiple scopes combine with `AND`, (e) `close()` idempotency, (f) connection failure → `AdapterError`.
 - **Files**: `tests/unit/test_postgres_adapter.py`.
 - **Done when**: 6 cases pass.

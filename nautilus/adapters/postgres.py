@@ -60,7 +60,18 @@ class PostgresAdapter:
         self._config = config
         if self._pool is None:
             # asyncpg has no stubs; result is typed Any via the ignore above.
-            self._pool = await asyncpg.create_pool(dsn=config.connection)  # pyright: ignore[reportUnknownMemberType]
+            # Any infra failure from ``create_pool`` is wrapped as
+            # :class:`AdapterError` per design §3.5 / FR-18 so the broker can
+            # record a ``sources_errored`` entry rather than propagating the
+            # raw asyncpg / OSError to the agent.
+            try:
+                self._pool = await asyncpg.create_pool(dsn=config.connection)  # pyright: ignore[reportUnknownMemberType]
+            except AdapterError:
+                raise
+            except Exception as exc:
+                raise AdapterError(
+                    f"PostgresAdapter failed to connect to source '{config.id}': {exc}"
+                ) from exc
 
     async def close(self) -> None:
         """Release the pool. Idempotent — second call is a no-op (FR-17)."""
