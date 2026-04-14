@@ -235,7 +235,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor(core): extract CLIPS multislot encoder helper`
 - **References**: design §3.4, §5.1.
 
-### [VERIFY] Task 2.4 — Quality checkpoint (refactor batch 1)
+### [VERIFY] Task 2.4 — Quality checkpoint (refactor batch 1) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 - **Commit**: `chore(refactor): pass quality checkpoint` (if fixes needed)
