@@ -148,7 +148,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `feat(core): add FathomRouter with multislot encoding and template readback`
 - **References**: FR-4, FR-6, FR-7, AC-3.2, AC-3.3, AC-3.4, AC-3.5, design §3.4, §5.4.
 
-### Task 1.14 — Implement `Adapter` base + `PostgresAdapter`
+### Task 1.14 — Implement `Adapter` base + `PostgresAdapter` [x]
 - **Do**:
   - `nautilus/adapters/base.py`: `class Adapter(Protocol)`, `class ScopeEnforcementError(Exception)`, `class AdapterError(Exception)`. Add operator allowlist validator `validate_operator(op: str) -> None` using design §6.1 set; regex field validator `validate_field(f: str) -> None` using `r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$"` from §6.2.
   - `nautilus/adapters/postgres.py`: `class PostgresAdapter` with `connect()` (creates `asyncpg.Pool`), `execute()` (builds `SELECT * FROM <table> WHERE <scope predicates> LIMIT $N` using positional placeholders only; operator template table from §6.1), `close()` (releases pool, idempotent).
