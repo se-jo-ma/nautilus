@@ -333,7 +333,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(adapters): add PostgresAdapter SQL construction + error unit tests`
 - **References**: AC-4.1, AC-4.2, AC-4.3, AC-4.5, FR-8, FR-17, FR-18.
 
-### Task 3.7 — `tests/unit/test_pgvector_adapter.py`
+### Task 3.7 — `tests/unit/test_pgvector_adapter.py` [x]
 - **Do**: Test cases: (a) embedder precedence — context wins over per-source wins over default, (b) similarity query shape: metadata WHERE applied BEFORE ORDER BY, (c) three distance operators `<=>`, `<->`, `<#>` all emit correct SQL, (d) `NoopEmbedder(strict=True)` triggers `EmbeddingUnavailableError`, (e) dotted field `metadata.foo` → `metadata->>'foo'`.
 - **Files**: `tests/unit/test_pgvector_adapter.py`.
 - **Done when**: 5 cases pass.

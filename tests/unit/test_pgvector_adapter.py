@@ -188,3 +188,32 @@ def test_pgvector_no_embedding_source_or_context_raises() -> None:
 
     with pytest.raises(EmbeddingUnavailableError):
         adapter._resolve_embedding({})  # pyright: ignore[reportPrivateUsage]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("operator", ["<=>", "<->", "<#>"])
+def test_pgvector_build_sql_emits_each_allowed_distance_operator(operator: str) -> None:
+    """Done-when (c): all three pgvector distance operators render verbatim.
+
+    ``<=>`` = cosine, ``<->`` = L2, ``<#>`` = negative inner product. The
+    adapter allowlist (design §7.3) pins exactly this set; each must pass
+    through ``_build_vector_sql`` and appear inside the ``ORDER BY``.
+    """
+    source = _make_source()
+    adapter = PgVectorAdapter(pool=object())
+    adapter._config = source  # pyright: ignore[reportPrivateUsage]
+
+    sql, _ = adapter._build_vector_sql(  # pyright: ignore[reportPrivateUsage]
+        table=source.table or "vuln_embeddings",
+        scope=[],
+        embedding_column=source.embedding_column or "embedding",
+        distance_operator=operator,
+        metadata_column=source.metadata_column or "metadata",
+        embedding=[0.1, 0.2, 0.3],
+        top_k=source.top_k,
+    )
+
+    assert f'embedding" {operator} $' in sql, (
+        f"distance operator {operator!r} not rendered in SQL: {sql!r}"
+    )
+    assert "ORDER BY" in sql
