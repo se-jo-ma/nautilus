@@ -345,7 +345,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 
-### Task 3.9 — `tests/unit/test_synthesizer.py`
+### Task 3.9 — `tests/unit/test_synthesizer.py` [x]
 - **Do**: Test cases: (a) AC-6.1 `{source_id: rows}` shape for N inputs, (b) AC-6.2 one adapter error → synthesis returns OTHER sources, never raises, (c) AC-6.4 `sources_queried` order derived from routing decisions (stable, not completion-based).
 - **Files**: `tests/unit/test_synthesizer.py`.
 - **Done when**: 3 cases pass.
