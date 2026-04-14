@@ -305,7 +305,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(config): add source registry unit tests`
 - **References**: AC-1.4.
 
-### Task 3.3 — `tests/unit/test_pattern_analyzer.py` (incl. determinism property)
+### Task 3.3 — `tests/unit/test_pattern_analyzer.py` (incl. determinism property) [x]
 - **Do**: Test cases: AC-2.2 CVE extraction, AC-2.3 zero match → empty list, keyword-map from config, NFR-13 determinism — 100 random intents × 5 repeats yield identical output per input (property test using `hypothesis` if available, else stdlib `random.seed`).
 - **Files**: `tests/unit/test_pattern_analyzer.py`.
 - **Done when**: All cases pass including determinism property (100×5).
