@@ -317,7 +317,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 
-### Task 3.5 — `tests/unit/test_fathom_router.py`
+### Task 3.5 — `tests/unit/test_fathom_router.py` [x]
 - **Do**: Test cases: (a) templates registered on engine construction, (b) facts asserted in correct order (patch `engine.assert_facts` to record calls), (c) 3-source scenario: 3 `routing_decision` facts round-trip (FR-6), (d) `rule_trace` non-empty passthrough (FR-7), (e) denial removes source from route set, (f) determinism — same input produces identical `rule_trace` (NFR-14).
 - **Files**: `tests/unit/test_fathom_router.py`.
 - **Done when**: 6 cases pass.
