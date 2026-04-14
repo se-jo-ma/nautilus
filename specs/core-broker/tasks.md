@@ -248,7 +248,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `refactor(core): decompose Broker.arequest into private helpers`
 - **References**: design §3.1.
 
-### Task 2.6 — Isolate attestation payload construction
+### Task 2.6 — Isolate attestation payload construction [x]
 - **Do**: Extract `_build_attestation_payload(response, rule_trace) -> dict` per design §9.3 into `nautilus/core/attestation_payload.py`; add `scope_hash` + `rule_trace_hash` SHA-256 derivation (stable JSON canonicalization).
 - **Files**: `nautilus/core/attestation_payload.py`, `nautilus/core/broker.py`.
 - **Done when**: Two identical requests produce identical `scope_hash`/`rule_trace_hash` (determinism per NFR-14).

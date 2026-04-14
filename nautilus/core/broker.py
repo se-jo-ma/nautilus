@@ -42,6 +42,7 @@ from nautilus.config.loader import ConfigError, load_config
 from nautilus.config.models import NautilusConfig, SourceConfig
 from nautilus.config.registry import SourceRegistry
 from nautilus.core import PolicyEngineError
+from nautilus.core.attestation_payload import build_payload
 from nautilus.core.fathom_router import FathomRouter
 from nautilus.core.models import (
     AdapterResult,
@@ -558,12 +559,15 @@ class Broker:
     ) -> str:
         """Compose the Nautilus attestation payload and sign it (design §9.3).
 
+        Uses :func:`nautilus.core.attestation_payload.build_payload` so the
+        ``scope_hash`` / ``rule_trace_hash`` derivation is deterministic
+        (NFR-14) and unit-testable in isolation.
+
         ``AttestationService.sign()`` expects a Fathom ``EvaluationResult``;
         we shim one together (duck-typed via ``SimpleNamespace``) whose
-        ``decision`` / ``rule_trace`` fields carry the Nautilus-specific
-        payload. The resulting JWT payload contains ``iss=fathom``,
-        ``decision`` (a ``nautilus:<request_id>`` marker), ``rule_trace``,
-        ``input_hash`` (SHA-256 of scope constraints), and ``session_id``.
+        ``decision`` field carries a Nautilus marker. The Nautilus payload
+        itself is passed via ``input_facts`` so the JWT's ``input_hash``
+        covers the full (``scope_hash``, ``rule_trace_hash``, …) claim set.
         """
         if self._attestation is None:
             # pragma: no cover — caller guards on self._attestation
@@ -579,6 +583,14 @@ class Broker:
             for constraints in scope_by_source.values()
             for c in constraints
         ]
+        nautilus_payload = build_payload(
+            request_id,
+            agent_id,
+            sources_queried,
+            scope_payload,
+            list(rule_trace),
+        )
+
         # Nautilus-specific decision marker; the Fathom JWT carries this as
         # the ``decision`` claim. The request_id and agent_id are embedded
         # so downstream verifiers don't need a separate Nautilus payload.
@@ -588,18 +600,10 @@ class Broker:
             decision=decision,
             rule_trace=list(rule_trace),
         )
-        # AttestationService.sign wants a list[dict]; we pass the scope
-        # payload so input_hash derives from it. Additional Nautilus context
-        # (sources_queried) goes in via a synthetic fact entry.
-        input_facts = [
-            *scope_payload,
-            {
-                "__nautilus_request__": True,
-                "request_id": request_id,
-                "agent_id": agent_id,
-                "sources_queried": list(sources_queried),
-            },
-        ]
+        # Pass the full Nautilus payload as a single synthetic fact so the
+        # JWT's ``input_hash`` binds both ``scope_hash`` and
+        # ``rule_trace_hash`` (plus request_id / agent_id / sources_queried).
+        input_facts: list[dict[str, Any]] = [nautilus_payload]
         session_ref = session_id or request_id
         return self._attestation.sign(
             result=result,  # type: ignore[arg-type]
