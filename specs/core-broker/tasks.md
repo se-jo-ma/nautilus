@@ -313,7 +313,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(analysis): add pattern analyzer unit tests with determinism property`
 - **References**: AC-2.2, AC-2.3, AC-2.5, NFR-13.
 
-### [VERIFY] Task 3.4 — Quality checkpoint (test batch 1)
+### [VERIFY] Task 3.4 — Quality checkpoint (test batch 1) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 

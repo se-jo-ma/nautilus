@@ -157,9 +157,7 @@ def test_duplicate_source_id_raises_config_error(
     assert "duplicate" in message.lower(), message
 
 
-def test_env_interpolation_in_connection(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_env_interpolation_in_connection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """(e) AC-1.2 / FR-2 — ``${VAR}`` inside ``connection`` is substituted."""
     expected_dsn = "postgresql://user:secret@db.example:5432/nvd"
     monkeypatch.setenv("TEST_PG_DSN", expected_dsn)

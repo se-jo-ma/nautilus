@@ -15,7 +15,7 @@ asserted here to keep both layers honest.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import yaml
@@ -64,9 +64,8 @@ sources:
 
 def _load_sources_from_yaml() -> tuple[list[dict[str, Any]], list[SourceConfig]]:
     """Parse the shared fixture YAML into both raw dicts and validated models."""
-    raw = yaml.safe_load(_yaml_body())
-    assert isinstance(raw, dict)
-    raw_sources = raw["sources"]
+    raw = cast(dict[str, Any], yaml.safe_load(_yaml_body()))
+    raw_sources = cast(list[dict[str, Any]], raw["sources"])
     assert isinstance(raw_sources, list)
     models = [SourceConfig.model_validate(entry) for entry in raw_sources]
     return raw_sources, models
