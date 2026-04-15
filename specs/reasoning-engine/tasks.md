@@ -59,7 +59,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(config): add Phase 2 additive fields (agents, api, endpoints, auth, index, label)`
 - **References**: FR-9, FR-24, FR-26, NFR-5, AC-1.4, AC-2.5, AC-9.1, design §3.5, §3.11.
 
-### Task 1.4 — Implement `AgentRegistry` + `UnknownAgentError`
+### Task 1.4 [x] — Implement `AgentRegistry` + `UnknownAgentError`
 - **Do**:
   - Create `nautilus/config/agent_registry.py` with `class UnknownAgentError(Exception)` and `class AgentRegistry` wrapping `dict[str, AgentRecord]`; methods `get(agent_id) -> AgentRecord` (raises `UnknownAgentError`), `__iter__()`, `__len__()`.
   - Re-export `AgentRegistry`, `UnknownAgentError` from `nautilus/config/__init__.py`.

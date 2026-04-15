@@ -38,6 +38,7 @@ from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
 from nautilus.analysis.pattern_matching import PatternMatchingIntentAnalyzer
 from nautilus.audit.logger import AuditLogger
+from nautilus.config.agent_registry import AgentRegistry
 from nautilus.config.loader import ConfigError, load_config
 from nautilus.config.models import NautilusConfig, SourceConfig
 from nautilus.config.registry import SourceRegistry
@@ -181,6 +182,7 @@ class Broker:
         audit_logger: AuditLogger,
         attestation: AttestationService | None,
         session_store: SessionStore,
+        agent_registry: AgentRegistry | None = None,
     ) -> None:
         self._config = config
         self._registry = registry
@@ -191,6 +193,10 @@ class Broker:
         self._audit_logger = audit_logger
         self._attestation = attestation
         self._session_store = session_store
+        # Phase-1 YAML (no ``agents:``) yields an empty registry — preserves
+        # NFR-5 backwards compatibility; the registry is not yet consulted in
+        # the request flow (that wiring lands in a later task).
+        self._agent_registry: AgentRegistry = agent_registry or AgentRegistry({})
         self._closed: bool = False
         # Tracks which adapter ids have already been ``connect()``-ed so
         # ``arequest`` can lazy-connect on first use and skip on subsequent
@@ -225,6 +231,7 @@ class Broker:
         config = load_config(path)
 
         registry = SourceRegistry(config.sources)
+        agent_registry = AgentRegistry(config.agents)
 
         intent_analyzer = PatternMatchingIntentAnalyzer(
             keyword_map=config.analysis.keyword_map,
@@ -264,6 +271,7 @@ class Broker:
             audit_logger=audit_logger,
             attestation=attestation,
             session_store=session_store,
+            agent_registry=agent_registry,
         )
 
     @staticmethod
@@ -303,6 +311,11 @@ class Broker:
     def sources(self) -> list[SourceConfig]:
         """Registered source configs (identifier + metadata) — design §3.1."""
         return self._registry.sources
+
+    @property
+    def agent_registry(self) -> AgentRegistry:
+        """Registered agent identities (design §3.5, FR-9)."""
+        return self._agent_registry
 
     def request(
         self,

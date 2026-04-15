@@ -1,5 +1,6 @@
 """Nautilus config package."""
 
+from nautilus.config.agent_registry import AgentRegistry, UnknownAgentError
 from nautilus.config.loader import ConfigError, EnvInterpolator, load_config
 from nautilus.config.models import (
     AgentRecord,
@@ -22,6 +23,7 @@ from nautilus.config.registry import SourceRegistry
 
 __all__ = [
     "AgentRecord",
+    "AgentRegistry",
     "AnalysisConfig",
     "ApiConfig",
     "AttestationConfig",
@@ -39,5 +41,6 @@ __all__ = [
     "SessionStoreConfig",
     "SourceConfig",
     "SourceRegistry",
+    "UnknownAgentError",
     "load_config",
 ]
