@@ -1,0 +1,73 @@
+[project]
+name = "nautilus"
+version = "0.1.0"
+description = "Nautilus data broker: intent-aware scoped query execution via Fathom rules"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+# TODO: add author email once the maintainer publishes one.
+authors = [{ name = "se-jo-ma" }]
+keywords = ["fathom", "policy", "broker", "security", "scope", "clips"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "fathom-rules>=0.3.0",
+    "asyncpg>=0.30.0",
+    "pgvector>=0.3.0",
+    "pyyaml>=6.0",
+    "pyjwt>=2.12.1",
+    "cryptography>=46.0.7",
+]
+
+[project.urls]
+# TODO: update once the public repository URL is finalized.
+Repository = "https://github.com/se-jo-ma/nautilus"
+Documentation = "https://github.com/se-jo-ma/nautilus/blob/main/specs/core-broker/design.md"
+Issues = "https://github.com/se-jo-ma/nautilus/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "testcontainers[postgres]>=4.0",
+    "ruff>=0.5",
+    "pyright>=1.1.370",
+    "pip-licenses>=5.0",
+]
+
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["nautilus*"]
+exclude = ["tests*", "specs*", "docs*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "ASYNC"]
+
+[tool.pyright]
+strict = ["nautilus", "tests"]
+include = ["nautilus", "tests"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+]
+addopts = "--strict-markers --cov=nautilus --cov-branch --cov-fail-under=80"
