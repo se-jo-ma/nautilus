@@ -432,7 +432,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Done when**: All exit 0.
 - **Commit**: `chore(phase2): pass checkpoint after transports + CLI + Docker` (if fixes needed)
 
-### Task 2.20 — Implement `ProcessedOffsets` (atomic write, bounded seen-hash set)
+### Task 2.20 [x] — Implement `ProcessedOffsets` (atomic write, bounded seen-hash set)
 - **Do**:
   - Create `nautilus/forensics/offsets.py` with `class OffsetsCorruptError(Exception)` and `class ProcessedOffsets(BaseModel)` (`last_byte_offset: int`, `seen_line_sha256: set[str]`).
   - `load(path: Path) -> ProcessedOffsets`: returns fresh empty instance if file missing; else parse JSON; on parse error or non-monotonic `last_byte_offset` vs existing state → raise `OffsetsCorruptError`.
