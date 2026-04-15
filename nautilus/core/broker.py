@@ -36,9 +36,13 @@ from fathom.attestation import AttestationService
 from fathom.audit import FileSink
 
 from nautilus.adapters.base import Adapter, AdapterError, ScopeEnforcementError
+from nautilus.adapters.elasticsearch import ElasticsearchAdapter
 from nautilus.adapters.embedder import Embedder, NoopEmbedder
+from nautilus.adapters.neo4j import Neo4jAdapter
 from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
+from nautilus.adapters.rest import RestAdapter
+from nautilus.adapters.servicenow import ServiceNowAdapter
 from nautilus.analysis.fallback import FallbackIntentAnalyzer
 from nautilus.analysis.llm.base import LLMIntentProvider, LLMProvenance
 from nautilus.analysis.pattern_matching import PatternMatchingIntentAnalyzer
@@ -485,11 +489,27 @@ class Broker:
         source: SourceConfig,
         broker_default_embedder: Embedder,
     ) -> Adapter:
-        """Instantiate the right adapter class for ``source.type``."""
+        """Instantiate the right adapter class for ``source.type``.
+
+        Phase-1 dispatches to :class:`PostgresAdapter` / :class:`PgVectorAdapter`;
+        Phase-2 (design §3.5, §3.11) extends the table with four additive
+        adapter kinds — Elasticsearch, REST, Neo4j, ServiceNow. Each is
+        constructed with a ``None`` client/driver so the broker's
+        ``connect()`` lifecycle can lazy-initialise the real transport on
+        first ``arequest`` (mirrors the Phase-1 pattern).
+        """
         if source.type == "postgres":
             return PostgresAdapter()
         if source.type == "pgvector":
             return PgVectorAdapter(broker_default_embedder=broker_default_embedder)
+        if source.type == "elasticsearch":
+            return ElasticsearchAdapter()
+        if source.type == "rest":
+            return RestAdapter()
+        if source.type == "neo4j":
+            return Neo4jAdapter()
+        if source.type == "servicenow":
+            return ServiceNowAdapter()
         # pragma: no cover — config loader rejects unknown types upstream.
         raise ConfigError(f"Unsupported source type '{source.type}' for id='{source.id}'")
 

@@ -516,7 +516,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `test(fixtures): record LLM cassettes + 100-prompt determinism fixture`
 - **References**: FR-13, FR-15, NFR-12, AC-6.6, design §7.4.
 
-### Task 2.27 — Extend `config loader` with new env-interpolated fields + registry for 4 new adapter types
+### Task 2.27 [x] — Extend `config loader` with new env-interpolated fields + registry for 4 new adapter types
 - **Do**:
   - Edit `nautilus/config/loader.py` to env-interpolate new `${...}` references in `agents.*`, `api.keys`, `attestation.sink.*`, `session_store.dsn`, `analysis.*` (LLM API key envs).
   - Edit `nautilus/config/registry.py` / `Broker.from_config` adapter construction to dispatch on `source.type` for the 4 new types → ES / REST / Neo4j / ServiceNow adapters. Unknown type still raises `ConfigError`.

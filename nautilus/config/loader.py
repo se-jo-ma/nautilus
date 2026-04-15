@@ -15,7 +15,16 @@ import yaml
 from nautilus.config.models import NautilusConfig
 
 _ENV_PATTERN = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
-_SUPPORTED_TYPES = {"postgres", "pgvector"}
+# Phase-2 adds 4 new adapter kinds (design §3.5); unknown kinds still raise
+# ``ConfigError`` via the pre-validation check below.
+_SUPPORTED_TYPES = {
+    "postgres",
+    "pgvector",
+    "elasticsearch",
+    "rest",
+    "neo4j",
+    "servicenow",
+}
 
 
 class ConfigError(Exception):
