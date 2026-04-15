@@ -10,10 +10,9 @@ load unchanged (NFR-5, AC-1.4).
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Phase 2 auth discriminated union (design §3.5).
@@ -51,7 +50,7 @@ class NoneAuth(BaseModel):
 
 
 AuthConfig = Annotated[
-    Union[BearerAuth, BasicAuth, MtlsAuth, NoneAuth],
+    BearerAuth | BasicAuth | MtlsAuth | NoneAuth,
     Field(discriminator="type"),
 ]
 

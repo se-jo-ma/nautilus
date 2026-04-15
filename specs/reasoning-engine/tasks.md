@@ -84,7 +84,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(rules): extend templates with compartments, temporal, session multislots, new templates`
 - **References**: FR-1, FR-5, FR-6, FR-8, FR-17, FR-18, AC-1.4, AC-2.3, AC-3.1, AC-4.1, AC-7.1, design §3.1, §3.3, §3.4, §3.6, §3.9.
 
-### [VERIFY] Task 1.6 — Quality checkpoint (config + template extensions)
+### [VERIFY] Task 1.6 [x] — Quality checkpoint (config + template extensions)
 - **Do**: Run toolchain + Phase-1 regression.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest tests/integration/test_fathom_smoke.py -m integration -q`
 - **Done when**: All exit 0 — Phase 1 surface still green.
