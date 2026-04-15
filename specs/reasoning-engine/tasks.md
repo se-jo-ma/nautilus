@@ -140,7 +140,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(rules): add classification + cui-sub hierarchies with default-deny rule`
 - **References**: FR-1, FR-2, AC-1.1, AC-1.2, AC-1.3, AC-1.5, design §3.1.
 
-### [VERIFY] Task 1.11 — Quality checkpoint (rules + session)
+### [VERIFY] Task 1.11 [x] — Quality checkpoint (rules + session)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest tests/integration/test_fathom_smoke.py -m integration -q`
 - **Done when**: All exit 0.

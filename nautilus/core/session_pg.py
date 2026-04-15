@@ -213,8 +213,7 @@ class PostgresSessionStore:
         # semantics for nested dicts — keep parity with InMemorySessionStore.
         async with self._pool.acquire() as conn, conn.transaction():
             row = await conn.fetchrow(
-                "SELECT state FROM nautilus_session_state "
-                "WHERE session_id = $1 FOR UPDATE",
+                "SELECT state FROM nautilus_session_state WHERE session_id = $1 FOR UPDATE",
                 session_id,
             )
             current: dict[str, Any] = {} if row is None else _decode_state(row["state"])

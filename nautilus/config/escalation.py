@@ -57,9 +57,7 @@ def load_escalation_packs(dirs: list[Path]) -> list[EscalationRule]:
                 )
             for entry in cast(list[object], raw):
                 if not isinstance(entry, dict):
-                    raise ValueError(
-                        f"Each escalation entry in '{yaml_path}' must be a mapping"
-                    )
+                    raise ValueError(f"Each escalation entry in '{yaml_path}' must be a mapping")
                 rules.append(EscalationRule.model_validate(cast(dict[str, Any], entry)))
     return rules
 
