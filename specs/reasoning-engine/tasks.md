@@ -831,7 +831,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: none (PR-level).
 - **References**: NFR-2, NFR-3.
 
-### Task 4.12 — Tag `v0.2.0-alpha`
+### Task 4.12 [x] — Tag `v0.2.0-alpha`
 - **Do**: After PR merge (or pre-merge if approved), `git tag -a v0.2.0-alpha -m "Nautilus Reasoning Engine Phase 2 + Phase 3 alpha"`; do NOT push unless operator approves.
 - **Files**: none (git ref only).
 - **Done when**: `git tag -l | grep -q "^v0.2.0-alpha$"`.
