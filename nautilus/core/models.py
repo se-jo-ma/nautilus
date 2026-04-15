@@ -214,3 +214,23 @@ class AuditEntry(BaseModel):
     event_type: Literal["request", "handoff_declared"] | None = None
     handoff_id: str | None = None
     handoff_decision: HandoffDecision | None = None
+
+
+class InferredHandoff(BaseModel):
+    """Forensic-inferred handoff between two agents (design §3.7, FR-11).
+
+    Emitted by the offline forensic worker when heuristics fire on a pair of
+    audit entries (shared session, overlapping sources, classification delta
+    — see ``nautilus/rules/forensics/handoff.yaml``). Unlike
+    :class:`HandoffDecision` (which is a *declared* broker-time outcome),
+    ``InferredHandoff`` is a *post-hoc* inference with an explicit
+    ``confidence`` in ``[0.0, 1.0]`` and the list of heuristic ``signals``
+    that contributed to it.
+    """
+
+    session_id: str
+    source_agent: str
+    receiving_agent: str
+    confidence: float
+    signals: list[str]
+    inferred_at: datetime

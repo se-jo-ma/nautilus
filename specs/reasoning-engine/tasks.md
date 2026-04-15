@@ -444,7 +444,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(forensics): add ProcessedOffsets with atomic write + corruption detection`
 - **References**: FR-33, NFR-13, AC-5.4, design §3.7.
 
-### Task 2.21 — Implement forensic sinks (`JSONLForensicSink` + `HttpForensicSink`) + `InferredHandoff` model
+### Task 2.21 [x] — Implement forensic sinks (`JSONLForensicSink` + `HttpForensicSink`) + `InferredHandoff` model
 - **Do**:
   - Add to `nautilus/core/models.py`: `class InferredHandoff(BaseModel)` with `session_id`, `source_agent`, `receiving_agent`, `confidence: float`, `signals: list[str]`, `inferred_at: datetime`.
   - Create `nautilus/forensics/sinks.py` with `@runtime_checkable class ForensicSink(Protocol)` (`async emit(record) / async close()`); `class JSONLForensicSink(path)` (append-only, flush+fsync); `class HttpForensicSink(url)` (httpx POST, no air-gap requirement since this is offline).
