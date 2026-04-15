@@ -318,7 +318,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(adapters): add Neo4jAdapter with label backticking + LIKE style switch`
 - **References**: FR-22, AC-10.1, AC-10.2, AC-10.3, AC-10.4, NFR-4, design §3.11.
 
-### [VERIFY] Task 2.10 — Quality checkpoint (LLM providers + 2 adapters)
+### [VERIFY] Task 2.10 — Quality checkpoint (LLM providers + 2 adapters) [x]
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.
