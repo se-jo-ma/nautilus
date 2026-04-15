@@ -518,7 +518,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: None
 - **References**: cleanup protocol.
 
-### Task 4.9 — Final local CI sweep
+### Task 4.9 — Final local CI sweep [x]
 - **Do**: Run the complete quality gate as a single command chain, including a dependency license scan (NFR-12 — no GPL-family licenses in the closure).
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest -m integration && uv run pytest -m "unit or integration" --cov=nautilus --cov-branch --cov-fail-under=80 && uv build && (uv run pip-licenses --fail-on="GPL;AGPL;LGPL" || echo "pip-licenses not installed — skip")`
 - **Done when**: Every command exits 0 and the license scan either passes with no GPL-family matches or prints the skip sentinel.
