@@ -598,7 +598,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(forensics): add worker + offsets + sinks unit tests`
 - **References**: FR-11, FR-12, FR-33, NFR-13, AC-5.1, AC-5.3, AC-5.4.
 
-### Task 3.7 — Unit: `tests/unit/analysis/test_fallback.py` + `test_anthropic.py` + `test_openai.py` + `test_local.py` + `test_prompt_snapshot.py`
+### Task 3.7 [x] — Unit: `tests/unit/analysis/test_fallback.py` + `test_anthropic.py` + `test_openai.py` + `test_local.py` + `test_prompt_snapshot.py`
 - **Do**:
   - `test_fallback.py`: (a) success path returns `(IntentAnalysis, LLMProvenance(fallback_used=False))`, (b) `TimeoutError` → fallback with `fallback_used=True`, (c) `LLMProviderError` → fallback, (d) `pydantic.ValidationError` (non-conforming JSON) → fallback, (e) `mode="llm-only"` + error → raises (AC-6.3).
   - `test_anthropic.py`, `test_openai.py`, `test_local.py`: each uses its recorded cassette; asserts returned `IntentAnalysis` fields match expected (AC-6.6).
