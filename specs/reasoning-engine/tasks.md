@@ -293,7 +293,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(analysis): add FallbackIntentAnalyzer + broker wiring`
 - **References**: FR-14, AC-6.2, AC-6.3, AC-6.5, D-6, design §3.8.
 
-### Task 2.8 — Implement `ElasticsearchAdapter` (§9 step 8a)
+### Task 2.8 [x] — Implement `ElasticsearchAdapter` (§9 step 8a)
 - **Do**:
   - Create `nautilus/adapters/elasticsearch.py` with `class ElasticsearchAdapter` implementing the Phase 1 `Adapter` Protocol.
   - `connect()`: `AsyncElasticsearch(source.connection, basic_auth=...|api_key=...|ca_certs=...)`. Refuse connect if `index` unset or fails regex `^[a-z0-9][a-z0-9._-]*$` (`ScopeEnforcementError`).
