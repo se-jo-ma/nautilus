@@ -26,9 +26,10 @@ import hashlib
 import time
 import uuid
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from fathom.attestation import AttestationService
 from fathom.audit import FileSink
@@ -50,6 +51,7 @@ from nautilus.core.models import (
     AdapterResult,
     AuditEntry,
     BrokerResponse,
+    DenialRecord,
     ErrorRecord,
     IntentAnalysis,
     RoutingDecision,
@@ -57,6 +59,7 @@ from nautilus.core.models import (
 )
 from nautilus.core.session import InMemorySessionStore, SessionStore
 from nautilus.core.session_pg import PostgresSessionStore
+from nautilus.core.temporal import TemporalFilter
 from nautilus.rules import BUILT_IN_RULES_DIR
 from nautilus.synthesis.basic import BasicSynthesizer
 
@@ -92,6 +95,7 @@ class _RequestState:
     errored: list[ErrorRecord] = field(default_factory=list[ErrorRecord])
     data: dict[str, list[dict[str, Any]]] = field(default_factory=dict[str, list[dict[str, Any]]])
     attestation_token: str | None = None
+    scope_hash_version: Literal["v1", "v2"] | None = None  # set by `_sign`
 
     def apply_route_result(self, route_result: RouteResult) -> None:
         """Copy router output into the mutable request state."""
@@ -162,6 +166,7 @@ def _build_audit_entry(
         sources_errored=[e.source_id for e in state.errored],
         attestation_token=attestation_token,
         duration_ms=state.duration_ms(),
+        scope_hash_version=state.scope_hash_version,
     )
 
 
@@ -381,11 +386,12 @@ class Broker:
         """Happy-path pipeline body — mutates ``state`` in place."""
         state.intent_analysis = self._intent_analyzer.analyze(intent, context)
         await self._route(agent_id, context, state)
+        self._apply_temporal_filter(state)
         tasks, task_source_ids = await self._build_adapter_jobs(state, context)
         successful = await self._gather_adapter_results(state, tasks, task_source_ids)
         state.data = self._synthesizer.merge(successful)
         if self._attestation is not None:
-            state.attestation_token = self._sign(
+            token, scope_hash_version = self._sign(
                 request_id=state.request_id,
                 agent_id=agent_id,
                 sources_queried=state.sources_queried,
@@ -393,7 +399,41 @@ class Broker:
                 rule_trace=state.rule_trace,
                 session_id=state.session_id,
             )
+            state.attestation_token = token
+            state.scope_hash_version = scope_hash_version
         await self._update_session(state)
+
+    def _apply_temporal_filter(self, state: _RequestState) -> None:
+        """Drop expired / not-yet-valid scope constraints before adapter fan-out.
+
+        Wires :meth:`TemporalFilter.apply` into ``arequest`` per design
+        §3.9 / FR-17. Dropped constraints produce ``scope-expired``
+        :class:`DenialRecord` entries that are appended to
+        ``state.denial_records`` so they surface in the audit trail and
+        the response's ``sources_denied`` aggregation.
+        """
+        filtered, temporal_denials = TemporalFilter.apply(
+            state.scope_by_source,
+            now=datetime.now(tz=UTC),
+        )
+        state.scope_by_source = filtered
+        if temporal_denials:
+            self._record_temporal_denials(state, temporal_denials)
+
+    @staticmethod
+    def _record_temporal_denials(
+        state: _RequestState,
+        denials: list[DenialRecord],
+    ) -> None:
+        """Fold temporal-filter denials into request state without re-denying sources.
+
+        ``scope-expired`` only drops *individual constraints* — the source
+        itself may still be routable under its remaining (non-expired)
+        scope. We append the denial records to ``state.denial_records``
+        for audit coverage but leave ``state.sources_denied`` untouched
+        (that aggregator reflects whole-source denials from router rules).
+        """
+        state.denial_records = list(state.denial_records) + list(denials)
 
     async def _route(self, agent_id: str, context: dict[str, Any], state: _RequestState) -> None:
         """Invoke the Fathom router and classify sources into queried/denied/skipped.
@@ -586,7 +626,7 @@ class Broker:
         scope_by_source: dict[str, list[ScopeConstraint]],
         rule_trace: list[str],
         session_id: str,
-    ) -> str:
+    ) -> tuple[str, Literal["v1", "v2"]]:
         """Compose the Nautilus attestation payload and sign it (design §9.3).
 
         Uses :func:`nautilus.core.attestation_payload.build_payload` so the
@@ -598,26 +638,24 @@ class Broker:
         ``decision`` field carries a Nautilus marker. The Nautilus payload
         itself is passed via ``input_facts`` so the JWT's ``input_hash``
         covers the full (``scope_hash``, ``rule_trace_hash``, …) claim set.
+
+        Returns ``(token, scope_hash_version)`` so the caller can stamp
+        the version into :attr:`AuditEntry.scope_hash_version` (D-7,
+        FR-19). The internal ``scope_by_source`` dict is passed straight
+        to :func:`build_payload` so temporal-slot detection sees the raw
+        :class:`ScopeConstraint` attributes; the v1 path flattens it back
+        to the Phase-1 4-key shape in the legacy iteration order so
+        Phase-1 tokens remain bit-for-bit reproducible (NFR-6).
         """
         if self._attestation is None:
             # pragma: no cover — caller guards on self._attestation
             raise RuntimeError("attestation is disabled")
 
-        scope_payload = [
-            {
-                "source_id": c.source_id,
-                "field": c.field,
-                "operator": c.operator,
-                "value": c.value,
-            }
-            for constraints in scope_by_source.values()
-            for c in constraints
-        ]
-        nautilus_payload = build_payload(
+        nautilus_payload, scope_hash_version = build_payload(
             request_id,
             agent_id,
             sources_queried,
-            scope_payload,
+            scope_by_source,
             list(rule_trace),
         )
 
@@ -635,11 +673,12 @@ class Broker:
         # ``rule_trace_hash`` (plus request_id / agent_id / sources_queried).
         input_facts: list[dict[str, Any]] = [nautilus_payload]
         session_ref = session_id or request_id
-        return self._attestation.sign(
+        token = self._attestation.sign(
             result=result,  # type: ignore[arg-type]
             session_id=session_ref,
             input_facts=input_facts,
         )
+        return token, scope_hash_version
 
     # ------------------------------------------------------------------
     # Lifecycle

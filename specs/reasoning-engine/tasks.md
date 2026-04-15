@@ -146,7 +146,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Done when**: All exit 0.
 - **Commit**: `chore(rules): pass checkpoint` (if fixes needed)
 
-### Task 1.12 — Implement `TemporalFilter` + `purpose-expired-deny` rule + `scope_hash_v2` canonicalization
+### Task 1.12 [x] — Implement `TemporalFilter` + `purpose-expired-deny` rule + `scope_hash_v2` canonicalization
 - **Do**:
   - Create `nautilus/core/temporal.py` with `class TemporalFilter`: `@staticmethod def apply(constraints: dict[str, list[ScopeConstraint]], now: datetime) -> tuple[dict, list[DenialRecord]]` that drops constraints whose `expires_at` is in the past or `valid_from` in the future; malformed ISO-8601 → drop + denial. Each drop produces `DenialRecord(rule_name="scope-expired", source_id=..., ...)`.
   - Create `nautilus/rules/rules/temporal.yaml` with `purpose-expired-deny` rule using `fathom-changed-within` against `session.purpose_start_ts` + `session.purpose_ttl_seconds` — fires a global denial if the purpose TTL has elapsed.

@@ -15,9 +15,16 @@
 # Rules in this module invoke them through the ``fathom-dominates``
 # external registered by the engine.
 #
+# Rulesets loaded into this module (file-scan order in
+# ``nautilus/rules/rules/`` — design §3.9, Task 1.12):
+#   - nautilus-default-routing         (routing.yaml)
+#   - nautilus-default-denial          (denial.yaml)
+#   - nautilus-default-classification  (classification.yaml)
+#   - nautilus-default-temporal        (temporal.yaml — purpose-expired-deny)
+#
 modules:
   - name: nautilus-routing
-    description: "Nautilus built-in routing, denial, and classification rules"
+    description: "Nautilus built-in routing, denial, classification, and temporal rules"
 
 focus_order:
   - nautilus-routing
