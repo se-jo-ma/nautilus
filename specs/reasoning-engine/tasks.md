@@ -44,7 +44,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `chore(tooling): add reasoning-engine runtime + dev deps, LLM extras`
 - **References**: NFR-11, design §5 pyproject edits.
 
-### Task 1.3 — Extend `SourceConfig`, `NautilusConfig` with additive Phase 2 fields
+### Task 1.3 [x] — Extend `SourceConfig`, `NautilusConfig` with additive Phase 2 fields
 - **Do**:
   - Edit `nautilus/config/models.py`:
     - Add to `SourceConfig`: `index: str | None = None`, `label: str | None = None`, `endpoints: list[EndpointSpec] | None = None`, `auth: AuthConfig | None = None`, `compartments: str = ""`, `sub_category: str = ""`, `like_style: Literal["starts_with","regex"] = "starts_with"`.
