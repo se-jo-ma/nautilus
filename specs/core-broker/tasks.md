@@ -435,7 +435,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(meta): enforce dedicated unit-test module per component`
 - **References**: AC-9.5.
 
-### [VERIFY] Task 3.20 — Full test gate (unit + integration + coverage)
+### [VERIFY] Task 3.20 — Full test gate (unit + integration + coverage) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest -m integration && uv run pytest -m "unit or integration" --cov=nautilus --cov-branch --cov-fail-under=80 -q`
 - **Done when**: All commands exit 0.
 - **Commit**: `chore(tests): pass full quality + coverage gate` (if fixes needed)
