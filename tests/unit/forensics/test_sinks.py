@@ -157,8 +157,6 @@ async def test_http_sink_posts_with_retry_via_mock_transport(
     assert posted_bodies[1]["session_id"] == "sess-2"
 
     # Exactly one WARN — from the 500 attempt. The 200 attempt adds nothing.
-    warn_records = [
-        r for r in caplog.records if "forensic_sink.http" in r.message
-    ]
+    warn_records = [r for r in caplog.records if "forensic_sink.http" in r.message]
     assert len(warn_records) == 1
     assert "500" in warn_records[0].message

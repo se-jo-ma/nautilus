@@ -27,9 +27,7 @@ import pytest
 
 # SHA-256 of the on-disk bytes of ``nautilus/analysis/llm/prompts/intent_v1.txt``.
 # Regenerate only when intentionally bumping the prompt version; see module docstring.
-EXPECTED_INTENT_V1_SHA256: str = (
-    "73db104495459aaceed822bb404371959a8402d2893070a71c2ad98a6f80adee"
-)
+EXPECTED_INTENT_V1_SHA256: str = "73db104495459aaceed822bb404371959a8402d2893070a71c2ad98a6f80adee"
 
 _PROMPT_PATH: Path = (
     Path(__file__).resolve().parents[4]

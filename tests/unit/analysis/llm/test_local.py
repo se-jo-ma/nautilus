@@ -31,11 +31,7 @@ from nautilus.analysis.llm.local_provider import LocalInferenceProvider
 from nautilus.core.models import IntentAnalysis
 
 _CASSETTE_PATH: Path = (
-    Path(__file__).resolve().parents[4]
-    / "tests"
-    / "fixtures"
-    / "llm"
-    / "local_cassette.yaml"
+    Path(__file__).resolve().parents[4] / "tests" / "fixtures" / "llm" / "local_cassette.yaml"
 )
 
 

@@ -43,7 +43,7 @@ FIXTURE_PATH = Path(__file__).resolve().parents[2] / "fixtures" / "nautilus.yaml
 
 
 @pytest.fixture(autouse=True)
-def _set_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def set_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Dummy DSNs so config interpolation succeeds (no adapter is connected)."""
     monkeypatch.setenv("TEST_PG_DSN", "postgres://ignored/0")
     monkeypatch.setenv("TEST_PGV_DSN", "postgres://ignored/1")
@@ -108,9 +108,7 @@ async def test_declare_handoff_allow_when_both_clearances_dominate(tmp_path: Pat
     ``to_clearance`` → the ``information-flow-violation`` rule does NOT
     fire → action is ``"allow"``.
     """
-    cfg = _write_yaml_with_agents(
-        tmp_path, source_clearance="secret", receiver_clearance="secret"
-    )
+    cfg = _write_yaml_with_agents(tmp_path, source_clearance="secret", receiver_clearance="secret")
     broker = Broker.from_config(cfg)
     adapter_mocks = _install_mock_adapters(broker)
     try:
@@ -280,9 +278,7 @@ async def test_declare_handoff_emits_exactly_one_audit_entry(tmp_path: Path) -> 
 @pytest.mark.unit
 async def test_declare_handoff_50_concurrent_distinct_ids(tmp_path: Path) -> None:
     """AC-4.5 — ``asyncio.gather`` of 50 calls yields 50 unique ``handoff_id`` values."""
-    cfg = _write_yaml_with_agents(
-        tmp_path, source_clearance="secret", receiver_clearance="secret"
-    )
+    cfg = _write_yaml_with_agents(tmp_path, source_clearance="secret", receiver_clearance="secret")
     broker = Broker.from_config(cfg)
     _install_mock_adapters(broker)
     try:

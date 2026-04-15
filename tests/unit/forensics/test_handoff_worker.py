@@ -29,7 +29,6 @@ import pytest
 from nautilus.core.models import AuditEntry, HandoffDecision, InferredHandoff
 from nautilus.forensics.handoff_worker import WorkerReport, run_worker
 from nautilus.forensics.offsets import ProcessedOffsets
-from nautilus.forensics.sinks import ForensicSink
 
 # ---------------------------------------------------------------------------
 # Helpers — synthetic audit line builder + in-memory sink

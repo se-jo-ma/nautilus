@@ -609,7 +609,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(analysis): add FallbackIntentAnalyzer + 3 provider cassette tests + prompt snapshot`
 - **References**: FR-13, FR-14, FR-15, AC-6.1, AC-6.2, AC-6.3, AC-6.6.
 
-### [VERIFY] Task 3.8 — Quality checkpoint (test batch 2)
+### [VERIFY] Task 3.8 [x] — Quality checkpoint (test batch 2)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.

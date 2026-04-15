@@ -61,7 +61,7 @@ def _payload(token: str = "jwt.header.signature") -> AttestationPayload:
 
 
 @pytest.fixture(autouse=True)
-def _set_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def set_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Dummy DSNs so ``Broker.from_config`` env interpolation succeeds.
 
     Adapters in this file are never ``connect()``-ed — the DSN values just
@@ -187,12 +187,8 @@ async def test_file_sink_writes_one_line_per_emit_and_fsyncs(
     assert decoded[0]["token"] == "tok-A"
     assert decoded[1]["token"] == "tok-B"
     # Two emits → two flushes, two fsyncs (AC-14.2).
-    assert flush_before_close == 2, (
-        f"expected 2 flush calls pre-close, got {flush_before_close}"
-    )
-    assert fsync_before_close == 2, (
-        f"expected 2 fsync calls pre-close, got {fsync_before_close}"
-    )
+    assert flush_before_close == 2, f"expected 2 flush calls pre-close, got {flush_before_close}"
+    assert fsync_before_close == 2, f"expected 2 fsync calls pre-close, got {fsync_before_close}"
 
 
 # ---------------------------------------------------------------------------

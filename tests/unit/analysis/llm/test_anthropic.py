@@ -26,11 +26,7 @@ from nautilus.analysis.llm.anthropic_provider import AnthropicProvider
 from nautilus.core.models import IntentAnalysis
 
 _CASSETTE_PATH: Path = (
-    Path(__file__).resolve().parents[4]
-    / "tests"
-    / "fixtures"
-    / "llm"
-    / "anthropic_cassette.yaml"
+    Path(__file__).resolve().parents[4] / "tests" / "fixtures" / "llm" / "anthropic_cassette.yaml"
 )
 
 

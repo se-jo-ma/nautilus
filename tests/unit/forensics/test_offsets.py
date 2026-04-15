@@ -109,9 +109,7 @@ def test_corruption_detection_raises_offsets_corrupt_error(tmp_path: Path) -> No
     """
     # --- truncated JSON -----------------------------------------------------
     truncated = tmp_path / "truncated.json"
-    truncated.write_text(
-        '{"last_byte_offset": 123, "seen_line_sha256": ["a', encoding="utf-8"
-    )
+    truncated.write_text('{"last_byte_offset": 123, "seen_line_sha256": ["a', encoding="utf-8")
     with pytest.raises(OffsetsCorruptError):
         ProcessedOffsets.load(truncated)
 
@@ -158,7 +156,7 @@ def test_mark_seen_respects_bounded_cap(monkeypatch: pytest.MonkeyPatch) -> None
     for i in range(total):
         offsets.mark_seen(f"sha-{i:06d}")
 
-    assert len(offsets._order) == cap  # noqa: SLF001
+    assert len(offsets._order) == cap  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
     assert len(offsets.seen_line_sha256) == cap
     # The oldest entries were evicted; the newest survived.
     assert f"sha-{total - 1:06d}" in offsets.seen_line_sha256
