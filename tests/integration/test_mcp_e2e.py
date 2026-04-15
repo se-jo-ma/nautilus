@@ -145,39 +145,36 @@ async def test_mcp_stdio_single_tool_call_emits_one_audit_line(
         cwd=str(tmp_path),
     )
 
-    async with stdio_client(params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            # Sanity-check that nautilus_request is registered before firing.
-            tools = await session.list_tools()
-            names = {t.name for t in tools.tools}
-            assert "nautilus_request" in names, (
-                f"nautilus_request missing; tools={sorted(names)!r}"
-            )
+    async with (
+        stdio_client(params) as (read, write),
+        ClientSession(read, write) as session,
+    ):
+        await session.initialize()
+        # Sanity-check that nautilus_request is registered before firing.
+        tools = await session.list_tools()
+        names = {t.name for t in tools.tools}
+        assert "nautilus_request" in names, f"nautilus_request missing; tools={sorted(names)!r}"
 
-            result = await session.call_tool(
-                "nautilus_request",
-                {
-                    "agent_id": "agent-alpha-stdio",
-                    "intent": "Find vulnerabilities for CVE-2026-0001",
-                    "context": {
-                        "clearance": "unclassified",
-                        "purpose": "threat-analysis",
-                        "session_id": "mcp-stdio-e2e",
-                    },
+        result = await session.call_tool(
+            "nautilus_request",
+            {
+                "agent_id": "agent-alpha-stdio",
+                "intent": "Find vulnerabilities for CVE-2026-0001",
+                "context": {
+                    "clearance": "unclassified",
+                    "purpose": "threat-analysis",
+                    "session_id": "mcp-stdio-e2e",
                 },
-            )
-            assert result.isError is False, (
-                f"nautilus_request returned error: {result.content!r}"
-            )
+            },
+        )
+        assert result.isError is False, f"nautilus_request returned error: {result.content!r}"
 
     # After the stdio session has closed, the subprocess has flushed its
     # audit file. Count lines — NFR-15 requires exactly one per tool call.
     assert audit_path.exists(), f"audit file missing at {audit_path}"
     lines = [ln for ln in audit_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
     assert len(lines) == 1, (
-        f"expected exactly 1 audit line for 1 tool call (NFR-15); "
-        f"got {len(lines)}"
+        f"expected exactly 1 audit line for 1 tool call (NFR-15); got {len(lines)}"
     )
     # Round-trip the one line so a shape-drift in AuditRecord surfaces here.
     record = cast(dict[str, Any], json.loads(lines[0]))
@@ -190,7 +187,7 @@ async def test_mcp_stdio_single_tool_call_emits_one_audit_line(
 
 
 @pytest.fixture
-def _mcp_http_server(
+def _mcp_http_server(  # pyright: ignore[reportUnusedFunction]
     pg_container: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -279,37 +276,39 @@ async def test_mcp_streamable_http_single_tool_call_emits_one_audit_line(
     JSONL carries exactly one line.
     """
     from mcp import ClientSession
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import (
+        streamablehttp_client,  # pyright: ignore[reportDeprecated]
+    )
 
     base_url, audit_path = _mcp_http_server
     # FastMCP mounts the streamable endpoint at "/mcp" on the sub-app.
     url = f"{base_url}/mcp/"
     headers = {"X-API-Key": _API_KEY}
 
-    async with streamablehttp_client(url, headers=headers) as (read, write, _get_id):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await session.list_tools()
-            names = {t.name for t in tools.tools}
-            assert "nautilus_request" in names, (
-                f"nautilus_request missing; tools={sorted(names)!r}"
-            )
+    async with (
+        streamablehttp_client(  # pyright: ignore[reportDeprecated]
+            url, headers=headers
+        ) as (read, write, _get_id),
+        ClientSession(read, write) as session,
+    ):
+        await session.initialize()
+        tools = await session.list_tools()
+        names = {t.name for t in tools.tools}
+        assert "nautilus_request" in names, f"nautilus_request missing; tools={sorted(names)!r}"
 
-            result = await session.call_tool(
-                "nautilus_request",
-                {
-                    "agent_id": "agent-alpha-http",
-                    "intent": "Find vulnerabilities for CVE-2026-0002",
-                    "context": {
-                        "clearance": "unclassified",
-                        "purpose": "threat-analysis",
-                        "session_id": "mcp-http-e2e",
-                    },
+        result = await session.call_tool(
+            "nautilus_request",
+            {
+                "agent_id": "agent-alpha-http",
+                "intent": "Find vulnerabilities for CVE-2026-0002",
+                "context": {
+                    "clearance": "unclassified",
+                    "purpose": "threat-analysis",
+                    "session_id": "mcp-http-e2e",
                 },
-            )
-            assert result.isError is False, (
-                f"nautilus_request returned error: {result.content!r}"
-            )
+            },
+        )
+        assert result.isError is False, f"nautilus_request returned error: {result.content!r}"
 
     # Let the server drain any buffered audit writes.
     await asyncio.sleep(0.2)
@@ -317,6 +316,5 @@ async def test_mcp_streamable_http_single_tool_call_emits_one_audit_line(
     assert audit_path.exists(), f"audit file missing at {audit_path}"
     lines = [ln for ln in audit_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
     assert len(lines) == 1, (
-        f"expected exactly 1 audit line for 1 tool call (NFR-15); "
-        f"got {len(lines)}"
+        f"expected exactly 1 audit line for 1 tool call (NFR-15); got {len(lines)}"
     )

@@ -712,7 +712,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(coverage): raise branch coverage ≥80% + enforce dedicated-module presence`
 - **References**: NFR-2, AC-9.4 (Phase 1), design §7.
 
-### [VERIFY] Task 3.19 — Full test + coverage gate
+### [x] [VERIFY] Task 3.19 — Full test + coverage gate
 - **Do**: Run full quality + coverage gate.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest -m integration -q && uv run pytest -m "unit or integration" --cov=nautilus --cov-branch --cov-fail-under=80 -q`
 - **Done when**: All exit 0.

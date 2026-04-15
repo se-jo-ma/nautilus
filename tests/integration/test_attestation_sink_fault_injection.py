@@ -36,7 +36,6 @@ from nautilus.core.attestation_sink import HttpAttestationSink, RetryPolicy
 from nautilus.core.broker import Broker
 from nautilus.core.models import AuditEntry, BrokerResponse
 
-
 _TOTAL_REQUESTS: int = 1_000
 _VERIFIER_URL: str = "https://verifier.test.local/attest"
 
@@ -139,9 +138,7 @@ async def test_attestation_sink_fault_injection_1000_requests(
     # ------------------------------------------------------------------
     audit_path = tmp_path / "audit.jsonl"
     assert audit_path.exists(), f"audit file missing at {audit_path}"
-    audit_lines = [
-        ln for ln in audit_path.read_text(encoding="utf-8").splitlines() if ln.strip()
-    ]
+    audit_lines = [ln for ln in audit_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
     assert len(audit_lines) == _TOTAL_REQUESTS, (
         f"expected {_TOTAL_REQUESTS} audit lines, got {len(audit_lines)}"
     )
@@ -165,11 +162,10 @@ async def test_attestation_sink_fault_injection_1000_requests(
     assert counter["fail"] > 0, "expected at least one injected failure"
 
     sink_warns = [
-        r for r in caplog.records
-        if r.levelname == "WARNING"
-        and "attestation_sink.http emit failed" in r.getMessage()
+        r
+        for r in caplog.records
+        if r.levelname == "WARNING" and "attestation_sink.http emit failed" in r.getMessage()
     ]
     assert len(sink_warns) == counter["fail"], (
-        f"expected one WARN per injected failure "
-        f"(fail={counter['fail']}); got {len(sink_warns)}"
+        f"expected one WARN per injected failure (fail={counter['fail']}); got {len(sink_warns)}"
     )

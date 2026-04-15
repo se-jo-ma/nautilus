@@ -38,7 +38,11 @@ import yaml
 
 from nautilus.analysis.llm import (
     anthropic_provider as ap_mod,
+)
+from nautilus.analysis.llm import (
     local_provider as lp_mod,
+)
+from nautilus.analysis.llm import (
     openai_provider as op_mod,
 )
 from nautilus.analysis.llm.anthropic_provider import AnthropicProvider
@@ -119,9 +123,7 @@ def _install_anthropic_fake(
                 break
         if matched is None:
             # Fail loud — the prompt template MUST carry the raw intent.
-            raise AssertionError(
-                f"anthropic fake: no prompt matched in content={user_content!r}"
-            )
+            raise AssertionError(f"anthropic fake: no prompt matched in content={user_content!r}")
         block = MagicMock()
         block.type = "tool_use"
         block.input = matched.model_dump(mode="json")
@@ -166,9 +168,7 @@ def _install_openai_fake(
                 matched = payload
                 break
         if matched is None:
-            raise AssertionError(
-                f"openai fake: no prompt matched in input={prompt!r}"
-            )
+            raise AssertionError(f"openai fake: no prompt matched in input={prompt!r}")
         response = MagicMock()
         response.output_parsed = matched
         response.id = f"chatcmpl-{hash(prompt) & 0xFFFFFFFF:08x}"
@@ -250,8 +250,7 @@ async def test_anthropic_determinism_over_100_prompts(
     results = await _run_provider(provider, prompts)
     matches = _count_matches(results, prompts)
     assert matches >= _MIN_MATCH, (
-        f"anthropic determinism: {matches}/{_TOTAL_PROMPTS} "
-        f"(threshold >= {_MIN_MATCH})"
+        f"anthropic determinism: {matches}/{_TOTAL_PROMPTS} (threshold >= {_MIN_MATCH})"
     )
 
 
@@ -278,8 +277,7 @@ async def test_openai_determinism_over_100_prompts(
     results = await _run_provider(provider, prompts)
     matches = _count_matches(results, prompts)
     assert matches >= _MIN_MATCH, (
-        f"openai determinism: {matches}/{_TOTAL_PROMPTS} "
-        f"(threshold >= {_MIN_MATCH})"
+        f"openai determinism: {matches}/{_TOTAL_PROMPTS} (threshold >= {_MIN_MATCH})"
     )
 
 
@@ -305,6 +303,5 @@ async def test_local_determinism_over_100_prompts(
     results = await _run_provider(provider, prompts)
     matches = _count_matches(results, prompts)
     assert matches >= _MIN_MATCH, (
-        f"local determinism: {matches}/{_TOTAL_PROMPTS} "
-        f"(threshold >= {_MIN_MATCH})"
+        f"local determinism: {matches}/{_TOTAL_PROMPTS} (threshold >= {_MIN_MATCH})"
     )

@@ -30,7 +30,6 @@ from nautilus.core.broker import Broker
 from nautilus.core.models import BrokerResponse
 from nautilus.transport.fastapi_app import create_app
 
-
 _TOTAL_REQUESTS: int = 1_000
 _WARMUP: int = 100
 _BUDGET_MS: float = 200.0  # AC-12.6: p95 overhead must stay < 200 ms.
@@ -77,7 +76,7 @@ async def test_fastapi_latency_p95_under_200ms(
         "sources:\n"
         "  - id: nvd_db\n"
         "    type: postgres\n"
-        "    description: \"NVD fixture for latency harness\"\n"
+        '    description: "NVD fixture for latency harness"\n'
         "    classification: unclassified\n"
         "    data_types: [cve, vulnerability, patch]\n"
         "    allowed_purposes: [threat-analysis, incident-response]\n"

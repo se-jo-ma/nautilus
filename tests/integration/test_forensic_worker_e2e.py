@@ -96,7 +96,9 @@ def _audit_line(
     return entry.model_dump_json()
 
 
-def _synthesize_10k_audit(path: Path) -> tuple[
+def _synthesize_10k_audit(
+    path: Path,
+) -> tuple[
     set[tuple[str, str, str]],
     tuple[str, str, str],
 ]:
@@ -255,22 +257,18 @@ async def test_forensic_worker_e2e_10k_audit_with_declared_dedup(
     expected_triples, declared_triple = _synthesize_10k_audit(audit_path)
 
     sink = _MockSink()
-    report: WorkerReport = await run_worker(
-        audit_path, offsets_path, sink, window_s=3600
-    )
+    report: WorkerReport = await run_worker(audit_path, offsets_path, sink, window_s=3600)
 
     assert report.lines_processed == 10_000
     assert report.new_offset == audit_path.stat().st_size
 
     emitted_triples: set[tuple[str, str, str]] = {
-        (rec.session_id, rec.source_agent, rec.receiving_agent)
-        for rec in sink.records
+        (rec.session_id, rec.source_agent, rec.receiving_agent) for rec in sink.records
     }
 
     # Declared-precedence dedup: the declared triple MUST NOT appear.
     assert declared_triple not in emitted_triples, (
-        f"declared triple {declared_triple!r} leaked past dedup; "
-        f"emitted={emitted_triples!r}"
+        f"declared triple {declared_triple!r} leaked past dedup; emitted={emitted_triples!r}"
     )
 
     # Every expected inferred triple MUST be present.
@@ -280,9 +278,7 @@ async def test_forensic_worker_e2e_10k_audit_with_declared_dedup(
     )
 
     # No spurious cross-session inferences from the noise block.
-    noise_survivors = [
-        r for r in sink.records if r.session_id.startswith("sess-noise-")
-    ]
+    noise_survivors = [r for r in sink.records if r.session_id.startswith("sess-noise-")]
     assert noise_survivors == []
 
 
@@ -309,8 +305,7 @@ async def test_forensic_worker_e2e_rerun_is_idempotent(tmp_path: Path) -> None:
     second_report = await run_worker(audit_path, offsets_path, second_sink, window_s=3600)
 
     assert second_report.lines_processed == 0, (
-        f"expected 0 lines re-processed on second run; "
-        f"got {second_report.lines_processed}"
+        f"expected 0 lines re-processed on second run; got {second_report.lines_processed}"
     )
     assert second_report.records_emitted == 0
     assert second_report.new_offset == first_offset
