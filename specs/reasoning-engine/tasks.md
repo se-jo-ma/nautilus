@@ -577,7 +577,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Done when**: All exit 0.
 - **Commit**: `chore(tests): pass batch 1 checkpoint` (if fixes needed)
 
-### Task 3.5 — Unit: `tests/unit/core/test_attestation_sink.py` + `test_declare_handoff.py`
+### Task 3.5 [x] — Unit: `tests/unit/core/test_attestation_sink.py` + `test_declare_handoff.py`
 - **Do**:
   - `test_attestation_sink.py`: (a) `NullAttestationSink.emit` is no-op, (b) `FileAttestationSink` writes one line per emit + flush+fsync, (c) `HttpAttestationSink` retries then spills to dead-letter, (d) sink raising does NOT fail `broker.arequest` (AC-14.5), (e) `Broker.aclose()` order: session_store → sink → adapter pool.
   - `test_declare_handoff.py`: (a) allow branch (clearance dominates both ways), (b) deny branch (AC-4.3), (c) escalate branch, (d) unknown receiving agent → `HandoffDecision(action="deny", rule_name="unknown-agent")` (AC-4.2), (e) exactly one audit entry per call (AC-4.4), (f) 50 concurrent calls via `asyncio.gather` produce 50 distinct `handoff_id`s (AC-4.5), (g) zero adapter calls (mock adapters — none invoked).
