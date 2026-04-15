@@ -804,7 +804,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(adapters): cross-adapter operator-allowlist drift guard`
 - **References**: NFR-4, design §7.2.
 
-### Task 4.10 — Final local CI sweep
+### Task 4.10 [x] — Final local CI sweep
 - **Do**: Run the complete gate as a single command chain:
   - `uv run ruff check && uv run ruff format --check`
   - `uv run pyright`
