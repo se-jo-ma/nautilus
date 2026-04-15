@@ -324,7 +324,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Done when**: All exit 0.
 - **Commit**: `chore(phase2): pass checkpoint after ES + Neo4j adapters` (if fixes needed)
 
-### Task 2.11 — Implement `RestAdapter` with SSRF defense (§9 step 8c)
+### Task 2.11 [x] — Implement `RestAdapter` with SSRF defense (§9 step 8c)
 - **Do**:
   - Create `nautilus/adapters/rest.py` with `class RestAdapter` + `class SSRFBlockedError(AdapterError)`.
   - `connect()`: `httpx.AsyncClient(base_url=source.connection, follow_redirects=False, auth=<from AuthConfig>)`. If `SourceConfig.endpoints` references an undeclared path referenced by a scope constraint → `ScopeEnforcementError` at load.

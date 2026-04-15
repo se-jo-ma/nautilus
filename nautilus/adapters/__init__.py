@@ -28,16 +28,18 @@ from nautilus.adapters.embedder import (
 from nautilus.adapters.neo4j import Neo4jAdapter
 from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
+from nautilus.adapters.rest import RestAdapter, SSRFBlockedError
 
 # ``SourceConfig.type`` literal -> adapter class. The broker uses this map to
 # instantiate the right adapter for each source at startup (design §3.5,
-# §3.11). Phase-2 adds elasticsearch + neo4j; the remaining Phase-2 adapters
-# land in Tasks 2.11 / 2.12 and extend this map.
+# §3.11). Phase-2 adds elasticsearch + neo4j + rest; the remaining Phase-2
+# adapter (servicenow) lands in Task 2.12 and extends this map.
 ADAPTER_REGISTRY: dict[str, type[Any]] = {
     "postgres": PostgresAdapter,
     "pgvector": PgVectorAdapter,
     "elasticsearch": ElasticsearchAdapter,
     "neo4j": Neo4jAdapter,
+    "rest": RestAdapter,
 }
 
 __all__ = [
@@ -51,6 +53,8 @@ __all__ = [
     "NoopEmbedder",
     "PgVectorAdapter",
     "PostgresAdapter",
+    "RestAdapter",
+    "SSRFBlockedError",
     "ScopeEnforcementError",
     "quote_identifier",
     "render_field",
