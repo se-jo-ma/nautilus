@@ -282,7 +282,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(analysis): add OpenAIProvider + LocalInferenceProvider`
 - **References**: FR-13, AC-6.1, AC-6.6, design §3.8.
 
-### Task 2.7 — Implement `FallbackIntentAnalyzer` + broker wiring
+### Task 2.7 [x] — Implement `FallbackIntentAnalyzer` + broker wiring
 - **Do**:
   - Create `nautilus/analysis/fallback.py` with `class FallbackIntentAnalyzer(primary: LLMIntentProvider, fallback: IntentAnalyzer, *, timeout_s: float = 2.0, mode: Literal["llm-first","llm-only"] = "llm-first")`. `async analyze(intent, context) -> tuple[IntentAnalysis, LLMProvenance]`: wrap primary call in `asyncio.timeout(timeout_s)`; catch `TimeoutError | LLMProviderError | pydantic.ValidationError` → if `mode == "llm-first"` delegate to `fallback` and return with `fallback_used=True`; if `mode == "llm-only"` re-raise.
   - Update `Broker.from_config` to construct `FallbackIntentAnalyzer` when `config.analysis.mode in {"llm-first","llm-only"}` using `config.analysis.provider` + `pattern_analyzer` as fallback.

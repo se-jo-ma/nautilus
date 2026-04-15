@@ -39,11 +39,22 @@ from nautilus.adapters.base import Adapter, AdapterError, ScopeEnforcementError
 from nautilus.adapters.embedder import Embedder, NoopEmbedder
 from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
+from nautilus.analysis.fallback import FallbackIntentAnalyzer
+from nautilus.analysis.llm.base import LLMIntentProvider, LLMProvenance
 from nautilus.analysis.pattern_matching import PatternMatchingIntentAnalyzer
 from nautilus.audit.logger import AuditLogger
 from nautilus.config.agent_registry import AgentRegistry, UnknownAgentError
 from nautilus.config.loader import ConfigError, load_config
-from nautilus.config.models import FileSinkSpec, NautilusConfig, NullSinkSpec, SourceConfig
+from nautilus.config.models import (
+    AnalysisProviderSpec,
+    AnthropicProviderSpec,
+    FileSinkSpec,
+    LocalInferenceProviderSpec,
+    NautilusConfig,
+    NullSinkSpec,
+    OpenAIProviderSpec,
+    SourceConfig,
+)
 from nautilus.config.registry import SourceRegistry
 from nautilus.core import PolicyEngineError
 from nautilus.core.attestation_payload import build_payload
@@ -106,6 +117,11 @@ class _RequestState:
     data: dict[str, list[dict[str, Any]]] = field(default_factory=dict[str, list[dict[str, Any]]])
     attestation_token: str | None = None
     scope_hash_version: Literal["v1", "v2"] | None = None  # set by `_sign`
+    # LLM provenance — populated only when the wired analyzer is a
+    # :class:`FallbackIntentAnalyzer`. Phase-1 pipelines leave this ``None``
+    # so the resulting :class:`AuditEntry` round-trips byte-identically
+    # (NFR-5/NFR-6).
+    llm_provenance: LLMProvenance | None = None
 
     def apply_route_result(self, route_result: RouteResult) -> None:
         """Copy router output into the mutable request state."""
@@ -158,6 +174,7 @@ def _build_audit_entry(
     session_store_mode: Literal["primary", "degraded_memory"] | None,
 ) -> AuditEntry:
     """Materialize a flat :class:`AuditEntry` from pipeline state (design §4.9)."""
+    prov = state.llm_provenance
     return AuditEntry(
         timestamp=AuditLogger.utcnow(),
         request_id=state.request_id,
@@ -180,6 +197,15 @@ def _build_audit_entry(
         scope_hash_version=state.scope_hash_version,
         session_store_mode=session_store_mode,
         event_type="request",
+        # AC-6.5 — copy LLM provenance into the audit entry. Left ``None``
+        # in Phase-1 / pattern-only mode so existing JSONL fixtures
+        # round-trip unchanged (NFR-5).
+        llm_provider=prov.provider if prov is not None else None,
+        llm_model=prov.model if prov is not None else None,
+        llm_version=prov.version if prov is not None else None,
+        prompt_version=prov.prompt_version if prov is not None else None,
+        raw_response_hash=prov.raw_response_hash if prov is not None else None,
+        fallback_used=prov.fallback_used if prov is not None else None,
     )
 
 
@@ -195,7 +221,7 @@ class Broker:
         *,
         config: NautilusConfig,
         registry: SourceRegistry,
-        intent_analyzer: IntentAnalyzer,
+        intent_analyzer: IntentAnalyzer | FallbackIntentAnalyzer,
         router: FathomRouter,
         adapters: dict[str, Adapter],
         synthesizer: Synthesizer,
@@ -261,9 +287,10 @@ class Broker:
         registry = SourceRegistry(config.sources)
         agent_registry = AgentRegistry(config.agents)
 
-        intent_analyzer = PatternMatchingIntentAnalyzer(
+        pattern_analyzer = PatternMatchingIntentAnalyzer(
             keyword_map=config.analysis.keyword_map,
         )
+        intent_analyzer = cls._build_intent_analyzer(config, pattern_analyzer)
 
         attestation = cls._build_attestation(config)
         attestation_sink = cls._build_attestation_sink(config)
@@ -302,6 +329,76 @@ class Broker:
             session_store=session_store,
             agent_registry=agent_registry,
             attestation_sink=attestation_sink,
+        )
+
+    @classmethod
+    def _build_intent_analyzer(
+        cls,
+        config: NautilusConfig,
+        pattern_analyzer: PatternMatchingIntentAnalyzer,
+    ) -> IntentAnalyzer | FallbackIntentAnalyzer:
+        """Construct the wired intent analyzer per ``config.analysis.mode``.
+
+        - ``"pattern"`` (default) → return ``pattern_analyzer`` unchanged so
+          the broker hot path stays sync and Phase-1 audit JSONL round-trips
+          byte-identically (NFR-5/NFR-6).
+        - ``"llm-first"`` / ``"llm-only"`` → wrap a provider built from
+          ``config.analysis.provider`` in :class:`FallbackIntentAnalyzer`
+          with ``pattern_analyzer`` as the deterministic fallback (FR-14,
+          AC-6.2).
+
+        Raises :class:`ConfigError` when an LLM mode is requested without a
+        provider spec (AC-6.4 surfaces the same failure under the CLI's
+        ``--air-gapped`` override).
+        """
+        analysis = config.analysis
+        if analysis.mode == "pattern":
+            return pattern_analyzer
+        if analysis.provider is None:
+            raise ConfigError(
+                f"analysis.mode={analysis.mode!r} requires analysis.provider to be set"
+            )
+        provider = cls._build_llm_provider(analysis.provider)
+        return FallbackIntentAnalyzer(
+            primary=provider,
+            fallback=pattern_analyzer,
+            timeout_s=analysis.timeout_s,
+            mode=analysis.mode,
+        )
+
+    @staticmethod
+    def _build_llm_provider(spec: AnalysisProviderSpec) -> LLMIntentProvider:
+        """Instantiate an :class:`LLMIntentProvider` from a config spec (design §3.8).
+
+        Discriminated-union dispatch on ``spec.type``; provider modules are
+        imported lazily so optional extras (``llm-anthropic`` /
+        ``llm-openai``) only blow up when actually requested.
+        """
+        if isinstance(spec, AnthropicProviderSpec):
+            from nautilus.analysis.llm.anthropic_provider import AnthropicProvider
+
+            return AnthropicProvider(
+                api_key_env=spec.api_key_env,
+                model=spec.model,
+                timeout_s=spec.timeout_s,
+            )
+        if isinstance(spec, OpenAIProviderSpec):
+            from nautilus.analysis.llm.openai_provider import OpenAIProvider
+
+            return OpenAIProvider(
+                api_key_env=spec.api_key_env,
+                model=spec.model,
+                timeout_s=spec.timeout_s,
+            )
+        # Discriminated union — only the local spec remains.
+        assert isinstance(spec, LocalInferenceProviderSpec)
+        from nautilus.analysis.llm.local_provider import LocalInferenceProvider
+
+        return LocalInferenceProvider(
+            base_url=spec.base_url,
+            model=spec.model,
+            api_key_env=spec.api_key_env,
+            timeout_s=spec.timeout_s,
         )
 
     @staticmethod
@@ -619,6 +716,36 @@ class Broker:
         del receiving_agent_id
         self._audit_logger.emit(entry)
 
+    async def _analyze_intent(
+        self,
+        intent: str,
+        context: dict[str, Any],
+        state: _RequestState,
+    ) -> None:
+        """Run the wired intent analyzer; stamp LLM provenance when present.
+
+        Two code paths (design §3.8, AC-6.5):
+
+        * **Pattern-only (Phase-1 default).** ``self._intent_analyzer`` is a
+          plain :class:`IntentAnalyzer` (sync ``analyze``). State carries a
+          ``None`` :attr:`_RequestState.llm_provenance`, and the audit entry
+          omits all LLM fields — preserving Phase-1 byte-identical JSONL
+          (NFR-5/NFR-6).
+        * **Fallback (``analysis.mode in {"llm-first","llm-only"}``).**
+          ``self._intent_analyzer`` is a :class:`FallbackIntentAnalyzer`
+          whose async ``analyze`` returns a ``(IntentAnalysis, LLMProvenance)``
+          tuple. The provenance is stashed on ``state`` so
+          :func:`_build_audit_entry` can copy each field onto the audit
+          entry (FR-14, AC-6.5).
+        """
+        analyzer = self._intent_analyzer
+        if isinstance(analyzer, FallbackIntentAnalyzer):
+            analysis, provenance = await analyzer.analyze(intent, context)
+            state.intent_analysis = analysis
+            state.llm_provenance = provenance
+            return
+        state.intent_analysis = analyzer.analyze(intent, context)
+
     async def _run_pipeline(
         self,
         agent_id: str,
@@ -627,7 +754,7 @@ class Broker:
         state: _RequestState,
     ) -> None:
         """Happy-path pipeline body — mutates ``state`` in place."""
-        state.intent_analysis = self._intent_analyzer.analyze(intent, context)
+        await self._analyze_intent(intent, context, state)
         await self._route(agent_id, context, state)
         self._merge_context_scope_constraints(context, state)
         self._apply_temporal_filter(state)

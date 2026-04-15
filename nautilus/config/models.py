@@ -178,10 +178,59 @@ class AuditConfig(BaseModel):
     path: str = "./audit.jsonl"
 
 
+class AnthropicProviderSpec(BaseModel):
+    """``analysis.provider`` spec selecting :class:`AnthropicProvider` (design §3.8)."""
+
+    type: Literal["anthropic"] = "anthropic"
+    api_key_env: str
+    model: str = "claude-sonnet-4-5"
+    timeout_s: float = 2.0
+
+
+class OpenAIProviderSpec(BaseModel):
+    """``analysis.provider`` spec selecting :class:`OpenAIProvider` (design §3.8)."""
+
+    type: Literal["openai"] = "openai"
+    api_key_env: str
+    model: str = "gpt-4o-mini"
+    timeout_s: float = 2.0
+
+
+class LocalInferenceProviderSpec(BaseModel):
+    """``analysis.provider`` spec selecting :class:`LocalInferenceProvider` (design §3.8)."""
+
+    type: Literal["local"] = "local"
+    base_url: str
+    model: str
+    api_key_env: str | None = None
+    timeout_s: float = 2.0
+
+
+AnalysisProviderSpec = Annotated[
+    AnthropicProviderSpec | OpenAIProviderSpec | LocalInferenceProviderSpec,
+    Field(discriminator="type"),
+]
+
+
 class AnalysisConfig(BaseModel):
-    """Intent-analyzer subsection of ``nautilus.yaml`` (design §4.10)."""
+    """Intent-analyzer subsection of ``nautilus.yaml`` (design §4.10, §3.8).
+
+    ``mode`` selects how :meth:`Broker.arequest` resolves the intent
+    analyzer (FR-13, FR-14, AC-6.2):
+
+    - ``"pattern"`` (default) → :class:`PatternMatchingIntentAnalyzer` only;
+      preserves Phase-1 byte-identical attestation payloads (NFR-5/NFR-6).
+    - ``"llm-first"`` → :class:`FallbackIntentAnalyzer` over the configured
+      provider; falls through to the pattern analyzer on timeout / provider
+      error / schema drift (AC-6.3).
+    - ``"llm-only"`` → :class:`FallbackIntentAnalyzer` that re-raises on any
+      primary failure; the broker fails-closed with a structured error audit.
+    """
 
     keyword_map: dict[str, list[str]] = Field(default_factory=dict)
+    mode: Literal["pattern", "llm-first", "llm-only"] = "pattern"
+    provider: AnalysisProviderSpec | None = None
+    timeout_s: float = 2.0
 
 
 class ApiConfig(BaseModel):
