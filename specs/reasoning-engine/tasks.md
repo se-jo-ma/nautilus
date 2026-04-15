@@ -360,7 +360,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(core): add HttpAttestationSink with retry + dead-letter spill`
 - **References**: FR-28, AC-14.3, design §3.14.
 
-### [VERIFY] Task 2.14 — Quality checkpoint (all 4 adapters + HTTP sink)
+### [VERIFY] Task 2.14 [x] — Quality checkpoint (all 4 adapters + HTTP sink)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.
