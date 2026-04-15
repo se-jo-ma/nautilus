@@ -246,7 +246,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(analysis): add LLMIntentProvider Protocol + LLMProvenance + LLMProviderError`
 - **References**: FR-13, D-5, design §3.8.
 
-### Task 2.3 — Ship locked `intent_v1.txt` prompt template + snapshot-test fixture
+### Task 2.3 [x] — Ship locked `intent_v1.txt` prompt template + snapshot-test fixture
 - **Do**:
   - Create `nautilus/analysis/llm/prompts/intent_v1.txt` — single prompt using stdlib `string.Template` `$var` substitution (no Jinja). Variables: `$intent`, `$context_json`. Template asks the LLM to produce JSON matching `IntentAnalysis.model_json_schema()` with `data_types_needed`, `entities`, `estimated_sensitivity`, `purpose_inferred`.
   - Lock the file content; `prompt_version` is derived from filename suffix (`v1` here).
