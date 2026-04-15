@@ -136,8 +136,9 @@ def test_facts_asserted_in_correct_order(monkeypatch: pytest.MonkeyPatch) -> Non
         )
 
         templates_in_order = [t for (t, _) in calls]
-        # Expected: agent, intent, source×3, session.
-        assert templates_in_order == [
+        # Expected: agent, intent, source×3, session, then escalation_rule
+        # entries for each default pack rule (design §3.4 — one per request).
+        assert templates_in_order[:6] == [
             "agent",
             "intent",
             "source",
@@ -145,6 +146,11 @@ def test_facts_asserted_in_correct_order(monkeypatch: pytest.MonkeyPatch) -> Non
             "source",
             "session",
         ], f"unexpected fact order: {templates_in_order!r}"
+        # Any remaining calls after the core six must be escalation_rule facts
+        # (the default pack ships with the pii-aggregation rule, Task 1.9).
+        assert all(t == "escalation_rule" for t in templates_in_order[6:]), (
+            f"unexpected trailing facts: {templates_in_order[6:]!r}"
+        )
 
         # And the source facts carry the registered source ids, preserving input order.
         source_ids = [data["id"] for (tpl, data) in calls if tpl == "source"]

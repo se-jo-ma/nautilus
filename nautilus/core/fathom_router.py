@@ -2,10 +2,12 @@
 
 Owns:
 - Engine construction with built-in templates/module/rules + ``overlaps`` /
-  ``not-in-list`` Python externals (registered BEFORE ``load_rules`` per the
-  Task 1.12 SPIKE finding — CLIPS ``build`` errors with ``EXPRNPSR3`` if a
-  rule LHS references an unknown function name).
+  ``not-in-list`` / ``contains-all`` Python externals (registered BEFORE
+  ``load_rules`` per the Task 1.12 SPIKE finding — CLIPS ``build`` errors
+  with ``EXPRNPSR3`` if a rule LHS references an unknown function name).
 - User-rule loading after defaults so user rules can override salience.
+- Escalation-pack loading (design §3.4): YAML → :class:`EscalationRule`
+  models cached on the router and re-asserted per request.
 - Per-request fact assertion with multislot list-to-string encoding
   (design §5.4) and template readback for ``routing_decision`` /
   ``scope_constraint`` / ``denial_record``.
@@ -24,6 +26,7 @@ from typing import TYPE_CHECKING, Any
 
 from fathom import Engine
 
+from nautilus.config.escalation import EscalationRule, load_escalation_packs
 from nautilus.config.models import SourceConfig
 from nautilus.core import PolicyEngineError
 from nautilus.core.clips_encoding import encode_multislot
@@ -34,7 +37,11 @@ from nautilus.core.models import (
     RoutingDecision,
     ScopeConstraint,
 )
-from nautilus.rules.functions import register_not_in_list, register_overlaps
+from nautilus.rules.functions import (
+    register_contains_all,
+    register_not_in_list,
+    register_overlaps,
+)
 
 if TYPE_CHECKING:
     pass
@@ -44,10 +51,14 @@ class FathomRouter:
     """Wraps ``fathom.Engine`` with Nautilus templates, rules, and externals.
 
     Construction loads, in order: built-in templates → built-in modules →
-    ``overlaps`` + ``not-in-list`` externals → built-in functions → built-in
-    rules → user rules (one ``load_rules`` call per directory). Order is
-    load-bearing; see Task 1.12 SPIKE notes in
+    ``overlaps`` + ``not-in-list`` + ``contains-all`` externals → built-in
+    functions → built-in rules → user rules (one ``load_rules`` call per
+    directory). Order is load-bearing; see Task 1.12 SPIKE notes in
     ``tests/integration/test_fathom_smoke.py``.
+
+    Escalation packs (design §3.4) are loaded once at construction from
+    ``<built_in_rules_dir>/escalation`` and re-asserted as ``escalation_rule``
+    facts on every ``route()`` call (facts are cleared per request).
     """
 
     def __init__(
@@ -65,10 +76,17 @@ class FathomRouter:
             self._engine.load_modules(str(self._built_in_rules_dir / "modules"))
             register_overlaps(self._engine)
             register_not_in_list(self._engine)
+            register_contains_all(self._engine)
             self._engine.load_functions(str(self._built_in_rules_dir / "functions"))
             self._engine.load_rules(str(self._built_in_rules_dir / "rules"))
             for user_dir in self._user_rules_dirs:
                 self._engine.load_rules(str(user_dir))
+            # Escalation packs are YAML → EscalationRule models loaded once;
+            # _assert_escalation_rules re-pushes them as facts per request
+            # (engine.clear_facts() wipes facts each route() call).
+            self._escalation_rules: list[EscalationRule] = load_escalation_packs(
+                [self._built_in_rules_dir / "escalation"]
+            )
         except Exception as exc:  # noqa: BLE001 — re-wrap as PolicyEngineError per design §3.4
             raise PolicyEngineError(f"Fathom engine construction failed: {exc}") from exc
 
@@ -126,6 +144,8 @@ class FathomRouter:
                 "pii_sources_accessed": int(session.get("pii_sources_accessed", 0)),
             }
             self._engine.assert_fact("session", session_fact)
+
+            self._assert_escalation_rules(self._escalation_rules)
 
             result = self._engine.evaluate()
 
@@ -188,6 +208,25 @@ class FathomRouter:
             raise PolicyEngineError(
                 f"FathomRouter.route() failed for agent_id={agent_id!r}: {exc}"
             ) from exc
+
+    def _assert_escalation_rules(self, rules: list[EscalationRule]) -> None:
+        """Assert one ``escalation_rule`` fact per loaded :class:`EscalationRule`.
+
+        Called from :meth:`route` after ``clear_facts()`` so the declarative
+        packs are visible to every evaluation. ``trigger_combination`` is
+        already a space-separated CLIPS-safe multislot string on the Pydantic
+        model, so no re-encoding is needed (design §3.4).
+        """
+        for rule in rules:
+            self._engine.assert_fact(
+                "escalation_rule",
+                {
+                    "id": rule.id,
+                    "trigger_combination": rule.trigger_combination,
+                    "resulting_level": rule.resulting_level,
+                    "action": rule.action,
+                },
+            )
 
     def close(self) -> None:
         """No-op for the Phase 1 in-process Engine (kept for Protocol parity)."""

@@ -116,7 +116,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(core): add PostgresSessionStore + async SessionStore Protocol + Broker.setup()`
 - **References**: FR-3, FR-4, NFR-7, AC-2.2, AC-2.4, AC-2.5, D-1, D-2, D-3, design §3.2.
 
-### Task 1.9 — Implement `contains-all` external + escalation YAML loader
+### Task 1.9 [x] — Implement `contains-all` external + escalation YAML loader
 - **Do**:
   - Create `nautilus/rules/functions/contains_all.py` with `def register_contains_all(engine)` registering a CLIPS external that takes two multislots and returns `TRUE` iff every element of the first appears in the second (order-independent).
   - Create `nautilus/config/escalation.py` with `class EscalationRule(BaseModel)` (`id`, `trigger_combination: str`, `resulting_level: str`, `action: Literal["deny","escalate","notify"]`) and `def load_escalation_packs(dirs: list[Path]) -> list[EscalationRule]` that reads every `*.yaml` file and parses list-of-mappings into `EscalationRule` instances.
