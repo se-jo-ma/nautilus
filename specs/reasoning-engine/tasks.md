@@ -769,7 +769,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `docs: add reasoning-engine quickstart to README`
 - **References**: design §3.15.
 
-### Task 4.6 — Docker smoke test in CI (size + no-shell + health)
+### Task 4.6 [x] — Docker smoke test in CI (size + no-shell + health)
 - **Do**:
   - Add `tests/integration/test_docker_image.py` (marked `@pytest.mark.docker`): builds image locally; asserts size ≤ 200 MB (NFR-10); asserts `docker run --entrypoint sh nautilus:test` fails (no shell in distroless — AC-16.5); asserts `HEALTHCHECK` directive invokes `nautilus health` (parsed from `docker image inspect`).
   - Test is skipped when Docker daemon is not available (`pytest.importorskip("docker")` or simple `shutil.which("docker")` gate).
