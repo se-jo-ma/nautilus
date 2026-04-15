@@ -307,7 +307,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(adapters): add ElasticsearchAdapter with operator allowlist + index validation`
 - **References**: FR-20, AC-8.1, AC-8.2, AC-8.3, AC-8.4, NFR-4, design §3.11.
 
-### Task 2.9 — Implement `Neo4jAdapter` (§9 step 8b)
+### Task 2.9 [x] — Implement `Neo4jAdapter` (§9 step 8b)
 - **Do**:
   - Create `nautilus/adapters/neo4j.py` with `class Neo4jAdapter`. `connect()`: `AsyncGraphDatabase.driver(source.connection, auth=(user, pw))`; validate `label` regex `^[A-Z][A-Za-z0-9_]*$`, backtick in Cypher.
   - `execute`: build parameterized Cypher `MATCH (n:\`<Label>\`) WHERE <predicates> RETURN n LIMIT $L` with `driver.execute_query(..., routing_=READ, parameters_=dict)`. Property identifiers regex-validated + backticked. Operator map per AC-10.2. `LIKE` honors `source.like_style` (default `starts_with` → `STARTS WITH $pN`; `regex` → `=~ $pN` with CONFIG WARN).
