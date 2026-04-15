@@ -1,7 +1,7 @@
 [project]
 name = "nautilus"
 version = "0.1.0"
-description = "Nautilus data broker: intent-aware scoped query execution via Fathom rules"
+description = "Nautilus data broker + reasoning engine: intent-aware scoped query execution, multi-agent handoffs, LLM intent analysis, and forensic escalation via Fathom rules"
 readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"
@@ -54,7 +54,7 @@ dev = [
     "testcontainers[elasticsearch,neo4j]>=4.0",
 ]
 llm-anthropic = ["anthropic>=0.40"]
-llm-openai = ["openai"]
+llm-openai = ["openai>=1.50"]
 
 [build-system]
 requires = ["setuptools>=77.0"]
@@ -63,6 +63,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["nautilus*"]
 exclude = ["tests*", "specs*", "docs*"]
+
+[tool.setuptools.package-data]
+"nautilus.analysis.llm.prompts" = ["*.txt"]
+"nautilus.rules" = ["**/*.yaml"]
 
 [tool.ruff]
 line-length = 100

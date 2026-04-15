@@ -722,7 +722,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 
 ## Phase 4: Quality Gates — CI, docs, PR lifecycle
 
-### Task 4.1 — Polish `pyproject.toml` metadata + re-run `uv build`
+### Task 4.1 [x] — Polish `pyproject.toml` metadata + re-run `uv build`
 - **Do**:
   - Update `[project].description` to include reasoning-engine scope; keep existing `authors`, `license`, `readme`, `classifiers`.
   - Confirm `[project.optional-dependencies]` includes `llm-anthropic`, `llm-openai`, and extended `dev`.
