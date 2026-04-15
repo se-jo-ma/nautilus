@@ -505,7 +505,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `test(fixtures): record Phase 1 audit line + attestation token for backwards-compat`
 - **References**: NFR-5, NFR-6, AC-7.5, design §7.3.
 
-### Task 2.26 — Record LLM cassettes (Anthropic, OpenAI, Local) + 100-prompt determinism fixture
+### Task 2.26 [x] — Record LLM cassettes (Anthropic, OpenAI, Local) + 100-prompt determinism fixture
 - **Do**:
   - Create `tests/fixtures/llm/anthropic_cassette.yaml`, `openai_cassette.yaml`, `local_cassette.yaml` via `pytest-recording` — each capturing the 3 canonical fixture prompts under `temperature=0`.
   - Create `tests/fixtures/llm_determinism/intent_prompts_100.jsonl` — 100 lines, each `{"intent": "...", "context": {...}, "expected_sensitivity": "...", "expected_data_types": [...]}` covering a routing-representative distribution.
