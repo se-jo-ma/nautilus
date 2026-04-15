@@ -418,7 +418,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(integration): pgvector similarity + metadata filter order test`
 - **References**: AC-5.5, FR-9.
 
-### Task 3.18 — Coverage gate enforcement
+### Task 3.18 — Coverage gate enforcement [x]
 - **Do**: Run `uv run pytest -m "unit or integration" --cov=nautilus --cov-branch --cov-report=term-missing --cov-fail-under=80`. If any module is under 80%, add targeted tests or `# pragma: no cover` for genuinely unreachable branches (document each pragma with a comment).
 - **Pragma budget**: ≤ 3 `# pragma: no cover` additions total across the entire task. Each one must carry an inline comment that justifies why the branch is unreachable (e.g. `# pragma: no cover  # Python 3.14 typing.Protocol import guard`). More than 3 additions indicates missing tests, not unreachable branches — split out a new unit test instead.
 - **Files**: any `tests/unit/test_*.py` that need gap-filling.

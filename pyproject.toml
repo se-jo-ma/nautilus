@@ -41,4 +41,4 @@ markers = [
     "unit: unit tests",
     "integration: integration tests",
 ]
-addopts = "--strict-markers --cov=nautilus --cov-branch"
+addopts = "--strict-markers --cov=nautilus --cov-branch --cov-fail-under=80"
