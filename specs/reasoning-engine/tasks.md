@@ -753,7 +753,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `docs: add docstrings to reasoning-engine public surfaces`
 - **References**: design §3.
 
-### [VERIFY] Task 4.4 — Quality checkpoint (quality batch 1)
+### [VERIFY] Task 4.4 [x] — Quality checkpoint (quality batch 1)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.
