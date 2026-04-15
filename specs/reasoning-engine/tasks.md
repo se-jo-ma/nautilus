@@ -256,7 +256,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(analysis): lock intent_v1.txt prompt template`
 - **References**: FR-15, AC-6.6, design §3.8.
 
-### Task 2.4 — Implement `AnthropicProvider`
+### Task 2.4 [x] — Implement `AnthropicProvider`
 - **Do**:
   - Create `nautilus/analysis/llm/anthropic_provider.py` with `class AnthropicProvider` implementing `LLMIntentProvider`. Constructor takes `api_key_env: str`, `model: str` (default `claude-sonnet-4-5`), `timeout_s: float`. Uses `anthropic.AsyncAnthropic` SDK with tool-use binding to `IntentAnalysis.model_json_schema()`; `temperature=0`, `max_tokens=512`. On any SDK exception → raise `LLMProviderError`; on non-JSON response → `pydantic.ValidationError`.
   - Populate `LLMProvenance.raw_response_hash` from `sha256(response.id + response.content[0].input)` or equivalent deterministic hash.
