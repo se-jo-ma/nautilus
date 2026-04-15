@@ -22,7 +22,7 @@ Every implementation task cites the `FR-N` / `US-N` / `NFR-N` / `AC-N.M` / `D-N`
 
 Focus: Prove the new pipeline wires up. Ships classification + escalation + temporal + attestation dispatch + `scope_hash_v2` against pgvector. LLM providers and 3 remaining adapters deferred to Phase 2.
 
-### Task 1.1 — Scaffold new reasoning-engine subpackages
+### Task 1.1 [x] — Scaffold new reasoning-engine subpackages
 - **Do**:
   - Create empty `__init__.py` in each of: `nautilus/analysis/llm/`, `nautilus/analysis/llm/prompts/`, `nautilus/forensics/`, `nautilus/transport/`, `nautilus/rules/hierarchies/`, `nautilus/rules/escalation/`, `nautilus/rules/forensics/`.
   - Create empty test dirs: `tests/unit/analysis/llm/`, `tests/unit/adapters/`, `tests/unit/config/`, `tests/unit/core/`, `tests/unit/forensics/`, `tests/unit/rules/`, `tests/unit/transport/`, `tests/fixtures/llm/`, `tests/fixtures/llm_determinism/`, `tests/fixtures/audit/` (each with `__init__.py` where applicable).
