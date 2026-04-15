@@ -223,7 +223,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 
 Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j → REST → ServiceNow per §9 step 8), LLM analyzer matrix, REST transport, MCP transport, CLI, Dockerfile, forensic worker. Each landing is a separate task with its own integration smoke.
 
-### Task 2.1 — Implement `Broker.declare_handoff` + `data_handoff` template + `information-flow-violation` rule
+### Task 2.1 [x] — Implement `Broker.declare_handoff` + `data_handoff` template + `information-flow-violation` rule
 - **Do**:
   - Create `nautilus/rules/rules/handoff.yaml` with `information-flow-violation` rule: fires when `from_agent_clearance` dominates `data_handoff.classification` but `to_agent_clearance` does not → produces `denial_record(rule_name="information-flow-violation")`.
   - Add `async Broker.declare_handoff(*, source_agent_id, receiving_agent_id, session_id, data_classifications: list[str], rule_trace_refs: list[str] = [], data_compartments: list[str] = []) -> HandoffDecision` to `nautilus/core/broker.py`. Flow: resolve agents via `AgentRegistry` (propagates `UnknownAgentError` as `HandoffDecision(action="deny", denial_records=[DenialRecord(rule_name="unknown-agent", ...)])`); assert one `data_handoff` fact per classification; `await engine.evaluate()`; collect `denial_record` facts; write exactly one audit entry with `event_type="handoff_declared"`, `handoff_id=uuid4()`, `handoff_decision` populated. Zero adapter calls.

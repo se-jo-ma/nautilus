@@ -41,7 +41,7 @@ from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
 from nautilus.analysis.pattern_matching import PatternMatchingIntentAnalyzer
 from nautilus.audit.logger import AuditLogger
-from nautilus.config.agent_registry import AgentRegistry
+from nautilus.config.agent_registry import AgentRegistry, UnknownAgentError
 from nautilus.config.loader import ConfigError, load_config
 from nautilus.config.models import FileSinkSpec, NautilusConfig, NullSinkSpec, SourceConfig
 from nautilus.config.registry import SourceRegistry
@@ -60,6 +60,7 @@ from nautilus.core.models import (
     BrokerResponse,
     DenialRecord,
     ErrorRecord,
+    HandoffDecision,
     IntentAnalysis,
     RoutingDecision,
     ScopeConstraint,
@@ -446,6 +447,177 @@ class Broker:
             raise
         self._emit_audit(agent_id, state, state.attestation_token)
         return self._build_response(state)
+
+    async def declare_handoff(
+        self,
+        *,
+        source_agent_id: str,
+        receiving_agent_id: str,
+        session_id: str,
+        data_classifications: list[str],
+        rule_trace_refs: list[str] | None = None,
+        data_compartments: list[str] | None = None,
+    ) -> HandoffDecision:
+        """Declare an agent-to-agent handoff and evaluate the handoff rule pack.
+
+        Pure reasoning-only path (design §3.6, FR-8, FR-10, AC-4.1): zero
+        adapter calls, zero session-store mutation. Flow:
+
+        1. Resolve both agents via :class:`AgentRegistry`. An unknown id
+           short-circuits to ``action="deny"`` with a synthetic
+           ``unknown-agent`` :class:`DenialRecord` (AC-4.2).
+        2. Assert one ``data_handoff`` fact per declared classification
+           with ``from_clearance`` / ``to_clearance`` read from the
+           registered :class:`AgentRecord` entries.
+        3. Call :meth:`fathom.Engine.evaluate` — the
+           ``information-flow-violation`` default rule + any user rules
+           matching ``data_handoff`` fire here.
+        4. Collect ``denial_record`` facts; ``action`` is ``"allow"``
+           when none fired, ``"deny"`` otherwise. ``"escalate"`` is
+           reserved for escalation-pack-driven denials and is not
+           produced by the default rule set (AC-4.3).
+        5. Emit exactly one :class:`AuditEntry` with
+           ``event_type="handoff_declared"`` and the populated
+           :class:`HandoffDecision`; never more (AC-4.4, NFR-15
+           parallel).
+
+        ``rule_trace_refs`` and ``data_compartments`` are accepted for
+        forward-compat with the Phase-3 forensic worker + compartment-
+        aware handoff rules; the default rule pack ignores both (empty
+        compartments in the ``fathom-dominates`` calls).
+        """
+        del rule_trace_refs, data_compartments  # Phase-3 / forensic forward-compat.
+        started = time.perf_counter()
+        handoff_id = str(uuid.uuid4())
+
+        # AC-4.2 — unknown-agent short-circuit: resolve BOTH agents before
+        # touching the engine so a bogus id never asserts facts.
+        try:
+            source_agent = self._agent_registry.get(source_agent_id)
+            receiving_agent = self._agent_registry.get(receiving_agent_id)
+        except UnknownAgentError as exc:
+            decision = HandoffDecision(
+                handoff_id=handoff_id,
+                action="deny",
+                denial_records=[
+                    DenialRecord(
+                        source_id=session_id,
+                        reason=str(exc),
+                        rule_name="unknown-agent",
+                    )
+                ],
+                rule_trace=[],
+            )
+            self._emit_handoff_audit(
+                source_agent_id=source_agent_id,
+                receiving_agent_id=receiving_agent_id,
+                session_id=session_id,
+                data_classifications=data_classifications,
+                decision=decision,
+                started=started,
+            )
+            return decision
+
+        # Assert one data_handoff per declared classification, run engine,
+        # and collect any denial_record facts. The engine is shared with
+        # arequest() so we guard it with the same PolicyEngineError shape.
+        engine = self._router.engine
+        try:
+            engine.clear_facts()
+            for classification in data_classifications:
+                engine.assert_fact(
+                    "data_handoff",
+                    {
+                        "from_agent": source_agent_id,
+                        "to_agent": receiving_agent_id,
+                        "session_id": session_id,
+                        "classification": classification,
+                        "from_clearance": source_agent.clearance,
+                        "to_clearance": receiving_agent.clearance,
+                    },
+                )
+            eval_result = engine.evaluate()
+            raw_denials = engine.query("denial_record")
+        except Exception as exc:  # noqa: BLE001 — re-wrap as PolicyEngineError per §3.4
+            raise PolicyEngineError(
+                f"Broker.declare_handoff() failed for source={source_agent_id!r}"
+                f" receiving={receiving_agent_id!r}: {exc}"
+            ) from exc
+
+        denials = [
+            DenialRecord(
+                source_id=str(d["source_id"]),
+                reason=str(d["reason"]),
+                rule_name=str(d["rule_name"]),
+            )
+            for d in raw_denials
+        ]
+        rule_trace = list(getattr(eval_result, "rule_trace", []) or [])
+        action: Literal["allow", "deny", "escalate"] = "deny" if denials else "allow"
+
+        decision = HandoffDecision(
+            handoff_id=handoff_id,
+            action=action,
+            denial_records=denials,
+            rule_trace=rule_trace,
+        )
+        self._emit_handoff_audit(
+            source_agent_id=source_agent_id,
+            receiving_agent_id=receiving_agent_id,
+            session_id=session_id,
+            data_classifications=data_classifications,
+            decision=decision,
+            started=started,
+        )
+        return decision
+
+    def _emit_handoff_audit(
+        self,
+        *,
+        source_agent_id: str,
+        receiving_agent_id: str,
+        session_id: str,
+        data_classifications: list[str],
+        decision: HandoffDecision,
+        started: float,
+    ) -> None:
+        """Write the single ``event_type="handoff_declared"`` audit entry (AC-4.4).
+
+        Uses the same :class:`AuditLogger` as ``arequest`` so operators
+        see one JSONL stream. Non-handoff fields collapse to their
+        zero values: no ``intent``, no ``routing_decisions``, no
+        adapter-touching ``sources_*`` buckets. ``handoff_id`` and
+        ``handoff_decision`` carry the full payload.
+        """
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        entry = AuditEntry(
+            timestamp=AuditLogger.utcnow(),
+            request_id=decision.handoff_id,
+            agent_id=source_agent_id,
+            session_id=session_id or None,
+            raw_intent="",
+            intent_analysis=None,
+            facts_asserted_summary={"data_handoff": len(data_classifications)},
+            routing_decisions=[],
+            scope_constraints=[],
+            denial_records=list(decision.denial_records),
+            error_records=[],
+            rule_trace=list(decision.rule_trace),
+            sources_queried=[],
+            sources_denied=[],
+            sources_skipped=[],
+            sources_errored=[],
+            attestation_token=None,
+            duration_ms=duration_ms,
+            session_store_mode=self._session_store_mode(),
+            event_type="handoff_declared",
+            handoff_id=decision.handoff_id,
+            handoff_decision=decision,
+        )
+        # receiving_agent_id is carried implicitly via handoff_decision context
+        # on the surrounding AuditEntry; no dedicated column at this phase.
+        del receiving_agent_id
+        self._audit_logger.emit(entry)
 
     async def _run_pipeline(
         self,

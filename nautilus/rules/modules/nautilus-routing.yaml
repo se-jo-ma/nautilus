@@ -20,6 +20,7 @@
 #   - nautilus-default-routing         (routing.yaml)
 #   - nautilus-default-denial          (denial.yaml)
 #   - nautilus-default-classification  (classification.yaml)
+#   - nautilus-default-handoff         (handoff.yaml — information-flow-violation)
 #   - nautilus-default-temporal        (temporal.yaml — purpose-expired-deny)
 #
 modules:
