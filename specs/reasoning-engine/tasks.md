@@ -625,7 +625,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(adapters): add ES + REST unit tests with drift-guard + SSRF`
 - **References**: FR-20, FR-21, AC-8.1, AC-8.2, AC-8.4, AC-9.1, AC-9.2, AC-9.3, AC-9.4, AC-9.5, NFR-4, NFR-17.
 
-### Task 3.10 — Unit: `tests/unit/adapters/test_neo4j.py` + `test_servicenow.py` (incl. drift + injection)
+### Task 3.10 [x] — Unit: `tests/unit/adapters/test_neo4j.py` + `test_servicenow.py` (incl. drift + injection)
 - **Do**:
   - `test_neo4j.py`: (a) operator→Cypher round-trip drift test (NFR-4), (b) bad label rejected at connect (AC-10.1), (c) `LIKE` with `like_style="starts_with"` → `STARTS WITH $p0`; with `"regex"` → `=~ $p0` + CONFIG WARN (AC-10.3), (d) property identifier regex-validated + backticked, (e) `close()` idempotent.
   - `test_servicenow.py`: (a) operator→encoded-query round-trip drift (NFR-4), (b) `_sanitize_sn_value("bad^value")` → `ScopeEnforcementError("sn-injection-rejected")` (NFR-18), (c) same for `\n` and `\r`, (d) respx mock: full operator set composes one `sysparm_query` string with `^` separators, (e) OAuth refresh NOT supported (no related code path).
