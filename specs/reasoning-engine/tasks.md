@@ -702,7 +702,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(integration): latency + fault-injection + determinism + forensic-idempotency + MCP e2e harnesses`
 - **References**: FR-11, FR-27, NFR-12, NFR-13, NFR-15, NFR-16, AC-5.3, AC-5.4, AC-12.6, design §7.4, §7.5, §7.6, §7.7.
 
-### Task 3.18 — Coverage gate (≥80% branch) + dedicated-unit-module presence check
+### Task 3.18 — Coverage gate (≥80% branch) + dedicated-unit-module presence check [x]
 - **Do**:
   - Run `uv run pytest -m "unit or integration" --cov=nautilus --cov-branch --cov-report=term-missing --cov-fail-under=80`. Add targeted tests or `# pragma: no cover` for genuinely unreachable branches (each with an inline comment). Pragma budget ≤ 5 additions above the current Phase-1 baseline.
   - Extend `tests/unit/test_module_presence.py` (from core-broker Task 3.19) to also assert the new test modules exist: `test_session_pg_unit.py`, `test_temporal.py`, `test_scope_hash_v2.py`, `test_attestation_sink.py`, `test_declare_handoff.py`, `test_elasticsearch.py`, `test_rest.py`, `test_neo4j.py`, `test_servicenow.py`, `test_fallback.py`, `test_auth.py`, `test_fastapi_unit.py`, `test_mcp_unit.py`, `test_cli.py`, `test_handoff_worker.py`, `test_offsets.py`, `test_sinks.py`, `test_contains_all_external.py`, `test_classification_rule.py`, `test_information_flow_rule.py`.
