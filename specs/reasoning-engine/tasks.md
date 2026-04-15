@@ -90,7 +90,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Done when**: All exit 0 — Phase 1 surface still green.
 - **Commit**: `chore(reasoning): pass checkpoint after config + template extensions` (if fixes needed)
 
-### Task 1.7 — Extend `AuditEntry` + `ScopeConstraint` with Phase 2 optional fields
+### Task 1.7 [x] — Extend `AuditEntry` + `ScopeConstraint` with Phase 2 optional fields
 - **Do**:
   - Edit `nautilus/core/models.py`:
     - Add to `ScopeConstraint`: `expires_at: str | None = None`, `valid_from: str | None = None`.

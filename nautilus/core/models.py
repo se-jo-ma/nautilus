@@ -28,6 +28,19 @@ class IntentAnalysis(BaseModel):
     estimated_sensitivity: str | None = None
 
 
+class BrokerRequest(BaseModel):
+    """Public input to :meth:`Broker.arequest` (research §5).
+
+    Carries the caller's ``agent_id``, their free-form ``intent`` string,
+    and an open ``context`` dict that the router inspects for optional
+    hints (e.g. ``session_id``, transport metadata, prior-turn facts).
+    """
+
+    agent_id: str
+    intent: str
+    context: dict[str, Any] = Field(default_factory=dict)
+
+
 class RoutingDecision(BaseModel):
     """One (source_id, reason) pair emitted by the Fathom router (design §4.3).
 
@@ -63,6 +76,8 @@ class ScopeConstraint(BaseModel):
         "IS NULL",
     ]
     value: Any  # validated by operator-specific rules
+    expires_at: str | None = None
+    valid_from: str | None = None
 
 
 class DenialRecord(BaseModel):
@@ -141,29 +156,61 @@ class BrokerResponse(BaseModel):
     duration_ms: int
 
 
+class HandoffDecision(BaseModel):
+    """Structured outcome of a handoff evaluation (design §3.10).
+
+    Emitted when an agent declares a handoff to a downstream agent and
+    the broker evaluates allow/deny/escalate against the combined
+    scope + escalation rule set.
+    """
+
+    handoff_id: str
+    action: Literal["allow", "deny", "escalate"]
+    denial_records: list[DenialRecord] = Field(default_factory=list[DenialRecord])
+    rule_trace: list[str] = Field(default_factory=list[str])
+
+
 class AuditEntry(BaseModel):
     """Flat, loss-less audit record for one request (design §4.9).
 
     Persisted once per request — success OR failure — by
     :meth:`AuditLogger.emit`. Consumers can round-trip the on-disk JSONL
     line back into this model via :func:`decode_nautilus_entry`.
+
+    Phase 2 adds a block of strictly optional fields (LLM provenance,
+    scope-hash versioning, session-id sourcing, session-store mode,
+    event-type + handoff linkage) — all default ``None`` so Phase-1
+    writers and on-disk JSONL lines round-trip unchanged (NFR-5).
     """
 
     timestamp: datetime  # UTC ISO8601
     request_id: str
     agent_id: str
-    session_id: str | None
-    raw_intent: str
-    intent_analysis: IntentAnalysis
+    session_id: str | None = None
+    raw_intent: str = ""
+    intent_analysis: IntentAnalysis | None = None
     facts_asserted_summary: dict[str, int]  # template -> count
-    routing_decisions: list[RoutingDecision]
-    scope_constraints: list[ScopeConstraint]
+    routing_decisions: list[RoutingDecision] = Field(default_factory=list[RoutingDecision])
+    scope_constraints: list[ScopeConstraint] = Field(default_factory=list[ScopeConstraint])
     denial_records: list[DenialRecord]
     error_records: list[ErrorRecord]
     rule_trace: list[str]
     sources_queried: list[str]
     sources_denied: list[str]
-    sources_skipped: list[str]
+    sources_skipped: list[str] = Field(default_factory=list[str])
     sources_errored: list[str]  # source IDs only; full error detail lives in error_records
-    attestation_token: str | None
+    attestation_token: str | None = None
     duration_ms: int
+    # Phase 2 — all optional, all default None (NFR-5 round-trip guarantee).
+    llm_provider: str | None = None
+    llm_model: str | None = None
+    llm_version: str | None = None
+    raw_response_hash: str | None = None
+    prompt_version: str | None = None
+    fallback_used: bool | None = None
+    scope_hash_version: Literal["v1", "v2"] | None = None
+    session_id_source: Literal["context", "transport", "stdio_request_id"] | None = None
+    session_store_mode: Literal["primary", "degraded_memory"] | None = None
+    event_type: Literal["request", "handoff_declared"] | None = None
+    handoff_id: str | None = None
+    handoff_decision: HandoffDecision | None = None
