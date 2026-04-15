@@ -266,7 +266,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(analysis): add AnthropicProvider`
 - **References**: FR-13, AC-6.1, AC-6.6, design §3.8.
 
-### [VERIFY] Task 2.5 — Quality checkpoint (declare_handoff + LLM Protocol)
+### [VERIFY] Task 2.5 [x] — Quality checkpoint (declare_handoff + LLM Protocol)
 - **Do**: Run toolchain + Phase-1 regression probe (matches Phase-1 [VERIFY] cadence 1.6 / 1.11).
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest tests/integration/test_mvp_e2e.py -m integration -q`
 - **Done when**: All exit 0; Phase-1 MVP E2E still passes.

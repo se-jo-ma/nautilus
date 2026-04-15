@@ -32,7 +32,9 @@ def _parse_iso8601(value: str) -> datetime | None:
     """
     try:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except (ValueError, AttributeError):
+    except ValueError:
+        return None
+    except AttributeError:
         return None
 
 
