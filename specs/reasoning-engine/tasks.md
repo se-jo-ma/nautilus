@@ -587,7 +587,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(core): add attestation_sink + declare_handoff unit tests`
 - **References**: FR-8, FR-10, FR-28, FR-29, AC-4.1, AC-4.2, AC-4.3, AC-4.4, AC-4.5, AC-14.5, AC-14.6.
 
-### Task 3.6 — Unit: `tests/unit/forensics/test_handoff_worker.py` + `test_offsets.py` + `test_sinks.py`
+### Task 3.6 [x] — Unit: `tests/unit/forensics/test_handoff_worker.py` + `test_offsets.py` + `test_sinks.py`
 - **Do**:
   - `test_offsets.py`: (a) round-trip save/load, (b) atomic rename via `os.replace`, (c) corruption detection (truncated JSON, non-monotonic offset) raises `OffsetsCorruptError`, (d) bounded set behavior (10**6 cap).
   - `test_sinks.py`: (a) JSONL sink writes + flushes, (b) HTTP sink POSTs with retry (mocked via `respx`).
