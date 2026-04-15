@@ -21,6 +21,7 @@ Key design points:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hashlib
 import time
 import uuid
@@ -55,6 +56,7 @@ from nautilus.core.models import (
     ScopeConstraint,
 )
 from nautilus.core.session import InMemorySessionStore, SessionStore
+from nautilus.core.session_pg import PostgresSessionStore
 from nautilus.rules import BUILT_IN_RULES_DIR
 from nautilus.synthesis.basic import BasicSynthesizer
 
@@ -378,7 +380,7 @@ class Broker:
     ) -> None:
         """Happy-path pipeline body — mutates ``state`` in place."""
         state.intent_analysis = self._intent_analyzer.analyze(intent, context)
-        self._route(agent_id, context, state)
+        await self._route(agent_id, context, state)
         tasks, task_source_ids = await self._build_adapter_jobs(state, context)
         successful = await self._gather_adapter_results(state, tasks, task_source_ids)
         state.data = self._synthesizer.merge(successful)
@@ -391,11 +393,15 @@ class Broker:
                 rule_trace=state.rule_trace,
                 session_id=state.session_id,
             )
-        self._update_session(state)
+        await self._update_session(state)
 
-    def _route(self, agent_id: str, context: dict[str, Any], state: _RequestState) -> None:
-        """Invoke the Fathom router and classify sources into queried/denied/skipped."""
-        session_state = self._session_store.get(state.session_id) if state.session_id else {}
+    async def _route(self, agent_id: str, context: dict[str, Any], state: _RequestState) -> None:
+        """Invoke the Fathom router and classify sources into queried/denied/skipped.
+
+        Prefers the async :meth:`AsyncSessionStore.aget` when the implementer
+        provides it (design §3.2 — Phase-2 broker prefers async).
+        """
+        session_state = await self._session_get(state.session_id) if state.session_id else {}
         if state.session_id:
             session_state.setdefault("id", state.session_id)
         route_result = self._router.route(
@@ -413,17 +419,28 @@ class Broker:
             s.id for s in self._registry if s.id not in selected_ids and s.id not in denied_ids
         )
 
-    def _update_session(self, state: _RequestState) -> None:
-        """Phase 1 cumulative-exposure bookkeeping (design §3.9 — update at end)."""
+    async def _update_session(self, state: _RequestState) -> None:
+        """Cumulative-exposure bookkeeping (design §3.9 — update at end).
+
+        Prefers :meth:`AsyncSessionStore.aupdate` when available; falls back
+        to the sync Phase-1 surface for :class:`InMemorySessionStore`.
+        """
         if not state.session_id:
             return
-        self._session_store.update(
-            state.session_id,
-            {
-                "last_request_id": state.request_id,
-                "last_sources_queried": state.sources_queried,
-            },
-        )
+        entry = {
+            "last_request_id": state.request_id,
+            "last_sources_queried": state.sources_queried,
+        }
+        if hasattr(self._session_store, "aupdate"):
+            await self._session_store.aupdate(state.session_id, entry)  # type: ignore[attr-defined]
+            return
+        self._session_store.update(state.session_id, entry)
+
+    async def _session_get(self, session_id: str) -> dict[str, Any]:
+        """Read session state — async path when the store provides it."""
+        if hasattr(self._session_store, "aget"):
+            return await self._session_store.aget(session_id)  # type: ignore[attr-defined]
+        return self._session_store.get(session_id)
 
     async def _build_adapter_jobs(
         self,
@@ -628,6 +645,17 @@ class Broker:
     # Lifecycle
     # ------------------------------------------------------------------
 
+    async def setup(self) -> None:
+        """Idempotent async setup — stand up persistent session schema.
+
+        Calls :meth:`PostgresSessionStore.setup` when the broker is wired with
+        a Postgres-backed session store (design §3.2, UQ-1 / D-2). No-op for
+        the Phase-1 :class:`~nautilus.core.session.InMemorySessionStore`.
+        Safe to call multiple times; each implementer owns its own idempotency.
+        """
+        if isinstance(self._session_store, PostgresSessionStore):
+            await self._session_store.setup()
+
     def close(self) -> None:
         """Idempotent sync close — FR-17, AC-8.6."""
         try:
@@ -642,10 +670,25 @@ class Broker:
         asyncio.run(self.aclose())
 
     async def aclose(self) -> None:
-        """Idempotent async close. Safe to call multiple times (FR-17)."""
+        """Idempotent async close. Safe to call multiple times (FR-17).
+
+        Ordering contract (progress learnings): ``session_store.aclose()`` →
+        attestation_sink.close() → adapter-pool release. Attestation sink wiring
+        lands in Task 1.13; until then we close session store first, then
+        adapters. Any close is best-effort (one failing backend must not
+        prevent others from closing).
+        """
         if self._closed:
             return
         self._closed = True
+        # 1. Session store: flush any in-flight writes before downstream close.
+        if hasattr(self._session_store, "aclose"):
+            with contextlib.suppress(Exception):
+                await self._session_store.aclose()  # type: ignore[attr-defined]
+        # 2. TODO(Task 1.13): attestation_sink.close() goes here, between
+        #    session_store.aclose() and adapter release (progress learnings).
+        # 3. Adapters — release pools last so in-flight attestation can still
+        #    reference their connections above.
         for adapter in self._adapters.values():
             try:
                 await adapter.close()

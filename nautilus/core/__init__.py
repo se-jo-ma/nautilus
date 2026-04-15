@@ -24,5 +24,23 @@ class PolicyEngineError(Exception):
 # ``nautilus.core.broker`` imports it at module load time.
 from nautilus.core.broker import Broker  # noqa: E402
 from nautilus.core.models import BrokerResponse  # noqa: E402
+from nautilus.core.session import (  # noqa: E402
+    AsyncSessionStore,
+    InMemorySessionStore,
+    SessionStore,
+)
+from nautilus.core.session_pg import (  # noqa: E402
+    PostgresSessionStore,
+    SessionStoreUnavailableError,
+)
 
-__all__ = ["Broker", "BrokerResponse", "PolicyEngineError"]
+__all__ = [
+    "AsyncSessionStore",
+    "Broker",
+    "BrokerResponse",
+    "InMemorySessionStore",
+    "PolicyEngineError",
+    "PostgresSessionStore",
+    "SessionStore",
+    "SessionStoreUnavailableError",
+]

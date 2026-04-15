@@ -103,7 +103,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(core): extend AuditEntry + ScopeConstraint with Phase 2 optional fields; add BrokerRequest, HandoffDecision`
 - **References**: FR-16, FR-17, FR-19, NFR-5, AC-6.5, AC-7.1, AC-7.4, D-7, D-8, design §3.10.
 
-### Task 1.8 — Implement `PostgresSessionStore` + async `SessionStore` Protocol extension + `Broker.setup()`
+### Task 1.8 [x] — Implement `PostgresSessionStore` + async `SessionStore` Protocol extension + `Broker.setup()`
 - **Do**:
   - Edit `nautilus/core/session.py`: extend `SessionStore` Protocol with async methods `aget(session_id) -> dict`, `aupdate(session_id, entry) -> None`, `aclose() -> None` **alongside** existing sync `get` / `update` (preserve for backwards compat).
   - Create `nautilus/core/session_pg.py`: `class SessionStoreUnavailableError(Exception)`; `class PostgresSessionStore` with `__init__(dsn: str, *, on_failure: Literal["fail_closed","fallback_memory"] = "fail_closed")`; methods `async setup()` (runs `CREATE TABLE IF NOT EXISTS nautilus_session_state (session_id TEXT PRIMARY KEY, state JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`), `async aget`, `async aupdate` (both using `asyncpg.Pool` with `ON CONFLICT (session_id) DO UPDATE SET state=EXCLUDED.state, updated_at=now()`), `async aclose`.
