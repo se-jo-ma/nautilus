@@ -6,8 +6,10 @@
 .worktrees
 
 # VE (verification environment) ephemeral artifacts
-.ve-dsn.txt
-.ve-cid.txt
+.ve-*.txt
+.ve-*.log
+.ve-*.json
+ve-runtime/
 
 CLAUDE.md
 

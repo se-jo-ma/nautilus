@@ -845,7 +845,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 
 Five sequential tasks: one startup, three checks (REST + MCP + declare_handoff + forensic), one cleanup. VE2 is decomposed into three check tasks for clarity and independent verify commands. VE-cleanup (VE3) MUST run even if prior checks fail.
 
-### Task 5.1 — VE1: boot Postgres + pgvector + Elasticsearch testcontainers + launch `nautilus serve --transport both`
+### Task 5.1 [x] — VE1: boot Postgres + pgvector + Elasticsearch testcontainers + launch `nautilus serve --transport both`
 - **Do**:
   - Add `.ve-*.txt` to `.gitignore` if not already done.
   - Start Postgres+pgvector container detached: `docker run -d --rm -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=nautilus -p 0:5432 pgvector/pgvector:pg17 > .ve-pg-cid.txt`
