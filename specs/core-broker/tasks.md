@@ -525,7 +525,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `chore(ci): pass final local gate` (if fixes needed)
 - **References**: NFR-6, NFR-7, NFR-10, NFR-12, AC-9.4.
 
-### Task 4.10 — Create PR and verify CI
+### Task 4.10 — Create PR and verify CI [x]
 - **Do**:
   - Confirm current branch is a feature branch (not `main`/`master`): `git branch --show-current`.
   - `git push -u origin "$(git branch --show-current)"`.
@@ -536,7 +536,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: none (PR-level).
 - **References**: NFR-7, NFR-10.
 
-### Task 4.11 — Tag `v0.1.0-alpha`
+### Task 4.11 — Tag `v0.1.0-alpha` [x]
 - **Do**: After PR merge (or pre-merge if tagging on feature branch is allowed), `git tag -a v0.1.0-alpha -m "Nautilus Core Broker Phase 1 alpha"`; do NOT push the tag unless the user explicitly approves.
 - **Files**: none (git ref only).
 - **Done when**: `git tag -l | grep -q "^v0.1.0-alpha$"`.
