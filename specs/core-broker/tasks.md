@@ -452,7 +452,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `chore(packaging): fill pyproject metadata`
 - **References**: NFR-10, NFR-12.
 
-### Task 4.2 — README quickstart
+### Task 4.2 — README quickstart [x]
 - **Do**: Rewrite `README.md` to include: install (`uv add nautilus`), 10-line quickstart (load YAML, call `broker.request`, print response), links to `design.md` and `requirements.md`.
 - **Files**: `README.md`.
 - **Done when**: README is ≤120 lines and the quickstart block is runnable verbatim against `tests/fixtures/nautilus.yaml`.
