@@ -689,7 +689,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Done when**: All exit 0.
 - **Commit**: `chore(tests): pass batch 4 checkpoint` (if fixes needed)
 
-### Task 3.17 — Integration harnesses: latency + fault-injection + determinism + forensic idempotency + MCP e2e
+### Task 3.17 [x] — Integration harnesses: latency + fault-injection + determinism + forensic idempotency + MCP e2e
 - **Do**:
   - `test_fastapi_latency_harness.py` (AC-12.6, design §7.5): `pg_container` + `create_app`; `httpx.AsyncClient(transport=ASGITransport(app))` issues 1000 sequential `POST /v1/request`; discard first 100; compute p95 over remaining 900 excluding `AdapterResult.duration_ms`; assert p95 < 200 ms. Mark `@pytest.mark.slow`.
   - `test_attestation_sink_fault_injection.py` (NFR-16, design §7.6): `HttpAttestationSink` wired to a mock that alternates success/raise; 1000 requests via `broker.arequest`; assert (a) all 1000 returned `BrokerResponse` (0 broker failures), (b) 1000 audit entries written, (c) WARN log per failed emit.

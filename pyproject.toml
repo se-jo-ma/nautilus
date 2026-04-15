@@ -80,5 +80,6 @@ asyncio_mode = "auto"
 markers = [
     "unit: unit tests",
     "integration: integration tests",
+    "slow: slow tests (e.g. latency harness with 1000 requests)",
 ]
 addopts = "--strict-markers --cov=nautilus --cov-branch --cov-fail-under=80"
