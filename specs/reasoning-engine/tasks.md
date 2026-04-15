@@ -650,7 +650,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Done when**: All exit 0.
 - **Commit**: `chore(tests): pass batch 3 checkpoint` (if fixes needed)
 
-### Task 3.13 — Unit: `tests/unit/transport/test_fastapi_unit.py` + `test_mcp_unit.py` + `tests/unit/test_cli.py`
+### Task 3.13 [x] — Unit: `tests/unit/transport/test_fastapi_unit.py` + `test_mcp_unit.py` + `tests/unit/test_cli.py`
 - **Do**:
   - `test_fastapi_unit.py` (uses `httpx.AsyncClient(transport=ASGITransport(app))`): (a) lifespan startup builds broker singleton; (b) `/healthz` → 200 static; (c) `/readyz` → 503 before startup, 200 after; (d) `POST /v1/request` → 200 + 1 audit line (NFR-15); (e) `POST /v1/query` behaves identically to `/v1/request` (alias, D-9); (f) missing/bad API key → 401 (AC-12.2); (g) `GET /v1/sources` returns metadata only (no secrets).
   - `test_mcp_unit.py`: session-id resolution table — (a) `context["session_id"]` present → used + `session_id_source="context"`; (b) http mode, no `context.session_id` → `ctx.session_id` used + `session_id_source="transport"`; (c) stdio, none present → `ctx.request_id` used + `session_id_source="stdio_request_id"`; (d) `agent_id` is verbatim, never `client_id` (AC-13.3).
