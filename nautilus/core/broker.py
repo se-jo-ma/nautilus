@@ -49,6 +49,7 @@ from nautilus.config.models import (
     AnalysisProviderSpec,
     AnthropicProviderSpec,
     FileSinkSpec,
+    HttpSinkSpec,
     LocalInferenceProviderSpec,
     NautilusConfig,
     NullSinkSpec,
@@ -62,7 +63,9 @@ from nautilus.core.attestation_sink import (
     AttestationPayload,
     AttestationSink,
     FileAttestationSink,
+    HttpAttestationSink,
     NullAttestationSink,
+    RetryPolicy,
 )
 from nautilus.core.fathom_router import FathomRouter
 from nautilus.core.models import (
@@ -438,15 +441,26 @@ class Broker:
           NFR-5 for Phase-1 YAML fixtures with no ``attestation.sink`` entry.
         - ``"file"`` → :class:`FileAttestationSink` — append-only JSONL with
           per-emit ``flush`` + ``os.fsync`` (AC-14.2).
-
-        ``HttpAttestationSink`` (``type: "http"``) lands in Phase 2.
+        - ``"http"`` → :class:`HttpAttestationSink` — POST to verifier URL with
+          retry + dead-letter spill (AC-14.3).
         """
         sink_spec = config.attestation.sink
         if isinstance(sink_spec, FileSinkSpec):
             return FileAttestationSink(Path(sink_spec.path))
-        # Must be NullSinkSpec by virtue of the pydantic discriminated union
-        # (HttpSinkSpec lands in Phase 2). Kept as an explicit branch for
-        # readability; pydantic rejects unknown types upstream.
+        if isinstance(sink_spec, HttpSinkSpec):
+            rp_spec = sink_spec.retry_policy
+            retry_policy = RetryPolicy(
+                max_retries=rp_spec.max_retries,
+                initial_backoff_s=rp_spec.initial_backoff_s,
+                max_backoff_s=rp_spec.max_backoff_s,
+            )
+            dead_letter = Path(sink_spec.dead_letter_path) if sink_spec.dead_letter_path else None
+            return HttpAttestationSink(
+                url=sink_spec.url,
+                retry_policy=retry_policy,
+                dead_letter_path=dead_letter,
+            )
+        # Must be NullSinkSpec by virtue of the pydantic discriminated union.
         assert isinstance(sink_spec, NullSinkSpec)
         return NullAttestationSink()
 

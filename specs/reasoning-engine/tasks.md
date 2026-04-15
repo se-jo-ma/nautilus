@@ -348,7 +348,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(adapters): add ServiceNowAdapter with encoded-query sanitizer`
 - **References**: FR-23, AC-11.1, AC-11.2, AC-11.3, AC-11.4, NFR-4, NFR-18, design §3.11, D-19.
 
-### Task 2.13 — Implement `HttpAttestationSink` with retry + dead-letter
+### Task 2.13 [x] — Implement `HttpAttestationSink` with retry + dead-letter
 - **Do**:
   - Extend `nautilus/core/attestation_sink.py` with `class HttpAttestationSink(url: str, *, retry_policy: RetryPolicy = RetryPolicy(), dead_letter_path: Path | None = None)`. Uses `httpx.AsyncClient`. `emit` POSTs the payload; on exhausting retries, writes to a wrapped `FileAttestationSink(dead_letter_path)`.
   - Define `class RetryPolicy(BaseModel)` with `max_retries: int = 3`, `initial_backoff_s: float = 0.1`, `max_backoff_s: float = 5.0`.

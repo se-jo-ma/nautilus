@@ -146,8 +146,38 @@ class FileSinkSpec(BaseModel):
     path: str
 
 
+class RetryPolicySpec(BaseModel):
+    """Retry schedule for :class:`HttpAttestationSink` (design §3.14, AC-14.3).
+
+    Mirrors :class:`nautilus.core.attestation_sink.RetryPolicy` one-for-one; the
+    HTTP sink accepts either (both are structural ``BaseModel``\\ s with the
+    same field names) so YAML-loaded ``RetryPolicySpec`` flows straight into
+    the sink constructor without a conversion step.
+    """
+
+    max_retries: int = 3
+    initial_backoff_s: float = 0.1
+    max_backoff_s: float = 5.0
+
+
+class HttpSinkSpec(BaseModel):
+    """HTTP POST attestation sink with retry + dead-letter spill (AC-14.3).
+
+    ``url`` is the verifier's ingest endpoint; ``retry_policy`` defaults match
+    :class:`~nautilus.core.attestation_sink.RetryPolicy`. ``dead_letter_path``
+    is optional — when omitted, exhausted retries log a WARN only; when set,
+    the sink wraps a :class:`~nautilus.core.attestation_sink.FileAttestationSink`
+    for the spill so dead-lettered payloads are durable-before-ack (NFR-16).
+    """
+
+    type: Literal["http"] = "http"
+    url: str
+    retry_policy: RetryPolicySpec = Field(default_factory=RetryPolicySpec)
+    dead_letter_path: str | None = None
+
+
 AttestationSinkSpec = Annotated[
-    NullSinkSpec | FileSinkSpec,
+    NullSinkSpec | FileSinkSpec | HttpSinkSpec,
     Field(discriminator="type"),
 ]
 
