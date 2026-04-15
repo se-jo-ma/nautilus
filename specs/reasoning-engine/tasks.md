@@ -487,7 +487,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(forensics): add handoff_worker with declared-precedence dedup + offsets idempotency`
 - **References**: FR-11, FR-33, NFR-13, AC-5.1, AC-5.3, AC-5.4, AC-5.5, D-20, design §3.7.
 
-### [VERIFY] Task 2.24 — Quality checkpoint (forensic worker + rule pack)
+### [VERIFY] Task 2.24 [x] — Quality checkpoint (forensic worker + rule pack)
 - **Do**: Run toolchain + Phase 1 regression.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest tests/integration/test_mvp_e2e.py tests/integration/test_classification_e2e.py -m integration -q`
 - **Done when**: All exit 0 — Phase 1 surface + POC milestone still green.
