@@ -661,7 +661,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(transport+cli): add FastAPI + MCP + CLI unit tests`
 - **References**: FR-25, FR-26, FR-27, FR-30, AC-6.4, AC-12.1, AC-12.2, AC-12.3, AC-12.4, AC-12.5, AC-13.3, AC-15.2, AC-15.3, AC-15.5, NFR-1, NFR-15.
 
-### Task 3.14 — Integration: `test_session_store_e2e.py` + `test_backwards_compat.py`
+### Task 3.14 [x] — Integration: `test_session_store_e2e.py` + `test_backwards_compat.py`
 - **Do**:
   - `test_session_store_e2e.py` (uses `pg_container` fixture): (a) `Broker.setup()` idempotent on repeated calls (AC-2.2); (b) 2 requests sharing `session_id` — second sees accumulated state in Fathom facts (AC-2.1); (c) restart broker — new broker sees same state via Postgres (AC-2.4); (d) unreachable DSN + `on_failure="fail_closed"` → request raises `SessionStoreUnavailableError` + audit entry with `error_type`.
   - `test_backwards_compat.py`: (a) `AuditEntry.model_validate_json(open("tests/fixtures/audit/phase1_audit_line.jsonl").read())` succeeds (NFR-5); (b) Phase 1 attestation token from `tests/fixtures/audit/phase1_attestation_token.jwt` verifies under the Phase 2 verifier unchanged (NFR-6, AC-7.5).
