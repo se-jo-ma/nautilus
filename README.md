@@ -67,6 +67,82 @@ A `nautilus.yaml` declares `sources`, `rules`, `analysis`, `audit`, and
 `attestation` blocks. The test fixture is the minimal working example;
 design §12 documents the full schema.
 
+## Reasoning Engine
+
+Phase 2 adds cross-agent handoff reasoning, a Postgres-backed session
+store, optional LLM intent analysis, and REST/MCP transports. Install
+with the provider extra you need:
+
+```bash
+uv add 'nautilus[llm-anthropic]'   # or llm-openai, llm-local, or no extra
+```
+
+Add an `agents:` block and a durable `session_store` to `nautilus.yaml`:
+
+```yaml
+agents:
+  agent-alpha: { clearance: secret, compartments: [crypto], default_purpose: threat-analysis }
+  agent-beta:  { clearance: unclassified, compartments: [],       default_purpose: reporting }
+session_store:
+  backend: postgres
+  dsn: ${NAUTILUS_SESSION_DSN}
+  on_failure: fallback_memory
+analysis:
+  mode: llm-first           # falls back to pattern on provider error
+  provider: anthropic
+api:
+  keys: [${NAUTILUS_API_KEY}]
+```
+
+Declare a cooperative handoff from Python (zero adapter calls, one audit
+entry, signed attestation):
+
+```python
+import asyncio
+from nautilus import Broker
+
+async def main() -> None:
+    broker = await Broker.afrom_config("nautilus.yaml")
+    try:
+        decision = await broker.declare_handoff(
+            source_agent_id="agent-alpha",
+            receiving_agent_id="agent-beta",
+            session_id="s-42",
+            data_classifications=["secret"],
+        )
+        print(decision.action, decision.rule_trace)
+    finally:
+        await broker.aclose()
+
+asyncio.run(main())
+```
+
+Run the REST + MCP transport via the stdlib-argparse CLI:
+
+```bash
+nautilus serve --config nautilus.yaml --transport both --bind 0.0.0.0:8000
+nautilus serve --config nautilus.yaml --air-gapped   # force pattern analyzer
+nautilus health --url http://localhost:8000/readyz
+```
+
+`--air-gapped` overrides `analysis.mode` to `pattern` and refuses any
+configured LLM provider (design §3.15, AC-15.2). The REST surface is a
+FastAPI app — `POST /v1/request` accepts a `BrokerRequest` and returns a
+`BrokerResponse` with `attestation_token` and `request_id`; `/v1/query`
+is a locked alias (D-9). Mount it under your own ASGI stack with
+`create_app`:
+
+```python
+from nautilus.transport import create_app
+
+app = create_app("nautilus.yaml")  # FastAPI; lifespan owns one Broker
+```
+
+See [`./specs/reasoning-engine/design.md`](./specs/reasoning-engine/design.md)
+for the architecture and
+[`./specs/reasoning-engine/requirements.md`](./specs/reasoning-engine/requirements.md)
+for the user stories, FRs, and ACs this phase satisfies.
+
 ## Async usage
 
 From inside a running event loop, call `await broker.arequest(...)` —

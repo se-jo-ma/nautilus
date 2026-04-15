@@ -759,7 +759,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Done when**: All exit 0.
 - **Commit**: `chore(quality): pass checkpoint after metadata + license + docstrings` (if fixes needed)
 
-### Task 4.5 — README update: reasoning-engine quickstart
+### Task 4.5 [x] — README update: reasoning-engine quickstart
 - **Do**:
   - Extend `README.md` with a new "Reasoning Engine" section: install extras (`uv add 'nautilus[llm-anthropic]'`), 15-line quickstart loading a YAML with `agents:` block + `session_store.backend: postgres`, calling `broker.declare_handoff(...)`, explaining `--air-gapped` and the `/v1/request` REST endpoint.
   - Link to `specs/reasoning-engine/design.md` and `specs/reasoning-engine/requirements.md`.
