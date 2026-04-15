@@ -233,7 +233,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(core): add Broker.declare_handoff + information-flow-violation rule`
 - **References**: FR-8, FR-10, AC-4.1, AC-4.2, AC-4.3, AC-4.4, AC-4.5, D-4, design §3.6.
 
-### Task 2.2 — Ship `LLMIntentProvider` Protocol + `LLMProvenance` + `LLMProviderError`
+### Task 2.2 [x] — Ship `LLMIntentProvider` Protocol + `LLMProvenance` + `LLMProviderError`
 - **Do**:
   - Create `nautilus/analysis/llm/base.py` with:
     - `class LLMProviderError(Exception)`.
