@@ -196,14 +196,19 @@ class ApiConfig(BaseModel):
 
 
 class SessionStoreConfig(BaseModel):
-    """Session-store subsection of ``nautilus.yaml`` (design §3.11).
+    """Session-store subsection of ``nautilus.yaml`` (design §3.11, §3.2).
 
-    Minimal Phase-2 shell; later tasks add backend-specific options once the
-    session-store implementation lands.
+    ``backend: postgres`` selects :class:`~nautilus.core.session_pg.PostgresSessionStore`.
+    ``dsn`` is post-interpolation (``${VAR}`` already resolved); if omitted, the
+    broker falls back to the ``TEST_PG_DSN`` env var so integration fixtures
+    can reuse the existing pg_container DSN without duplicating YAML plumbing.
+    ``on_failure`` mirrors :attr:`PostgresSessionStore._on_failure` (NFR-7).
     """
 
-    backend: Literal["memory", "redis"] = "memory"
+    backend: Literal["memory", "redis", "postgres"] = "memory"
     ttl_seconds: int = 3600
+    dsn: str | None = None
+    on_failure: Literal["fail_closed", "fallback_memory"] = "fail_closed"
 
 
 # ---------------------------------------------------------------------------

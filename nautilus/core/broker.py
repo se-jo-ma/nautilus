@@ -64,7 +64,7 @@ from nautilus.core.models import (
     RoutingDecision,
     ScopeConstraint,
 )
-from nautilus.core.session import InMemorySessionStore, SessionStore
+from nautilus.core.session import AsyncSessionStore, InMemorySessionStore, SessionStore
 from nautilus.core.session_pg import PostgresSessionStore
 from nautilus.core.temporal import TemporalFilter
 from nautilus.rules import BUILT_IN_RULES_DIR
@@ -154,6 +154,7 @@ def _build_audit_entry(
     agent_id: str,
     state: _RequestState,
     attestation_token: str | None,
+    session_store_mode: Literal["primary", "degraded_memory"] | None,
 ) -> AuditEntry:
     """Materialize a flat :class:`AuditEntry` from pipeline state (design §4.9)."""
     return AuditEntry(
@@ -176,6 +177,8 @@ def _build_audit_entry(
         attestation_token=attestation_token,
         duration_ms=state.duration_ms(),
         scope_hash_version=state.scope_hash_version,
+        session_store_mode=session_store_mode,
+        event_type="request",
     )
 
 
@@ -197,7 +200,7 @@ class Broker:
         synthesizer: Synthesizer,
         audit_logger: AuditLogger,
         attestation: AttestationService | None,
-        session_store: SessionStore,
+        session_store: SessionStore | AsyncSessionStore,
         agent_registry: AgentRegistry | None = None,
         attestation_sink: AttestationSink | None = None,
     ) -> None:
@@ -282,7 +285,7 @@ class Broker:
         audit_path = Path(config.audit.path)
         audit_logger = AuditLogger(sink=FileSink(path=audit_path))
 
-        session_store = InMemorySessionStore()
+        session_store = cls._build_session_store(config)
 
         synthesizer = BasicSynthesizer()
 
@@ -299,6 +302,32 @@ class Broker:
             agent_registry=agent_registry,
             attestation_sink=attestation_sink,
         )
+
+    @staticmethod
+    def _build_session_store(config: NautilusConfig) -> SessionStore | AsyncSessionStore:
+        """Construct the session store per ``config.session_store.backend``.
+
+        - ``memory`` (default) → :class:`InMemorySessionStore` (Phase-1 compat,
+          NFR-5).
+        - ``postgres`` → :class:`PostgresSessionStore` over ``dsn`` (or
+          ``TEST_PG_DSN`` env var when ``dsn`` is unset, so integration
+          fixtures reuse pg_container without duplicating YAML plumbing);
+          ``on_failure`` flips between ``fail_closed`` and ``fallback_memory``
+          (NFR-7).
+        - ``redis`` → reserved; falls back to in-memory until Phase 2 lands a
+          Redis adapter (intentional soft-land per design §3.11).
+        """
+        sess_cfg = config.session_store
+        if sess_cfg.backend == "postgres":
+            import os
+
+            dsn = sess_cfg.dsn or os.environ.get("TEST_PG_DSN")
+            if not dsn:
+                raise ConfigError(
+                    "session_store.backend=postgres requires 'dsn' or TEST_PG_DSN env var"
+                )
+            return PostgresSessionStore(dsn, on_failure=sess_cfg.on_failure)
+        return InMemorySessionStore()
 
     @staticmethod
     def _build_attestation_sink(config: NautilusConfig) -> AttestationSink:
@@ -428,6 +457,7 @@ class Broker:
         """Happy-path pipeline body — mutates ``state`` in place."""
         state.intent_analysis = self._intent_analyzer.analyze(intent, context)
         await self._route(agent_id, context, state)
+        self._merge_context_scope_constraints(context, state)
         self._apply_temporal_filter(state)
         tasks, task_source_ids = await self._build_adapter_jobs(state, context)
         successful = await self._gather_adapter_results(state, tasks, task_source_ids)
@@ -468,6 +498,30 @@ class Broker:
             await self._attestation_sink.emit(payload)
         except Exception as exc:  # noqa: BLE001 — audit-first invariant (AC-14.5)
             log.warning("attestation_sink.emit failed: %s", exc)
+
+    @staticmethod
+    def _merge_context_scope_constraints(
+        context: dict[str, Any],
+        state: _RequestState,
+    ) -> None:
+        """Fold ``context["scope_constraints"]`` into ``state.scope_by_source``.
+
+        Additive channel so callers (notably the POC integration test) can
+        attach row-level predicates that carry ``expires_at`` / ``valid_from``
+        windows without a dedicated rule. Values must be
+        :class:`ScopeConstraint` instances (or dicts coercible into one); the
+        merge is a straight append per source_id so router-emitted constraints
+        are preserved. A missing / empty key is a no-op (NFR-5).
+        """
+        raw: Any = context.get("scope_constraints")
+        if not raw:
+            return
+        items: list[Any] = list(raw) if isinstance(raw, (list, tuple)) else [raw]  # pyright: ignore[reportUnknownArgumentType]
+        for item in items:
+            constraint = (
+                item if isinstance(item, ScopeConstraint) else ScopeConstraint.model_validate(item)
+            )
+            state.scope_by_source.setdefault(constraint.source_id, []).append(constraint)
 
     def _apply_temporal_filter(self, state: _RequestState) -> None:
         """Drop expired / not-yet-valid scope constraints before adapter fan-out.
@@ -541,13 +595,18 @@ class Broker:
         if hasattr(self._session_store, "aupdate"):
             await self._session_store.aupdate(state.session_id, entry)  # type: ignore[attr-defined]
             return
-        self._session_store.update(state.session_id, entry)
+        # Sync fallback — only reachable when the store implements the Phase-1
+        # :class:`SessionStore` Protocol (``update``). The union type widens to
+        # include :class:`AsyncSessionStore` so pyright needs the explicit cast.
+        sync_store: SessionStore = self._session_store  # type: ignore[assignment]
+        sync_store.update(state.session_id, entry)
 
     async def _session_get(self, session_id: str) -> dict[str, Any]:
         """Read session state — async path when the store provides it."""
         if hasattr(self._session_store, "aget"):
             return await self._session_store.aget(session_id)  # type: ignore[attr-defined]
-        return self._session_store.get(session_id)
+        sync_store: SessionStore = self._session_store  # type: ignore[assignment]
+        return sync_store.get(session_id)
 
     async def _build_adapter_jobs(
         self,
@@ -646,7 +705,21 @@ class Broker:
         attestation_token: str | None,
     ) -> None:
         """Build and hand the :class:`AuditEntry` to the logger (NFR-8, §9.2)."""
-        self._audit_logger.emit(_build_audit_entry(agent_id, state, attestation_token))
+        self._audit_logger.emit(
+            _build_audit_entry(agent_id, state, attestation_token, self._session_store_mode())
+        )
+
+    def _session_store_mode(self) -> Literal["primary", "degraded_memory"] | None:
+        """Surface the session-store mode for the audit entry (NFR-7, design §3.2).
+
+        :class:`PostgresSessionStore` exposes a ``mode`` property; the Phase-1
+        in-memory store does not — Phase-1 audit lines therefore continue to
+        carry ``session_store_mode: null`` (NFR-5 round-trip).
+        """
+        mode: Any = getattr(self._session_store, "mode", None)
+        if mode in ("primary", "degraded_memory"):
+            return mode  # type: ignore[no-any-return]
+        return None
 
     async def _execute_adapter(
         self,

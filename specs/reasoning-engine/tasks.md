@@ -196,7 +196,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(core): wire session_pg, temporal, escalation, attestation sink into Broker.arequest`
 - **References**: FR-5, FR-17, FR-19, FR-28, FR-29, NFR-15, AC-2.3, AC-7.4, AC-14.1, AC-14.5, design §2.2, §3.14.
 
-### Task 1.15 — **POC MILESTONE**: `classification_e2e` integration test
+### Task 1.15 [x] — **POC MILESTONE**: `classification_e2e` integration test
 - **Do**:
   - Create `tests/integration/test_classification_e2e.py` marked `@pytest.mark.integration`.
   - Reuse `pg_container` fixture from Phase 1 `tests/conftest.py` (Postgres + pgvector).
