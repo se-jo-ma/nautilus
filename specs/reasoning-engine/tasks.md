@@ -560,7 +560,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(rules): add contains-all + classification + information-flow rule tests`
 - **References**: FR-2, FR-6, FR-10, AC-1.1, AC-1.3, AC-3.4, AC-4.3.
 
-### Task 3.3 — Unit: `tests/unit/core/test_session_pg_unit.py` + `test_temporal.py` + `test_scope_hash_v2.py`
+### Task 3.3 [x] — Unit: `tests/unit/core/test_session_pg_unit.py` + `test_temporal.py` + `test_scope_hash_v2.py`
 - **Do**:
   - `test_session_pg_unit.py`: mocked `asyncpg.Pool`. Cases: (a) `setup()` issues idempotent DDL twice without error, (b) `aget`/`aupdate` happy path, (c) `CannotConnectNow` + `on_failure=fail_closed` → `SessionStoreUnavailableError`, (d) same + `fallback_memory` → degrades, (e) degraded-mode requests carry `session_store_mode="degraded_memory"` via broker audit field.
   - `test_temporal.py`: (a) `expires_at` in past → dropped with `scope-expired` denial, (b) `valid_from` in future → dropped, (c) both empty → kept, (d) malformed ISO-8601 → dropped with WARN.
