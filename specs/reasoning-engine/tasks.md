@@ -70,7 +70,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(config): add AgentRegistry with UnknownAgentError`
 - **References**: FR-9, AC-4.2, design §3.5.
 
-### Task 1.5 — Extend Fathom templates (compartments, sub_category, temporal, session multislots, new templates)
+### Task 1.5 [x] — Extend Fathom templates (compartments, sub_category, temporal, session multislots, new templates)
 - **Do**:
   - Edit `nautilus/rules/templates/nautilus.yaml`:
     - Extend `source` template: add slots `compartments: string default ""`, `sub_category: string default ""`.
