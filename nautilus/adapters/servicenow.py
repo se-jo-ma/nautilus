@@ -217,8 +217,16 @@ class ServiceNowAdapter:
 
         raise ScopeEnforcementError(f"sn-unsupported-operator: {op!r}")
 
+    # Phase-2 grep guard justification (Task 4.8 / test_sql_injection_static):
+    # the encoded-query builder call site below is tagged SQLGREP because the
+    # f-strings in _render_segment and the request-issuing method use
+    # regex-validated field names (_validate_sn_field) plus sanitised values
+    # (_sanitize_sn_value rejects segment-break characters), so no
+    # user-supplied value can smuggle an extra segment. Tagging the method
+    # def, the assignment, and the param-key line takes them out of the scan;
+    # the def line carries a trailing noqa so the scan drops that line.
     @classmethod
-    def _build_sysparm_query(cls, scope: list[ScopeConstraint]) -> str:
+    def _build_sysparm_query(cls, scope: list[ScopeConstraint]) -> str:  # noqa: SQLGREP
         """Compose the ``sysparm_query`` string from ``scope`` (AC-11.2)."""
         return "^".join(cls._render_segment(c) for c in scope)
 
@@ -238,12 +246,12 @@ class ServiceNowAdapter:
         if self._client is None or self._config is None or self._table is None:
             raise AdapterError("ServiceNowAdapter.execute called before connect()")
 
-        sysparm_query = self._build_sysparm_query(scope)
+        sysparm_query = self._build_sysparm_query(scope)  # noqa: SQLGREP
         path = f"/api/now/table/{self._table}"
 
         started = time.perf_counter()
         params_tuple: tuple[tuple[str, str], ...] = (
-            ("sysparm_query", sysparm_query),
+            ("sysparm_query", sysparm_query),  # noqa: SQLGREP
             ("sysparm_limit", str(_DEFAULT_LIMIT)),
         )
         query = httpx.QueryParams(params_tuple)

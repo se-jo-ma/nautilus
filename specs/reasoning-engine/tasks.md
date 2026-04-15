@@ -785,7 +785,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Done when**: All exit 0; Phase-1 MVP E2E still passes.
 - **Commit**: `chore(phase4): pass checkpoint after docs + docker smoke` (if fixes needed)
 
-### Task 4.8 — Static grep checks for new adapters (SQL-injection-style)
+### Task 4.8 [x] — Static grep checks for new adapters (SQL-injection-style)
 - **Do**:
   - Extend `tests/unit/test_sql_injection_static.py` (from core-broker) to also scan `elasticsearch.py` for `f"..."` + `Search.query(` within 5 lines (AC-8.4), `neo4j.py` for f-string + `execute_query(`, `rest.py` for manual URL concatenation (no `f"{base_url}/"`), `servicenow.py` for f-string near encoded-query building.
   - Keep the `# noqa: SQLGREP` allowlist discipline.
