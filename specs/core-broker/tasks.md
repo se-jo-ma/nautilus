@@ -508,7 +508,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: None
 - **References**: FR-16, AC-9.3, NFR-8, NFR-9, UQ-2.
 
-### Task 4.8 — VE3: Tear down pgvector container, clean artifacts
+### Task 4.8 — VE3: Tear down pgvector container, clean artifacts [x]
 - **Do**:
   - Force-remove the container (covers both running and stopped): `if [ -f .ve-cid.txt ]; then docker rm -f "$(cat .ve-cid.txt)" 2>/dev/null || true; fi`
   - Remove ephemeral files: `rm -f .ve-dsn.txt .ve-cid.txt audit.jsonl`
