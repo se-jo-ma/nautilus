@@ -481,7 +481,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(core): lock in broker.close() idempotency across adapter mix`
 - **References**: FR-17, AC-8.6.
 
-### Task 4.6 — VE1: Start pgvector container (via docker run) and seed fixtures
+### Task 4.6 — VE1: Start pgvector container (via docker run) and seed fixtures [x]
 - **Do**:
   - Add `.ve-dsn.txt` and `.ve-cid.txt` to `.gitignore` (project root) so VE artifacts never accidentally land in a commit. These ephemeral files live at the project root (NOT `/tmp/`) so the VE sweep is Windows/git-bash portable.
   - Start the container detached so its lifecycle is independent of the starter process (avoids the testcontainers atexit-teardown bug where the DSN goes dead as soon as the starter Python exits):
@@ -497,7 +497,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `chore(ve): ignore ephemeral VE artifacts` (only for the `.gitignore` change; the container start itself is ephemeral and has no commit)
 - **References**: AC-9.2, AC-9.3, FR-16.
 
-### Task 4.7 — VE2: Run MVP e2e test + assert complete audit entry
+### Task 4.7 — VE2: Run MVP e2e test + assert complete audit entry [x]
 - **Do**:
   - Read DSN from VE1's artifact: `export TEST_PG_DSN="$(cat .ve-dsn.txt)" TEST_PGV_DSN="$(cat .ve-dsn.txt)"`.
   - Run `uv run pytest tests/integration/test_mvp_e2e.py -m integration -q` against that DSN.
