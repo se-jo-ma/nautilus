@@ -743,7 +743,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `chore(license): pass GPL-family license scan` (only if fixes needed)
 - **References**: NFR-11.
 
-### Task 4.3 — Docstring sweep for Phase 2 public surfaces
+### Task 4.3 [x] — Docstring sweep for Phase 2 public surfaces
 - **Do**:
   - Add Google-style docstrings (Args/Returns/Raises) to every NEW public class/method added in Phases 1–2: `PostgresSessionStore`, `AgentRegistry`, `Broker.declare_handoff`, `Broker.setup`, `FallbackIntentAnalyzer`, `AnthropicProvider`, `OpenAIProvider`, `LocalInferenceProvider`, `ElasticsearchAdapter`, `RestAdapter`, `Neo4jAdapter`, `ServiceNowAdapter`, `AttestationSink`, `NullAttestationSink`, `FileAttestationSink`, `HttpAttestationSink`, `TemporalFilter`, `run_worker`, `ProcessedOffsets`, `create_app`, `create_server`.
   - Extend the ast-based docstring scan from Phase 1 core-broker Task 4.3 to cover the new modules.

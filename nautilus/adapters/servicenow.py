@@ -53,6 +53,14 @@ class _BearerAuth(httpx.Auth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Any:  # pragma: no cover  # exercised via live/integration
+        """Attach a bearer token to ``request`` and yield it to httpx.
+
+        Args:
+            request: Outgoing httpx request to mutate in place.
+
+        Yields:
+            The mutated request with an ``Authorization`` header set.
+        """
         request.headers["Authorization"] = f"Bearer {self._token}"
         yield request
 

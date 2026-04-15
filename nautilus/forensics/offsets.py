@@ -34,6 +34,16 @@ class ProcessedOffsets(BaseModel):
     _order: deque[str] = PrivateAttr(default_factory=lambda: deque(maxlen=SEEN_HASH_CAP))
 
     def model_post_init(self, __context: Any) -> None:
+        """Rehydrate the LRU deque from the persisted hash set.
+
+        Pydantic v2 hook invoked after field validation. Set ordering is
+        best-effort across restarts; the cap on ``_order`` is the
+        load-bearing invariant. If the persisted set exceeds the cap, it is
+        trimmed down to the deque contents.
+
+        Args:
+            __context: Pydantic validation context (unused).
+        """
         # Reconstruct the LRU deque from whatever order the set yields. Ordering
         # is best-effort across restarts (Python sets do not preserve insertion
         # order); the cap is the load-bearing invariant.

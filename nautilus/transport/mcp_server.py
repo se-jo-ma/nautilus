@@ -133,6 +133,17 @@ def wrap_http_with_api_key(app: Starlette, keys: list[str]) -> ASGIApp:
     """
 
     async def middleware(scope: Scope, receive: Receive, send: Send) -> None:
+        """Verify the ``X-API-Key`` header before delegating to the wrapped app.
+
+        Lifespan and websocket scopes bypass the check so the MCP SDK's
+        session-store initialization runs regardless of caller identity.
+        Auth failures are translated into a minimal ``401`` JSON response.
+
+        Args:
+            scope: ASGI scope dict for the incoming connection.
+            receive: ASGI receive callable.
+            send: ASGI send callable.
+        """
         if scope["type"] != "http":
             # Lifespan / websocket events bypass auth — the MCP SDK uses
             # lifespan for session-store init, which MUST run regardless
