@@ -70,12 +70,8 @@ def test_information_flow_violation_fires_when_receiver_cannot_dominate() -> Non
     result = engine.evaluate()
 
     denials = engine.query("denial_record")
-    info_flow_denials = [
-        d for d in denials if d["rule_name"] == "information-flow-violation"
-    ]
-    assert len(info_flow_denials) == 1, (
-        f"expected 1 information-flow-violation, got {denials!r}"
-    )
+    info_flow_denials = [d for d in denials if d["rule_name"] == "information-flow-violation"]
+    assert len(info_flow_denials) == 1, f"expected 1 information-flow-violation, got {denials!r}"
     assert info_flow_denials[0]["source_id"] == "handoff-1"
     assert info_flow_denials[0]["reason"] == (
         "receiving agent clearance does not dominate declared classification"
@@ -107,9 +103,7 @@ def test_information_flow_violation_does_not_fire_when_receiver_dominates() -> N
     result = engine.evaluate()
 
     denials = engine.query("denial_record")
-    info_flow_denials = [
-        d for d in denials if d["rule_name"] == "information-flow-violation"
-    ]
+    info_flow_denials = [d for d in denials if d["rule_name"] == "information-flow-violation"]
     assert info_flow_denials == [], (
         f"expected no information-flow-violation, got {info_flow_denials!r}"
     )

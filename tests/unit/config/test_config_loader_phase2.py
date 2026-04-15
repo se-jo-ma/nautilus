@@ -51,9 +51,7 @@ def _minimal_sources_block() -> str:
     """
 
 
-def test_env_interpolation_in_api_keys(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_env_interpolation_in_api_keys(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """(a) ``${VAR}`` under ``api.keys`` is walked by the interpolator.
 
     ``api.keys`` is not yet a pydantic-backed field on :class:`ApiConfig`

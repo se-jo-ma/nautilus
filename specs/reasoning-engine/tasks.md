@@ -571,7 +571,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(core): add session_pg + temporal + scope_hash_v2 unit tests`
 - **References**: FR-3, FR-4, FR-17, FR-19, NFR-6, NFR-7, AC-2.5, AC-7.1, AC-7.2, AC-7.4.
 
-### [VERIFY] Task 3.4 — Quality checkpoint (test batch 1)
+### [VERIFY] Task 3.4 [x] — Quality checkpoint (test batch 1)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.

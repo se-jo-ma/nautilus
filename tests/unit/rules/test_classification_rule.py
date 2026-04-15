@@ -62,9 +62,7 @@ def test_default_classification_deny_has_salience_150() -> None:
     """
     engine = _build_engine()
     rule = engine.rule_registry["default-classification-deny"]
-    assert rule.salience == 150, (
-        f"expected salience 150, got {rule.salience!r}"
-    )
+    assert rule.salience == 150, f"expected salience 150, got {rule.salience!r}"
 
 
 @pytest.mark.unit
@@ -101,9 +99,7 @@ def test_default_classification_deny_fires_when_clearance_below_classification()
     result = engine.evaluate()
 
     denials = engine.query("denial_record")
-    classification_denials = [
-        d for d in denials if d["rule_name"] == "default-classification-deny"
-    ]
+    classification_denials = [d for d in denials if d["rule_name"] == "default-classification-deny"]
     assert len(classification_denials) == 1, (
         f"expected 1 default-classification-deny record, got {denials!r}"
     )
@@ -145,9 +141,7 @@ def test_default_classification_deny_does_not_fire_when_clearance_dominates() ->
     result = engine.evaluate()
 
     denials = engine.query("denial_record")
-    classification_denials = [
-        d for d in denials if d["rule_name"] == "default-classification-deny"
-    ]
+    classification_denials = [d for d in denials if d["rule_name"] == "default-classification-deny"]
     assert classification_denials == [], (
         f"expected no default-classification-deny, got {classification_denials!r}"
     )

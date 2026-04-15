@@ -26,7 +26,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from nautilus.core.broker import _build_audit_entry, _RequestState
+from nautilus.core.broker import (
+    _build_audit_entry,  # pyright: ignore[reportPrivateUsage]
+    _RequestState,  # pyright: ignore[reportPrivateUsage]
+)
 from nautilus.core.models import IntentAnalysis
 from nautilus.core.session_pg import (
     PostgresSessionStore,
@@ -81,7 +84,7 @@ class _AcquireCM:
 class _TxnCM:
     """No-op async transaction context manager for mocked connections."""
 
-    async def __aenter__(self) -> "_TxnCM":
+    async def __aenter__(self) -> _TxnCM:
         return self
 
     async def __aexit__(self, *_exc: Any) -> None:
@@ -172,9 +175,7 @@ async def test_aget_and_aupdate_happy_path_round_trip(
     # aupdate merges into the existing row (current + entry) and upserts it.
     await store.aupdate("s1", {"baz": 1})
     # Confirm the INSERT ... ON CONFLICT was executed on the acquired conn.
-    upsert_calls = [
-        c for c in pool._conn.execute.await_args_list if "INSERT INTO" in c.args[0]
-    ]
+    upsert_calls = [c for c in pool._conn.execute.await_args_list if "INSERT INTO" in c.args[0]]
     assert len(upsert_calls) == 1
     assert "ON CONFLICT (session_id) DO UPDATE" in upsert_calls[0].args[0]
 
