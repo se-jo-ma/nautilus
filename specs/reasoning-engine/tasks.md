@@ -538,7 +538,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 
 Focus: Cover every component with dedicated unit module; land the 6 integration harnesses from design §7; ≥80% branch coverage (NFR-2).
 
-### Task 3.1 — Unit: `tests/unit/config/test_agent_registry.py` + `test_escalation_loader.py` + `test_config_loader_phase2.py`
+### Task 3.1 [x] — Unit: `tests/unit/config/test_agent_registry.py` + `test_escalation_loader.py` + `test_config_loader_phase2.py`
 - **Do**:
   - `test_agent_registry.py`: (a) get returns record, (b) unknown id raises `UnknownAgentError`, (c) iteration preserves YAML order, (d) Phase 1 YAML without `agents:` loads with empty registry.
   - `test_escalation_loader.py`: (a) default pack produces 1 `EscalationRule`, (b) multiple YAML files load and merge, (c) invalid `action` raises `pydantic.ValidationError`.
