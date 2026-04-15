@@ -819,7 +819,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `chore(ci): pass final local gate` (if fixes needed)
 - **References**: NFR-2, NFR-3, NFR-10, NFR-11.
 
-### Task 4.11 — Create PR and verify CI
+### Task 4.11 [x] — Create PR and verify CI
 - **Do**:
   - Confirm current branch is a feature branch (not `main`/`master`): `git branch --show-current`.
   - `git push -u origin "$(git branch --show-current)"`.
