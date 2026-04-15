@@ -390,7 +390,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(adapters): add SQL injection static grep guard`
 - **References**: NFR-4, design §13.1, §17 (SQL-injection risk row).
 
-### Task 3.14 — `tests/unit/test_operator_allowlist_drift.py`
+### Task 3.14 — `tests/unit/test_operator_allowlist_drift.py` [x]
 - **Do**: Parametric test that imports the `Literal` type on `ScopeConstraint.operator` AND the runtime allowlist constant in `nautilus/adapters/base.py`; asserts the two sets are equal. Breaks if one drifts without the other (design §17 risk row).
 - **Files**: `tests/unit/test_operator_allowlist_drift.py`.
 - **Done when**: Test passes with current allowlist; removing one operator from either side fails the test.
