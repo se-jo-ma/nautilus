@@ -426,7 +426,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(docker): add multi-stage distroless Dockerfile with optional debug target`
 - **References**: FR-31, FR-32, AC-16.1, AC-16.2, AC-16.3, AC-16.4, AC-16.5, AC-16.6, D-16, D-17, NFR-10, design §3.16.
 
-### [VERIFY] Task 2.19 — Quality checkpoint (transports + CLI + Docker)
+### [VERIFY] Task 2.19 [x] — Quality checkpoint (transports + CLI + Docker)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.
