@@ -507,6 +507,16 @@ class Broker:
         """Registered agent identities (design §3.5, FR-9)."""
         return self._agent_registry
 
+    @property
+    def session_store(self) -> SessionStore | AsyncSessionStore:
+        """Active session store (sync or async surface) — design §3.2 / §3.9.
+
+        Exposed so transports (``/readyz`` probe in :mod:`nautilus.transport.
+        fastapi_app`) can call ``aget`` / ``get`` against the backing
+        store without reaching into private state.
+        """
+        return self._session_store
+
     def request(
         self,
         agent_id: str,

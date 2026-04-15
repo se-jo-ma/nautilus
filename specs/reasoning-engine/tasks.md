@@ -366,7 +366,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Done when**: All exit 0.
 - **Commit**: `chore(phase2): pass checkpoint after adapters + http sink` (if fixes needed)
 
-### Task 2.15 — Implement FastAPI REST transport: `create_app` + lifespan + endpoints
+### Task 2.15 [x] — Implement FastAPI REST transport: `create_app` + lifespan + endpoints
 - **Do**:
   - Create `nautilus/transport/auth.py` with: `APIKeyHeader(name="X-API-Key", auto_error=True)` dependency; `verify_api_key(header_value, keys: list[str]) -> None` using `secrets.compare_digest`; optional `proxy_trust_dependency()` reading `X-Forwarded-User`.
   - Create `nautilus/transport/fastapi_app.py` with `def create_app(config_path: str | Path, *, existing_broker: Broker | None = None) -> FastAPI`. Uses `@asynccontextmanager` lifespan that constructs `broker = Broker.from_config(path)` (or accepts `existing_broker`) and `await broker.setup()`; sets `app.state.broker`; on shutdown `await broker.aclose()`.
