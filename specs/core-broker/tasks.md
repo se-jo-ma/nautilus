@@ -410,7 +410,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(integration): postgres scope enforcement against testcontainers`
 - **References**: AC-4.6, FR-8.
 
-### Task 3.17 — Integration test: `tests/integration/test_pgvector_similarity.py`
+### Task 3.17 — Integration test: `tests/integration/test_pgvector_similarity.py` [x]
 - **Do**: Seed `vuln_embeddings` with 5 rows; 3 with `metadata.classification='cui'`, 2 with `'unclassified'`. Issue similarity query scoped to `metadata.classification = 'cui'`; assert (a) only `cui` rows returned, (b) row ordering matches similarity to supplied query embedding (decreasing).
 - **Files**: `tests/integration/test_pgvector_similarity.py`.
 - **Done when**: Both assertions pass.
