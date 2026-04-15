@@ -396,7 +396,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(transport): add FastMCP server + session-id fallback + shared API-key middleware`
 - **References**: FR-27, AC-13.1, AC-13.2, AC-13.3, AC-13.4, AC-13.5, D-10, D-12, design §3.13.
 
-### Task 2.17 — Implement `nautilus/cli.py` with `serve|health|version`
+### Task 2.17 [x] — Implement `nautilus/cli.py` with `serve|health|version`
 - **Do**:
   - Create `nautilus/cli.py` with stdlib `argparse` (no click/typer — FR-30 / D-15):
     - `nautilus version` → prints `importlib.metadata.version("nautilus")`, exits 0.
