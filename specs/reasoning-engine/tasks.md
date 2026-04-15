@@ -779,7 +779,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(integration): docker image size + no-shell + healthcheck assertions`
 - **References**: FR-31, FR-32, AC-16.2, AC-16.4, AC-16.5, NFR-10.
 
-### [VERIFY] Task 4.7 — Quality checkpoint (quality batch 2)
+### [x] [VERIFY] Task 4.7 — Quality checkpoint (quality batch 2)
 - **Do**: Run toolchain after README + Docker smoke land, before the adapter-safety grep/drift-guard batch. Keeps cadence inside Phase 4 aligned with Phase 1/2/3 gates.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest tests/integration/test_mvp_e2e.py -m integration -q`
 - **Done when**: All exit 0; Phase-1 MVP E2E still passes.
