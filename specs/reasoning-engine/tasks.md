@@ -493,7 +493,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Done when**: All exit 0 — Phase 1 surface + POC milestone still green.
 - **Commit**: `chore(phase2): pass checkpoint after forensic worker` (if fixes needed)
 
-### Task 2.25 — Record Phase 1 backwards-compat fixtures (audit line + attestation token)
+### Task 2.25 [x] — Record Phase 1 backwards-compat fixtures (audit line + attestation token)
 - **Do**:
   - Run Phase 1 `test_mvp_e2e.py` against `tests/fixtures/nautilus.yaml` (Phase 1 config — no temporal slots, no agents block, no LLM, no API auth). Capture:
     - One `AuditEntry` JSONL line → save to `tests/fixtures/audit/phase1_audit_line.jsonl`.
