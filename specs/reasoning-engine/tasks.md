@@ -733,7 +733,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `chore(packaging): update pyproject metadata + confirm wheel includes prompt assets`
 - **References**: NFR-10, NFR-11.
 
-### Task 4.2 — License scan (reject GPL/AGPL/LGPL)
+### Task 4.2 [x] — License scan (reject GPL/AGPL/LGPL)
 - **Do**:
   - Run `uv run pip-licenses --fail-on="GPL;AGPL;LGPL" --format=markdown` over the current environment.
   - If any license matches — substitute or pin-around the offending dep; document the choice in a code comment.
