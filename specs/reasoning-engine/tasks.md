@@ -795,7 +795,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(adapters): extend injection grep to ES/Neo4j/REST/ServiceNow`
 - **References**: AC-8.4, NFR-4.
 
-### Task 4.9 — Operator-allowlist drift-guard meta-test for all 4 new adapters
+### Task 4.9 [x] — Operator-allowlist drift-guard meta-test for all 4 new adapters
 - **Do**:
   - Create `tests/unit/adapters/test_allowlist_drift.py` (distinct from per-adapter drift inside Task 3.9 / 3.10): a single parametric meta-test that imports `_OPERATOR_ALLOWLIST` from `nautilus/adapters/base.py` and asserts each of ES, Neo4j, REST, ServiceNow declares a mapping (or per-endpoint rejection, REST only) for every listed operator. Fails loud when a new operator is added to the allowlist without updating ALL adapters (NFR-4, design §7.2).
 - **Files**: `tests/unit/adapters/test_allowlist_drift.py`.
