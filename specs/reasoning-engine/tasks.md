@@ -671,7 +671,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(integration): session store e2e + Phase 1 backwards-compat`
 - **References**: FR-3, FR-4, NFR-5, NFR-6, AC-2.1, AC-2.2, AC-2.4, AC-2.5, AC-7.5, design §7.3.
 
-### Task 3.15 — Integration: `test_elasticsearch_e2e.py` + `test_neo4j_e2e.py` + `test_rest_e2e.py` + `test_servicenow_e2e.py`
+### Task 3.15 [x] — Integration: `test_elasticsearch_e2e.py` + `test_neo4j_e2e.py` + `test_rest_e2e.py` + `test_servicenow_e2e.py`
 - **Do**:
   - `test_elasticsearch_e2e.py` (testcontainers ES): seed index with mixed docs; scoped query with `severity IN ('high','critical')` returns only matching; `LIKE` wildcard + operator allowlist drift round-trip (AC-8.5).
   - `test_neo4j_e2e.py` (testcontainers Neo4j): seeded `(:Person)` nodes; scoped WHERE returns matching rows; `close()` idempotent (AC-10.5).
