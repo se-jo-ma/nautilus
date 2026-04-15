@@ -473,7 +473,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Done when**: All four exit 0.
 - **Commit**: `chore(quality): pass checkpoint` (if fixes needed)
 
-### Task 4.5 — Ensure `broker.close()` idempotency across all adapter types (NFR + AC-8.6 recheck)
+### Task 4.5 — Ensure `broker.close()` idempotency across all adapter types (NFR + AC-8.6 recheck) [x]
 - **Do**: Add `tests/unit/test_close_idempotency.py` that constructs a broker with 2 PG + 2 pgvector sources (mocked pools), calls `close()` three times, asserts `pool.close` called exactly once per adapter. Also asserts `broker._closed` flag set.
 - **Files**: `tests/unit/test_close_idempotency.py`.
 - **Done when**: Test passes.
