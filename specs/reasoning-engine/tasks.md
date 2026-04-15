@@ -413,7 +413,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(cli): add nautilus CLI with serve/health/version + --air-gapped enforcement`
 - **References**: FR-30, AC-15.1, AC-15.2, AC-15.3, AC-15.4, AC-15.5, D-15, NFR-1, NFR-14, design §3.15.
 
-### Task 2.18 — Implement multi-stage Dockerfile (builder + distroless + debug target)
+### Task 2.18 [x] — Implement multi-stage Dockerfile (builder + distroless + debug target)
 - **Do**:
   - Create `/Dockerfile` at repo root (project root is `C:/Projects/project-fathom/nautilus`):
     - Stage `builder` (`FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim`): `uv sync --frozen --no-dev` into `/app/.venv`; `COPY nautilus /app/nautilus`; `COPY pyproject.toml uv.lock /app/`.
