@@ -427,7 +427,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(coverage): raise branch coverage to 80%`
 - **References**: NFR-6, AC-9.4.
 
-### Task 3.19 — Dedicated unit module existence check (AC-9.5)
+### Task 3.19 — Dedicated unit module existence check (AC-9.5) [x]
 - **Do**: Add a meta-test `tests/unit/test_module_presence.py` that asserts each of `test_config_loader.py`, `test_source_registry.py`, `test_pattern_analyzer.py`, `test_fathom_router.py`, `test_postgres_adapter.py`, `test_pgvector_adapter.py`, `test_synthesizer.py`, `test_audit_logger.py`, `test_broker.py` exists in `tests/unit/`.
 - **Files**: `tests/unit/test_module_presence.py`.
 - **Done when**: Meta-test passes (all 9 files exist).
