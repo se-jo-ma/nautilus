@@ -635,7 +635,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(adapters): add Neo4j + ServiceNow unit tests with drift + injection`
 - **References**: FR-22, FR-23, AC-10.1, AC-10.2, AC-10.3, AC-11.1, AC-11.2, AC-11.3, AC-11.4, NFR-4, NFR-18.
 
-### Task 3.11 — Unit: `tests/unit/transport/test_auth.py`
+### Task 3.11 [x] — Unit: `tests/unit/transport/test_auth.py`
 - **Do**:
   - Cases: (a) `verify_api_key("good", ["good","other"])` passes; (b) `verify_api_key("bad", ["good"])` raises HTTP 401; (c) `secrets.compare_digest` is used (patch and assert call); (d) `proxy_trust` mode reads `X-Forwarded-User` header value as identity; (e) both modes return the resolved identity string.
 - **Files**: `tests/unit/transport/test_auth.py`.
