@@ -274,6 +274,18 @@ class ApiConfig(BaseModel):
     port: int = 8080
 
 
+class MCPConfig(BaseModel):
+    """MCP transport subsection of ``nautilus.yaml`` (design §3.13).
+
+    ``expose_declare_handoff`` (default ``False``) gates the optional
+    ``nautilus_declare_handoff`` tool (D-12). Keeping the default off
+    preserves backwards compatibility and prevents unintended exposure
+    of the reasoning-only handoff surface through MCP clients.
+    """
+
+    expose_declare_handoff: bool = False
+
+
 class SessionStoreConfig(BaseModel):
     """Session-store subsection of ``nautilus.yaml`` (design §3.11, §3.2).
 
@@ -305,4 +317,5 @@ class NautilusConfig(BaseModel):
     audit: AuditConfig = Field(default_factory=AuditConfig)
     analysis: AnalysisConfig = Field(default_factory=AnalysisConfig)
     api: ApiConfig = Field(default_factory=ApiConfig)
+    mcp: MCPConfig = Field(default_factory=MCPConfig)
     session_store: SessionStoreConfig = Field(default_factory=SessionStoreConfig)

@@ -378,7 +378,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(transport): add FastAPI app factory + APIKeyHeader + lifespan broker singleton`
 - **References**: FR-25, FR-26, AC-12.1, AC-12.2, AC-12.3, AC-12.4, AC-12.5, D-11, D-13, D-14, design §3.12.
 
-### Task 2.16 — Implement MCP transport: `create_server` + session-id resolution + tool
+### Task 2.16 [x] — Implement MCP transport: `create_server` + session-id resolution + tool
 - **Do**:
   - Create `nautilus/transport/mcp_server.py` with `def create_server(config_path: str | Path, *, existing_broker: Broker | None = None) -> FastMCP`.
   - Construct `FastMCP(name="nautilus", stateless_http=True, json_response=True)`.
