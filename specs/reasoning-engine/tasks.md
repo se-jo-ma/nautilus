@@ -336,7 +336,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(adapters): add RestAdapter with SSRF defense + endpoint allowlist`
 - **References**: FR-21, AC-9.1, AC-9.2, AC-9.3, AC-9.4, NFR-4, NFR-17, design §3.11.
 
-### Task 2.12 — Implement `ServiceNowAdapter` with `_sanitize_sn_value` (§9 step 8d)
+### Task 2.12 [x] — Implement `ServiceNowAdapter` with `_sanitize_sn_value` (§9 step 8d)
 - **Do**:
   - Create `nautilus/adapters/servicenow.py` with `class ServiceNowAdapter`. `connect()`: validate `table` regex `^[a-z][a-z0-9_]*$`; `httpx.AsyncClient(base_url=source.connection, auth=...)`.
   - Implement `_sanitize_sn_value(v: str) -> str`: if `v` contains `^`, `\n`, or `\r` → raise `ScopeEnforcementError("sn-injection-rejected")`.
