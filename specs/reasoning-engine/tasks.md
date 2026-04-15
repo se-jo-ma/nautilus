@@ -272,7 +272,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Done when**: All exit 0; Phase-1 MVP E2E still passes.
 - **Commit**: `chore(phase2): pass checkpoint after handoff + LLM Protocol` (if fixes needed)
 
-### Task 2.6 — Implement `OpenAIProvider` + `LocalInferenceProvider`
+### Task 2.6 [x] — Implement `OpenAIProvider` + `LocalInferenceProvider`
 - **Do**:
   - Create `nautilus/analysis/llm/openai_provider.py` with `class OpenAIProvider` using `openai.AsyncOpenAI` and `responses.parse` bound to `IntentAnalysis` Pydantic schema; `temperature=0`.
   - Create `nautilus/analysis/llm/local_provider.py` with `class LocalInferenceProvider` — same SDK as OpenAI but configurable `base_url` (vLLM / llama.cpp OpenAI-compatible). Accepts `model` name verbatim. Air-gap-compatible.
