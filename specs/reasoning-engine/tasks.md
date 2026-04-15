@@ -644,7 +644,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(transport): add auth unit tests (api_key + proxy_trust)`
 - **References**: FR-26, AC-12.2, AC-12.3.
 
-### [VERIFY] Task 3.12 — Quality checkpoint (test batch 3)
+### [VERIFY] Task 3.12 [x] — Quality checkpoint (test batch 3)
 - **Do**: Run toolchain.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All exit 0.

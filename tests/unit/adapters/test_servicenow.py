@@ -27,8 +27,8 @@ import httpx
 import pytest
 
 from nautilus.adapters.base import (
-    ScopeEnforcementError,
     _OPERATOR_ALLOWLIST,  # pyright: ignore[reportPrivateUsage]
+    ScopeEnforcementError,
 )
 from nautilus.adapters.servicenow import ServiceNowAdapter
 from nautilus.config.models import NoneAuth, SourceConfig
@@ -165,24 +165,20 @@ async def test_full_operator_set_composes_caret_separated_sysparm_query() -> Non
     handler captures the outgoing URL and we round-trip the
     ``sysparm_query`` parameter back to the expected ``^``-joined string.
     """
-    captured: dict[str, Any] = {}
+    captured: dict[str, str] = {}
 
     def _handler(request: httpx.Request) -> httpx.Response:
         captured["url"] = str(request.url)
         return httpx.Response(200, json={"result": []})
 
     transport = httpx.MockTransport(_handler)
-    client = httpx.AsyncClient(
-        base_url="https://dev.service-now.com", transport=transport
-    )
+    client = httpx.AsyncClient(base_url="https://dev.service-now.com", transport=transport)
     adapter = ServiceNowAdapter(client=client)
     await adapter.connect(_make_sn_source())
     try:
         scope: list[ScopeConstraint] = [
             ScopeConstraint(source_id="sn_src", field="state", operator="=", value="2"),
-            ScopeConstraint(
-                source_id="sn_src", field="priority", operator="!=", value="7"
-            ),
+            ScopeConstraint(source_id="sn_src", field="priority", operator="!=", value="7"),
             ScopeConstraint(
                 source_id="sn_src",
                 field="category",
@@ -223,8 +219,7 @@ async def test_full_operator_set_composes_caret_separated_sysparm_query() -> Non
         "resolved_atISEMPTY",
     ]
     assert sysparm_query == "^".join(expected_segments), (
-        f"composed sysparm_query '{sysparm_query}' does not match the expected "
-        f"^-joined segment set"
+        f"composed sysparm_query '{sysparm_query}' does not match the expected ^-joined segment set"
     )
     # Every segment is reachable via a '^' split (strict separator contract).
     assert sysparm_query.split("^") == expected_segments
@@ -248,10 +243,7 @@ def test_oauth_refresh_not_supported_no_related_code_path() -> None:
     forbidden_substrings = ("refresh", "oauth2", "token_url", "token_endpoint")
     public_symbols = [name for name in dir(sn_mod) if not name.startswith("__")]
     offenders = [
-        name
-        for name in public_symbols
-        for needle in forbidden_substrings
-        if needle in name.lower()
+        name for name in public_symbols for needle in forbidden_substrings if needle in name.lower()
     ]
     assert not offenders, (
         f"ServiceNow adapter module exposes OAuth-refresh-adjacent symbols "

@@ -40,9 +40,7 @@ from nautilus.core.models import ScopeConstraint
 # ---------------------------------------------------------------------------
 
 
-def _make_neo4j_source(
-    label: str | None = "Vuln", like_style: str = "starts_with"
-) -> SourceConfig:
+def _make_neo4j_source(label: str | None = "Vuln", like_style: str = "starts_with") -> SourceConfig:
     return SourceConfig(
         id="vulns_graph",
         type="neo4j",
@@ -148,19 +146,13 @@ async def test_like_starts_with_style_emits_starts_with_clause(
         await adapter.connect(_make_neo4j_source(like_style="starts_with"))
     cypher, params = adapter._build_cypher(  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
         "Vuln",
-        [
-            ScopeConstraint(
-                source_id="vulns_graph", field="title", operator="LIKE", value="CVE-"
-            )
-        ],
+        [ScopeConstraint(source_id="vulns_graph", field="title", operator="LIKE", value="CVE-")],
         100,
     )
     assert "STARTS WITH $p0" in cypher
     assert params["p0"] == "CVE-"
     # No CONFIG WARN when the safer starts_with style is active.
-    assert not any(
-        "like_style='regex'" in record.message for record in caplog.records
-    )
+    assert not any("like_style='regex'" in record.message for record in caplog.records)
 
 
 @pytest.mark.unit
@@ -205,11 +197,7 @@ async def test_property_identifier_backticked_in_cypher() -> None:
     await adapter.connect(_make_neo4j_source())
     cypher, _params = adapter._build_cypher(  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
         "Vuln",
-        [
-            ScopeConstraint(
-                source_id="vulns_graph", field="valid_prop", operator="=", value="x"
-            )
-        ],
+        [ScopeConstraint(source_id="vulns_graph", field="valid_prop", operator="=", value="x")],
         100,
     )
     # Identifier appears wrapped in backticks, never bare.
