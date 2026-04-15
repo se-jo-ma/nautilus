@@ -398,7 +398,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `test(adapters): guard against operator allowlist drift`
 - **References**: UQ-6, design §6.1, §17.
 
-### [VERIFY] Task 3.15 — Quality checkpoint (test batch 4)
+### [VERIFY] Task 3.15 — Quality checkpoint (test batch 4) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 

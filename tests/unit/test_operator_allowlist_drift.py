@@ -19,7 +19,7 @@ from typing import get_args, get_type_hints
 
 import pytest
 
-from nautilus.adapters.base import _OPERATOR_ALLOWLIST
+from nautilus.adapters.base import _OPERATOR_ALLOWLIST  # pyright: ignore[reportPrivateUsage]
 from nautilus.core.models import ScopeConstraint
 
 
@@ -56,8 +56,7 @@ def test_literal_and_runtime_allowlist_are_equal() -> None:
 def test_every_runtime_operator_is_in_literal(operator: str) -> None:
     """Each runtime-allowlisted operator must also appear in the Literal."""
     assert operator in _literal_operators(), (
-        f"Runtime allowlist contains '{operator}' but "
-        "ScopeConstraint.operator Literal does not."
+        f"Runtime allowlist contains '{operator}' but ScopeConstraint.operator Literal does not."
     )
 
 
@@ -69,6 +68,5 @@ def test_every_runtime_operator_is_in_literal(operator: str) -> None:
 def test_every_literal_operator_is_in_runtime(operator: str) -> None:
     """Each Literal operator must also appear in the runtime allowlist."""
     assert operator in _OPERATOR_ALLOWLIST, (
-        f"ScopeConstraint.operator Literal contains '{operator}' but "
-        "_OPERATOR_ALLOWLIST does not."
+        f"ScopeConstraint.operator Literal contains '{operator}' but _OPERATOR_ALLOWLIST does not."
     )
