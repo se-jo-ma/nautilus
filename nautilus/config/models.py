@@ -133,11 +133,37 @@ class AgentRecord(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class NullSinkSpec(BaseModel):
+    """No-op attestation sink (default, preserves NFR-5 backwards compat)."""
+
+    type: Literal["null"] = "null"
+
+
+class FileSinkSpec(BaseModel):
+    """Append-only JSONL attestation sink with per-emit flush + fsync (AC-14.2)."""
+
+    type: Literal["file"] = "file"
+    path: str
+
+
+AttestationSinkSpec = Annotated[
+    NullSinkSpec | FileSinkSpec,
+    Field(discriminator="type"),
+]
+
+
 class AttestationConfig(BaseModel):
-    """Attestation subsection of ``nautilus.yaml`` (design §4.10)."""
+    """Attestation subsection of ``nautilus.yaml`` (design §4.10, §3.14).
+
+    ``sink`` selects the store-and-forward destination for signed payloads
+    (FR-28). Phase-1 YAML without an ``attestation.sink`` entry resolves to
+    :class:`NullSinkSpec` → :class:`NullAttestationSink`, so existing
+    fixtures continue to load unchanged (NFR-5).
+    """
 
     private_key_path: str | None = None
     enabled: bool = True
+    sink: AttestationSinkSpec = Field(default_factory=NullSinkSpec)
 
 
 class RulesConfig(BaseModel):

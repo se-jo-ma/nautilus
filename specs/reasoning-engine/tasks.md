@@ -159,7 +159,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(core): add TemporalFilter, purpose-expired-deny rule, scope_hash_v2 canonicalization`
 - **References**: FR-17, FR-18, FR-19, AC-7.1, AC-7.2, AC-7.3, AC-7.4, NFR-6, D-7, design §3.9, §3.10.
 
-### Task 1.13 — Implement `AttestationSink` Protocol + `NullAttestationSink` + `FileAttestationSink` + broker wiring
+### Task 1.13 [x] — Implement `AttestationSink` Protocol + `NullAttestationSink` + `FileAttestationSink` + broker wiring
 - **Do**:
   - Create `nautilus/core/attestation_sink.py` with:
     - `class AttestationPayload(BaseModel)` (`token: str`, `nautilus_payload: dict[str, Any]`, `emitted_at: datetime`).

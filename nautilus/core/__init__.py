@@ -22,6 +22,12 @@ class PolicyEngineError(Exception):
 # Re-exports for ``from nautilus.core import Broker, BrokerResponse``.
 # Placed after ``PolicyEngineError`` definition because
 # ``nautilus.core.broker`` imports it at module load time.
+from nautilus.core.attestation_sink import (  # noqa: E402
+    AttestationPayload,
+    AttestationSink,
+    FileAttestationSink,
+    NullAttestationSink,
+)
 from nautilus.core.broker import Broker  # noqa: E402
 from nautilus.core.models import BrokerResponse  # noqa: E402
 from nautilus.core.session import (  # noqa: E402
@@ -36,9 +42,13 @@ from nautilus.core.session_pg import (  # noqa: E402
 
 __all__ = [
     "AsyncSessionStore",
+    "AttestationPayload",
+    "AttestationSink",
     "Broker",
     "BrokerResponse",
+    "FileAttestationSink",
     "InMemorySessionStore",
+    "NullAttestationSink",
     "PolicyEngineError",
     "PostgresSessionStore",
     "SessionStore",

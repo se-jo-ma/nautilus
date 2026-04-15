@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import logging
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -42,10 +43,16 @@ from nautilus.analysis.pattern_matching import PatternMatchingIntentAnalyzer
 from nautilus.audit.logger import AuditLogger
 from nautilus.config.agent_registry import AgentRegistry
 from nautilus.config.loader import ConfigError, load_config
-from nautilus.config.models import NautilusConfig, SourceConfig
+from nautilus.config.models import FileSinkSpec, NautilusConfig, NullSinkSpec, SourceConfig
 from nautilus.config.registry import SourceRegistry
 from nautilus.core import PolicyEngineError
 from nautilus.core.attestation_payload import build_payload
+from nautilus.core.attestation_sink import (
+    AttestationPayload,
+    AttestationSink,
+    FileAttestationSink,
+    NullAttestationSink,
+)
 from nautilus.core.fathom_router import FathomRouter
 from nautilus.core.models import (
     AdapterResult,
@@ -62,6 +69,8 @@ from nautilus.core.session_pg import PostgresSessionStore
 from nautilus.core.temporal import TemporalFilter
 from nautilus.rules import BUILT_IN_RULES_DIR
 from nautilus.synthesis.basic import BasicSynthesizer
+
+log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from nautilus.analysis.base import IntentAnalyzer
@@ -190,6 +199,7 @@ class Broker:
         attestation: AttestationService | None,
         session_store: SessionStore,
         agent_registry: AgentRegistry | None = None,
+        attestation_sink: AttestationSink | None = None,
     ) -> None:
         self._config = config
         self._registry = registry
@@ -204,6 +214,12 @@ class Broker:
         # NFR-5 backwards compatibility; the registry is not yet consulted in
         # the request flow (that wiring lands in a later task).
         self._agent_registry: AgentRegistry = agent_registry or AgentRegistry({})
+        # Attestation sink default is :class:`NullAttestationSink` so Phase-1
+        # YAML without ``attestation.sink`` preserves NFR-5 backwards compat.
+        # The token is still signed and returned on ``BrokerResponse``;
+        # ``NullAttestationSink`` only skips the store-and-forward hop
+        # (AC-14.4).
+        self._attestation_sink: AttestationSink = attestation_sink or NullAttestationSink()
         self._closed: bool = False
         # Tracks which adapter ids have already been ``connect()``-ed so
         # ``arequest`` can lazy-connect on first use and skip on subsequent
@@ -245,6 +261,7 @@ class Broker:
         )
 
         attestation = cls._build_attestation(config)
+        attestation_sink = cls._build_attestation_sink(config)
 
         user_rules_dirs = [Path(d) for d in config.rules.user_rules_dirs]
         router = FathomRouter(
@@ -279,7 +296,31 @@ class Broker:
             attestation=attestation,
             session_store=session_store,
             agent_registry=agent_registry,
+            attestation_sink=attestation_sink,
         )
+
+    @staticmethod
+    def _build_attestation_sink(config: NautilusConfig) -> AttestationSink:
+        """Construct the attestation sink per design §3.14 / FR-28.
+
+        Selects the concrete :class:`AttestationSink` implementation based on
+        ``config.attestation.sink.type``:
+
+        - ``"null"`` (default) → :class:`NullAttestationSink` — no-op; preserves
+          NFR-5 for Phase-1 YAML fixtures with no ``attestation.sink`` entry.
+        - ``"file"`` → :class:`FileAttestationSink` — append-only JSONL with
+          per-emit ``flush`` + ``os.fsync`` (AC-14.2).
+
+        ``HttpAttestationSink`` (``type: "http"``) lands in Phase 2.
+        """
+        sink_spec = config.attestation.sink
+        if isinstance(sink_spec, FileSinkSpec):
+            return FileAttestationSink(Path(sink_spec.path))
+        # Must be NullSinkSpec by virtue of the pydantic discriminated union
+        # (HttpSinkSpec lands in Phase 2). Kept as an explicit branch for
+        # readability; pydantic rejects unknown types upstream.
+        assert isinstance(sink_spec, NullSinkSpec)
+        return NullAttestationSink()
 
     @staticmethod
     def _build_attestation(config: NautilusConfig) -> AttestationService | None:
@@ -391,7 +432,7 @@ class Broker:
         successful = await self._gather_adapter_results(state, tasks, task_source_ids)
         state.data = self._synthesizer.merge(successful)
         if self._attestation is not None:
-            token, scope_hash_version = self._sign(
+            token, scope_hash_version, nautilus_payload = self._sign(
                 request_id=state.request_id,
                 agent_id=agent_id,
                 sources_queried=state.sources_queried,
@@ -401,7 +442,31 @@ class Broker:
             )
             state.attestation_token = token
             state.scope_hash_version = scope_hash_version
+            await self._emit_attestation(token, nautilus_payload)
         await self._update_session(state)
+
+    async def _emit_attestation(
+        self,
+        token: str,
+        nautilus_payload: dict[str, Any],
+    ) -> None:
+        """Store-and-forward the attestation payload; NEVER fails the hot path.
+
+        Wraps ``self._attestation_sink.emit(...)`` in ``try/except Exception``
+        and logs at WARNING on failure (AC-14.5, NFR-16). The audit entry is
+        emitted regardless — the audit-first invariant means a sink outage
+        cannot gate the request response. Per design §3.14 the token is
+        still returned on :class:`BrokerResponse` (AC-14.4).
+        """
+        payload = AttestationPayload(
+            token=token,
+            nautilus_payload=nautilus_payload,
+            emitted_at=datetime.now(tz=UTC),
+        )
+        try:
+            await self._attestation_sink.emit(payload)
+        except Exception as exc:  # noqa: BLE001 — audit-first invariant (AC-14.5)
+            log.warning("attestation_sink.emit failed: %s", exc)
 
     def _apply_temporal_filter(self, state: _RequestState) -> None:
         """Drop expired / not-yet-valid scope constraints before adapter fan-out.
@@ -626,7 +691,7 @@ class Broker:
         scope_by_source: dict[str, list[ScopeConstraint]],
         rule_trace: list[str],
         session_id: str,
-    ) -> tuple[str, Literal["v1", "v2"]]:
+    ) -> tuple[str, Literal["v1", "v2"], dict[str, Any]]:
         """Compose the Nautilus attestation payload and sign it (design §9.3).
 
         Uses :func:`nautilus.core.attestation_payload.build_payload` so the
@@ -639,12 +704,13 @@ class Broker:
         itself is passed via ``input_facts`` so the JWT's ``input_hash``
         covers the full (``scope_hash``, ``rule_trace_hash``, …) claim set.
 
-        Returns ``(token, scope_hash_version)`` so the caller can stamp
-        the version into :attr:`AuditEntry.scope_hash_version` (D-7,
-        FR-19). The internal ``scope_by_source`` dict is passed straight
-        to :func:`build_payload` so temporal-slot detection sees the raw
-        :class:`ScopeConstraint` attributes; the v1 path flattens it back
-        to the Phase-1 4-key shape in the legacy iteration order so
+        Returns ``(token, scope_hash_version, nautilus_payload)`` so callers
+        can (1) stamp the version into :attr:`AuditEntry.scope_hash_version`
+        (D-7, FR-19) and (2) hand the signed claim set to the attestation
+        sink (design §3.14). The internal ``scope_by_source`` dict is passed
+        straight to :func:`build_payload` so temporal-slot detection sees the
+        raw :class:`ScopeConstraint` attributes; the v1 path flattens it
+        back to the Phase-1 4-key shape in the legacy iteration order so
         Phase-1 tokens remain bit-for-bit reproducible (NFR-6).
         """
         if self._attestation is None:
@@ -678,7 +744,7 @@ class Broker:
             session_id=session_ref,
             input_facts=input_facts,
         )
-        return token, scope_hash_version
+        return token, scope_hash_version, nautilus_payload
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -711,11 +777,13 @@ class Broker:
     async def aclose(self) -> None:
         """Idempotent async close. Safe to call multiple times (FR-17).
 
-        Ordering contract (progress learnings): ``session_store.aclose()`` →
-        attestation_sink.close() → adapter-pool release. Attestation sink wiring
-        lands in Task 1.13; until then we close session store first, then
-        adapters. Any close is best-effort (one failing backend must not
-        prevent others from closing).
+        Ordering contract (D-8, design §3.14, AC-14.6):
+        ``session_store.aclose()`` → ``attestation_sink.close()`` →
+        adapter-pool release. Session-store flush must precede sink close
+        (session writes during request must land before sink teardown);
+        adapter release comes last so in-flight emits can still reference
+        pooled connections above. Any close is best-effort (one failing
+        backend must not prevent others from closing).
         """
         if self._closed:
             return
@@ -724,8 +792,12 @@ class Broker:
         if hasattr(self._session_store, "aclose"):
             with contextlib.suppress(Exception):
                 await self._session_store.aclose()  # type: ignore[attr-defined]
-        # 2. TODO(Task 1.13): attestation_sink.close() goes here, between
-        #    session_store.aclose() and adapter release (progress learnings).
+        # 2. Attestation sink: release the store-and-forward handle AFTER
+        #    session writes have flushed but BEFORE adapter pools go down —
+        #    in-flight emits from step 1's session-state finalization may
+        #    still reference adapter connections.
+        with contextlib.suppress(Exception):
+            await self._attestation_sink.close()
         # 3. Adapters — release pools last so in-flight attestation can still
         #    reference their connections above.
         for adapter in self._adapters.values():
