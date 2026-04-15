@@ -11,4 +11,15 @@ from nautilus.core.models import IntentAnalysis
 class IntentAnalyzer(Protocol):
     """Extracts structured :class:`IntentAnalysis` from a raw intent string."""
 
-    def analyze(self, intent: str, context: dict[str, Any]) -> IntentAnalysis: ...
+    def analyze(self, intent: str, context: dict[str, Any]) -> IntentAnalysis:
+        """Classify ``intent`` into a structured :class:`IntentAnalysis`.
+
+        Args:
+            intent: Raw natural-language request from the agent.
+            context: Per-request context (clearance, purpose, session id,
+                optional embedding override, etc.).
+
+        Returns:
+            A populated :class:`IntentAnalysis` consumed by the router.
+        """
+        ...

@@ -460,7 +460,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `docs: rewrite README with quickstart`
 - **References**: AC-8.1, NFR-10.
 
-### Task 4.3 — Public-surface docstring sweep
+### Task 4.3 — Public-surface docstring sweep [x]
 - **Do**: Add Google-style docstrings to every public class and method on `Broker`, `BrokerResponse`, `IntentAnalysis`, `ScopeConstraint`, `RoutingDecision`, `DenialRecord`, `Adapter` Protocol, `Synthesizer` Protocol, `IntentAnalyzer` Protocol, `Embedder` Protocol, `SessionStore` Protocol, `AuditLogger`, `FathomRouter`. Include `Args:`, `Returns:`, `Raises:`.
 - **Files**: `nautilus/core/broker.py`, `nautilus/core/models.py`, `nautilus/adapters/base.py`, `nautilus/synthesis/base.py`, `nautilus/analysis/base.py`, `nautilus/adapters/embedder.py`, `nautilus/core/session.py`, `nautilus/audit/logger.py`, `nautilus/core/fathom_router.py`.
 - **Done when**: Every public symbol has a non-empty docstring; a grep for class/def followed immediately by another code line (no docstring) returns zero hits.

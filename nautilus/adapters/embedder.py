@@ -23,7 +23,23 @@ from nautilus.adapters.base import EmbeddingUnavailableError
 class Embedder(Protocol):
     """Embedder Protocol mirroring design §3.10 verbatim."""
 
-    def embed(self, text: str) -> list[float]: ...
+    def embed(self, text: str) -> list[float]:
+        """Return a dense-vector embedding of ``text``.
+
+        Args:
+            text: String to embed (typically the raw intent or a
+                pre-processed variant).
+
+        Returns:
+            Vector of ``float`` whose dimensionality matches the target
+            pgvector column.
+
+        Raises:
+            EmbeddingUnavailableError: If the embedder cannot produce a
+                vector (e.g. no model configured); the broker converts
+                this into a ``sources_errored`` entry (design §10).
+        """
+        ...
 
 
 class NoopEmbedder:

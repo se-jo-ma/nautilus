@@ -130,16 +130,46 @@ class Adapter(Protocol):
 
     source_type: ClassVar[str]
 
-    async def connect(self, config: SourceConfig) -> None: ...
+    async def connect(self, config: SourceConfig) -> None:
+        """Initialise adapter state (pools, clients) for ``config``.
+
+        Args:
+            config: The source config the broker resolved this adapter for.
+
+        Raises:
+            AdapterError: On any infrastructure / connectivity failure;
+                the broker converts these into ``sources_errored`` entries.
+        """
+        ...
 
     async def execute(
         self,
         intent: IntentAnalysis,
         scope: list[ScopeConstraint],
         context: dict[str, Any],
-    ) -> AdapterResult: ...
+    ) -> AdapterResult:
+        """Run one query against the backing source.
 
-    async def close(self) -> None: ...
+        Args:
+            intent: Structured intent produced by the analyzer.
+            scope: Router-issued scope constraints for this source.
+            context: Per-request context (purpose, clearance, embedding
+                override, etc.).
+
+        Returns:
+            An :class:`AdapterResult` with ``rows`` populated on success
+            or ``error`` populated on runtime failure.
+
+        Raises:
+            ScopeEnforcementError: If ``scope`` violates the operator or
+                field-identifier allowlist (design §6).
+            AdapterError: On any non-scope runtime failure.
+        """
+        ...
+
+    async def close(self) -> None:
+        """Release adapter resources; MUST be idempotent (FR-17, AC-8.6)."""
+        ...
 
 
 __all__ = [

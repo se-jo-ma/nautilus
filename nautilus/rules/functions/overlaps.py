@@ -36,6 +36,7 @@ def register_overlaps(engine: Engine) -> None:
     """
 
     def overlaps(a: object, b: object) -> bool:
+        """Return ``True`` iff the token sets of ``a`` and ``b`` intersect."""
         return bool(set(_split(a)) & set(_split(b)))
 
     engine.register_function("overlaps", overlaps)
@@ -54,6 +55,7 @@ def register_not_in_list(engine: Engine) -> None:
     """
 
     def not_in_list(item: object, list_str: object) -> bool:
+        """Return ``True`` iff ``item`` is absent from ``list_str``'s tokens."""
         return str(item) not in _split(list_str)
 
     engine.register_function("not-in-list", not_in_list)

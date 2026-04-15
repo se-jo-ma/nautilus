@@ -26,6 +26,18 @@ class PatternMatchingIntentAnalyzer:
         }
 
     def analyze(self, intent: str, context: dict[str, Any]) -> IntentAnalysis:
+        """Scan ``intent`` for configured keywords and CVE identifiers.
+
+        Args:
+            intent: Raw agent intent string.
+            context: Per-request context (unused by this analyzer; kept
+                for Protocol compatibility).
+
+        Returns:
+            An :class:`IntentAnalysis` with alphabetically-sorted
+            ``data_types_needed`` and ``entities`` for determinism
+            (NFR-13, AC-2.2).
+        """
         lowered = intent.lower()
         data_types_needed = [
             data_type

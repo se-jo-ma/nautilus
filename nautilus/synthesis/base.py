@@ -20,7 +20,19 @@ class Synthesizer(Protocol):
     :meth:`merge`.
     """
 
-    def merge(self, results: list[AdapterResult]) -> dict[str, list[dict[str, Any]]]: ...
+    def merge(self, results: list[AdapterResult]) -> dict[str, list[dict[str, Any]]]:
+        """Combine successful adapter results into the response payload.
+
+        Args:
+            results: Per-source successful :class:`AdapterResult` values
+                (failed adapters have already been filtered out by the
+                broker into ``sources_errored``).
+
+        Returns:
+            Mapping from ``source_id`` to the merged row list that will
+            populate :attr:`BrokerResponse.data`.
+        """
+        ...
 
 
 __all__ = ["Synthesizer"]

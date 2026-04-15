@@ -47,7 +47,13 @@ class AuditSink(Protocol):
     depending on fathom's Protocol class directly.
     """
 
-    def write(self, record: AuditRecord) -> None: ...
+    def write(self, record: AuditRecord) -> None:
+        """Persist one Fathom :class:`AuditRecord` to the sink.
+
+        Args:
+            record: The Fathom-shaped audit record to append.
+        """
+        ...
 
 
 # Metadata key under which the full Nautilus AuditEntry JSON lives. Kept as

@@ -32,6 +32,21 @@ class EnvInterpolator:
         self._env = env if env is not None else dict(os.environ)
 
     def interpolate(self, data: object) -> object:
+        """Walk ``data`` and replace every ``${VAR}`` substring in leaf strings.
+
+        Args:
+            data: Arbitrarily nested ``dict``/``list``/``str`` structure
+                parsed from YAML.
+
+        Returns:
+            A new structure with ``${VAR}`` patterns substituted from the
+            interpolator's environment mapping.
+
+        Raises:
+            ConfigError: If a referenced environment variable is absent;
+                the error message cites the enclosing source ``id`` for
+                fast triage (FR-2).
+        """
         return self._walk(data, source_id=None)
 
     def _walk(self, node: object, source_id: str | None) -> object:

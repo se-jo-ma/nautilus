@@ -32,6 +32,7 @@ class SourceRegistry:
 
     @property
     def sources(self) -> list[SourceConfig]:
+        """Return a shallow copy of the registered source configs."""
         return list(self._sources)
 
     def get(self, source_id: str) -> SourceConfig:

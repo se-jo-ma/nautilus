@@ -20,6 +20,15 @@ class BasicSynthesizer:
     kind: ClassVar[str] = "basic"
 
     def merge(self, results: list[AdapterResult]) -> dict[str, list[dict[str, Any]]]:
+        """Return a ``{source_id: rows}`` mapping keyed by ``result.source_id``.
+
+        Args:
+            results: Per-source :class:`AdapterResult` values. Any carrying
+                an ``error`` are skipped defensively.
+
+        Returns:
+            Mapping from ``source_id`` to a fresh copy of the adapter's rows.
+        """
         merged: dict[str, list[dict[str, Any]]] = {}
         for result in results:
             # Any result reaching this point has no error (broker guarantee).

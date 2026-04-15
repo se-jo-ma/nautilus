@@ -14,9 +14,26 @@ from typing import Any, Protocol, runtime_checkable
 class SessionStore(Protocol):
     """Cumulative per-session state — design §3.9."""
 
-    def get(self, session_id: str) -> dict[str, Any]: ...
+    def get(self, session_id: str) -> dict[str, Any]:
+        """Return the stored state mapping for ``session_id``.
 
-    def update(self, session_id: str, entry: dict[str, Any]) -> None: ...
+        Args:
+            session_id: Opaque session identifier provided by the caller.
+
+        Returns:
+            The session's current state dict, or an empty dict if no
+            state exists yet.
+        """
+        ...
+
+    def update(self, session_id: str, entry: dict[str, Any]) -> None:
+        """Merge ``entry`` into the stored state for ``session_id``.
+
+        Args:
+            session_id: Opaque session identifier.
+            entry: Key/value pairs to merge into the session's state.
+        """
+        ...
 
 
 class InMemorySessionStore:
