@@ -128,7 +128,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(rules): add contains-all external + escalation_rule template loader + default pack`
 - **References**: FR-6, FR-7, AC-3.1, AC-3.2, AC-3.3, AC-3.4, design §3.4.
 
-### Task 1.10 — Ship classification hierarchies + `default-classification-deny` rule
+### Task 1.10 [x] — Ship classification hierarchies + `default-classification-deny` rule
 - **Do**:
   - Create `nautilus/rules/hierarchies/classification.yaml` with `name: classification`, `levels: [unclassified, cui, confidential, secret, top-secret]`.
   - Create `nautilus/rules/hierarchies/cui-sub.yaml` with `name: cui-sub`, `levels: [cui, cui-sp-cti, cui-sp-iih, cui-sp-pciip]`.
