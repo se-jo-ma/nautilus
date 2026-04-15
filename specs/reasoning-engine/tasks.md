@@ -175,7 +175,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `feat(core): add AttestationSink Protocol + Null/File impls + broker wiring (audit-first preserved)`
 - **References**: FR-28, FR-29, AC-14.1, AC-14.2, AC-14.4, AC-14.5, AC-14.6, NFR-16, D-18, design §3.14.
 
-### Task 1.14 — Integrate extensions into `Broker.arequest` pipeline
+### Task 1.14 [x] — Integrate extensions into `Broker.arequest` pipeline
 - **Do**:
   - Edit `nautilus/core/broker.py::arequest`: wire the new pipeline per design §2.2 sequence diagram:
     1. `SessionStore.aget(session_id)` (prefer async; fallback to sync).

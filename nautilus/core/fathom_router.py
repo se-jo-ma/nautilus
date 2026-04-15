@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING, Any
 
 from fathom import Engine
 
+from nautilus.config.agent_registry import AgentRegistry
 from nautilus.config.escalation import EscalationRule, load_escalation_packs
 from nautilus.config.models import SourceConfig
 from nautilus.core import PolicyEngineError
@@ -45,6 +46,39 @@ from nautilus.rules.functions import (
 
 if TYPE_CHECKING:
     pass
+
+
+# The three session multislots re-asserted as one ``session_exposure`` fact per
+# element (design §3.3, AC-2.3, FR-5). The tuple order is irrelevant to the
+# engine but kept stable so snapshot tests are deterministic.
+_SESSION_EXPOSURE_MULTISLOTS: tuple[str, ...] = (
+    "data_types_seen",
+    "sources_visited",
+    "pii_sources_accessed_list",
+)
+
+
+def _coerce_multislot(raw: Any) -> list[str]:
+    """Normalize stored-session multislot into a ``list[str]``.
+
+    Accepts:
+    - ``None`` / missing key → ``[]``.
+    - ``list`` (the :class:`PostgresSessionStore` JSONB-array path) → stringified elements.
+    - ``str`` (the in-memory or pre-encoded path) → split on whitespace; empty string → ``[]``.
+
+    Any other type degrades to ``[]`` rather than raising — this helper runs
+    on the request hot-path and a malformed session row should not take down
+    the whole request (the audit trail surfaces zero exposure facts, which
+    is the same as a fresh session).
+    """
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        items: list[Any] = list(raw)  # type: ignore[arg-type]
+        return [str(v) for v in items if str(v)]
+    if isinstance(raw, str):
+        return [tok for tok in raw.split() if tok]
+    return []
 
 
 class FathomRouter:
@@ -102,16 +136,28 @@ class FathomRouter:
         intent: IntentAnalysis,
         sources: list[SourceConfig],
         session: dict[str, Any],
+        agent_registry: AgentRegistry | None = None,
     ) -> RouteResult:
         """Run one routing pass; return populated :class:`RouteResult`.
 
-        Steps (design §5.4):
+        Steps (design §5.4, §3.3):
         1. ``clear_facts()``
-        2. assert ``agent``, ``intent``, each ``source``, ``session``
+        2. assert ``agent``, ``intent``, each ``source``, ``session`` +
+           ``session_exposure`` (one fact per multislot element — FR-5, AC-2.3),
+           and ``escalation_rule`` packs.
         3. ``evaluate()``
         4. read ``routing_decision`` / ``scope_constraint`` / ``denial_record``
         5. drop any denied source from ``routing_decisions``
+
+        ``agent_registry`` is accepted additively for forward-compat with the
+        Phase-2 ``agent``-fact enrichment path; it is currently unused because
+        the Phase-1 ``agent`` fact is already materialized from ``context``
+        (``clearance``/``purpose``). Phase-1 callers that pass no registry
+        continue to work unchanged.
         """
+        # The registry is accepted for signature parity with design §2.2; the
+        # Phase-2 agent-enrichment rules land in a later task.
+        del agent_registry
         try:
             self._engine.clear_facts()
 
@@ -139,11 +185,7 @@ class FathomRouter:
                 }
                 self._engine.assert_fact("source", source_fact)
 
-            session_fact = {
-                "id": str(session.get("id") or session.get("session_id") or ""),
-                "pii_sources_accessed": int(session.get("pii_sources_accessed", 0)),
-            }
-            self._engine.assert_fact("session", session_fact)
+            exposure_count = self._assert_session(session)
 
             self._assert_escalation_rules(self._escalation_rules)
 
@@ -192,6 +234,7 @@ class FathomRouter:
                 "intent": 1,
                 "source": len(sources),
                 "session": 1,
+                "session_exposure": exposure_count,
             }
 
             return RouteResult(
@@ -208,6 +251,52 @@ class FathomRouter:
             raise PolicyEngineError(
                 f"FathomRouter.route() failed for agent_id={agent_id!r}: {exc}"
             ) from exc
+
+    def _assert_session(self, session: dict[str, Any]) -> int:
+        """Assert one ``session`` fact + one ``session_exposure`` per multislot element.
+
+        Design §3.3 / FR-5 / AC-2.3: the persistent :class:`SessionStore`
+        keeps ``data_types_seen`` / ``sources_visited`` / ``pii_sources_accessed_list``
+        as JSONB arrays; the broker hands them back here as Python lists (or
+        pre-encoded space-separated strings for the Phase-1 in-memory store).
+        We (1) encode each multislot onto the ``session`` template's
+        string-slot and (2) emit one ``session_exposure`` fact per element
+        so rules can pattern-match individual values.
+
+        A Phase-1 session dict without any of the three multislot keys yields
+        ZERO ``session_exposure`` facts — preserving NFR-5 backwards
+        compatibility for the MVP e2e test.
+
+        Returns the number of ``session_exposure`` facts asserted so callers
+        can fold it into :attr:`RouteResult.facts_asserted_summary`.
+        """
+        session_id = str(session.get("id") or session.get("session_id") or "")
+        session_fact: dict[str, Any] = {
+            "id": session_id,
+            "pii_sources_accessed": int(session.get("pii_sources_accessed", 0)),
+            "purpose_start_ts": float(session.get("purpose_start_ts", 0.0)),
+            "purpose_ttl_seconds": float(session.get("purpose_ttl_seconds", 0.0)),
+        }
+        by_slot: dict[str, list[str]] = {}
+        for slot in _SESSION_EXPOSURE_MULTISLOTS:
+            values = _coerce_multislot(session.get(slot))
+            by_slot[slot] = values
+            session_fact[slot] = encode_multislot(values)
+        self._engine.assert_fact("session", session_fact)
+
+        exposure_count = 0
+        for category, values in by_slot.items():
+            for value in values:
+                self._engine.assert_fact(
+                    "session_exposure",
+                    {
+                        "session_id": session_id,
+                        "category": category,
+                        "value": value,
+                    },
+                )
+                exposure_count += 1
+        return exposure_count
 
     def _assert_escalation_rules(self, rules: list[EscalationRule]) -> None:
         """Assert one ``escalation_rule`` fact per loaded :class:`EscalationRule`.

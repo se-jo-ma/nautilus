@@ -211,8 +211,9 @@ class Broker:
         self._attestation = attestation
         self._session_store = session_store
         # Phase-1 YAML (no ``agents:``) yields an empty registry — preserves
-        # NFR-5 backwards compatibility; the registry is not yet consulted in
-        # the request flow (that wiring lands in a later task).
+        # NFR-5 backwards compatibility. Threaded into ``FathomRouter.route``
+        # per design §2.2; the Phase-2 agent-fact enrichment rules consume it,
+        # Phase-1 rules ignore it and materialize ``agent`` from ``context``.
         self._agent_registry: AgentRegistry = agent_registry or AgentRegistry({})
         # Attestation sink default is :class:`NullAttestationSink` so Phase-1
         # YAML without ``attestation.sink`` preserves NFR-5 backwards compat.
@@ -515,6 +516,7 @@ class Broker:
             intent=state.intent_analysis,
             sources=self._registry.sources,
             session=session_state,
+            agent_registry=self._agent_registry,
         )
         state.apply_route_result(route_result)
         state.sources_denied = sorted({d.source_id for d in state.denial_records})
