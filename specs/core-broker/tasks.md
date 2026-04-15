@@ -468,7 +468,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Commit**: `docs: add docstrings to public surfaces`
 - **References**: design §3.
 
-### [VERIFY] Task 4.4 — Quality checkpoint (quality batch 1)
+### [VERIFY] Task 4.4 — Quality checkpoint (quality batch 1) [x]
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 - **Commit**: `chore(quality): pass checkpoint` (if fixes needed)
