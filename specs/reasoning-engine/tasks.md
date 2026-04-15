@@ -526,7 +526,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(config): env-interpolate new fields + dispatch 4 new adapter types`
 - **References**: FR-24, AC-1.4, design §5.
 
-### [VERIFY] Task 2.28 — Quality checkpoint (Phase 2 completeness)
+### [VERIFY] Task 2.28 [x] — Quality checkpoint (Phase 2 completeness)
 - **Do**: Run full toolchain + Phase 1 & POC regression.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest tests/integration/test_mvp_e2e.py tests/integration/test_classification_e2e.py -m integration -q`
 - **Done when**: All exit 0.
