@@ -549,7 +549,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(config): add agent registry + escalation loader + Phase 2 loader tests`
 - **References**: FR-7, FR-9, FR-24, AC-1.4, AC-3.2, AC-4.2, NFR-5.
 
-### Task 3.2 — Unit: `tests/unit/rules/test_contains_all_external.py` + `test_classification_rule.py` + `test_information_flow_rule.py`
+### Task 3.2 [x] — Unit: `tests/unit/rules/test_contains_all_external.py` + `test_classification_rule.py` + `test_information_flow_rule.py`
 - **Do**:
   - `test_contains_all_external.py`: (a) empty subset ⊆ any superset → TRUE, (b) full overlap → TRUE, (c) partial overlap → FALSE, (d) disjoint → FALSE (AC-3.4).
   - `test_classification_rule.py`: agent `clearance=cui`, source `classification=secret` → `default-classification-deny` fires with salience 150 (AC-1.1, AC-1.3).
