@@ -615,7 +615,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Done when**: All exit 0.
 - **Commit**: `chore(tests): pass batch 2 checkpoint` (if fixes needed)
 
-### Task 3.9 — Unit: `tests/unit/adapters/test_elasticsearch.py` + `test_rest.py` (incl. drift + SSRF)
+### Task 3.9 [x] — Unit: `tests/unit/adapters/test_elasticsearch.py` + `test_rest.py` (incl. drift + SSRF)
 - **Do**:
   - `test_elasticsearch.py`: (a) each operator in `_OPERATOR_ALLOWLIST` round-trips through the ES DSL per AC-8.2 — drift test (NFR-4), (b) bad `index` raises at connect, (c) `LIKE` leading-wildcard WARN but proceeds, (d) static grep: zero f-string+`Search.query(` within 5 lines in `elasticsearch.py` (AC-8.4).
   - `test_rest.py`: (a) operator→template drift test (every operator has a default or is explicitly-rejected, NFR-4 AC-9.5), (b) redirect to different host → `SSRFBlockedError` (NFR-17, AC-9.2), (c) undeclared endpoint path in scope → `ScopeEnforcementError`, (d) bearer/basic/mtls/none auth all construct, (e) respx mock end-to-end: GET /widgets with `f=x` query param.
