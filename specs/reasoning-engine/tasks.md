@@ -454,7 +454,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(forensics): add ForensicSink Protocol + JSONL/Http impls + InferredHandoff model`
 - **References**: FR-11, AC-5.1, design §3.7.
 
-### Task 2.22 — Ship forensic rule pack (`handoff.yaml`: h-shared-session, h-source-overlap, h-classification-delta)
+### Task 2.22 [x] — Ship forensic rule pack (`handoff.yaml`: h-shared-session, h-source-overlap, h-classification-delta)
 - **Do**:
   - Create `nautilus/rules/forensics/handoff.yaml` with three rules per design §3.7:
     - `h-shared-session` (salience 100): matches two distinct `agent_id`s on same `session_id` within window.

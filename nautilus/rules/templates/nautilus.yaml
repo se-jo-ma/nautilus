@@ -105,3 +105,22 @@ templates:
       - { name: sources_queried, type: string, default: "" }   # multislot
       - { name: classification, type: string, required: true }
       - { name: timestamp,      type: string, required: true }
+
+  - name: inferred_handoff
+    description: "Forensic-inferred agent-to-agent handoff (design §3.7, FR-11, FR-12)."
+    # Emitted by the offline forensic worker's rule pack
+    # (nautilus/rules/forensics/handoff.yaml). Populated from paired
+    # ``audit_event`` facts whose session_id / sources_queried /
+    # classification trip one of the three heuristics. ``confidence``
+    # is the salience-weighted signal sum mapped to [0.0, 1.0]
+    # (see handoff.yaml header for the exact mapping). ``signals`` is
+    # a space-separated multislot of heuristic ids (``shared-session``,
+    # ``source-overlap``, ``classification-delta``) so the worker can
+    # aggregate multiple firings on the same (session, source, receiver)
+    # into a single :class:`nautilus.core.models.InferredHandoff`.
+    slots:
+      - { name: session_id,      type: string, required: true }
+      - { name: source_agent,    type: string, required: true }
+      - { name: receiving_agent, type: string, required: true }
+      - { name: confidence,      type: string, required: true } # stringified float; worker parses to [0.0, 1.0]
+      - { name: signals,         type: string, default: "" }    # space-separated multislot
