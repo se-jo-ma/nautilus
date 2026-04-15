@@ -467,7 +467,7 @@ Focus: Fill in all components NOT in the POC slice. Four adapters (ES → Neo4j 
 - **Commit**: `feat(rules): add forensic handoff rule pack with 3 heuristics`
 - **References**: FR-12, AC-5.2, design §3.7.
 
-### Task 2.23 — Implement forensic `handoff_worker.run_worker` + `__main__`
+### Task 2.23 [x] — Implement forensic `handoff_worker.run_worker` + `__main__`
 - **Do**:
   - Create `nautilus/forensics/handoff_worker.py` with:
     - `class WorkerReport(BaseModel)` (`lines_processed: int`, `records_emitted: int`, `new_offset: int`).
