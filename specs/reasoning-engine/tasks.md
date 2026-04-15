@@ -683,7 +683,7 @@ Focus: Cover every component with dedicated unit module; land the 6 integration 
 - **Commit**: `test(integration): 4 new-adapter e2e tests (ES, Neo4j, REST, ServiceNow)`
 - **References**: FR-20, FR-21, FR-22, FR-23, AC-8.5, AC-9.5, AC-10.5, AC-11.5, design §7.1.
 
-### [VERIFY] Task 3.16 — Quality checkpoint (test batch 4)
+### [VERIFY] Task 3.16 [x] — Quality checkpoint (test batch 4)
 - **Do**: Run toolchain + integration tier.
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit && uv run pytest -m integration -q`
 - **Done when**: All exit 0.

@@ -212,7 +212,7 @@ async def test_e_query_is_alias_of_request(tmp_path: Path) -> None:
     audit_path = tmp_path / "audit.jsonl"
     broker = _make_broker(audit_path=audit_path, keys=["k"])
     app = create_app(None, existing_broker=broker)
-    body = {"agent_id": "a", "intent": "hello", "context": {}}
+    body: dict[str, Any] = {"agent_id": "a", "intent": "hello", "context": {}}
     async with app.router.lifespan_context(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -242,7 +242,7 @@ async def test_e_query_is_alias_of_request(tmp_path: Path) -> None:
 async def test_f_missing_or_bad_api_key_is_rejected() -> None:
     broker = _make_broker(keys=["topsecret"])
     app = create_app(None, existing_broker=broker)
-    body = {"agent_id": "a", "intent": "hi", "context": {}}
+    body: dict[str, Any] = {"agent_id": "a", "intent": "hi", "context": {}}
     async with app.router.lifespan_context(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:

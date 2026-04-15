@@ -46,7 +46,10 @@ def test_a_version_exits_zero_and_prints_version(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     # Pin the reported version so the assertion is environment-independent.
-    monkeypatch.setattr(cli.metadata, "version", lambda _name: "3.13.0")
+    def _fake_version(_name: str) -> str:
+        return "3.13.0"
+
+    monkeypatch.setattr(cli.metadata, "version", _fake_version)
     rc = cli.main(["version"])
     captured = capsys.readouterr()
     assert rc == 0
