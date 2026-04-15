@@ -402,7 +402,7 @@ This breakdown translates the 14-step build sequence in design §15 into 59 atom
 - **Verify**: `uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest -m unit`
 - **Done when**: All four exit 0.
 
-### Task 3.16 — Integration test: `tests/integration/test_postgres_scope.py`
+### Task 3.16 — Integration test: `tests/integration/test_postgres_scope.py` [x]
 - **Do**: Seed `vulns` table with 5 rows varying `severity`. Issue request with scope `severity IN ('high','critical')`; assert only matching rows returned. Issue a second request with `severity = 'low'`; assert non-matching rows excluded. Uses `pg_container` fixture.
 - **Files**: `tests/integration/test_postgres_scope.py`.
 - **Done when**: 2 assertions pass against real PG.

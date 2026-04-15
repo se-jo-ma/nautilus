@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS vulns (
 INSERT INTO vulns (id, severity, cve) VALUES
     (1, 'critical', 'CVE-2024-0001'),
     (2, 'high',     'CVE-2024-0002'),
-    (3, 'medium',   'CVE-2024-0003')
+    (3, 'medium',   'CVE-2024-0003'),
+    (4, 'low',      'CVE-2024-0004'),
+    (5, 'info',     'CVE-2024-0005')
 ON CONFLICT (id) DO NOTHING;
 
 -- Embedding table for PgVectorAdapter tests.
