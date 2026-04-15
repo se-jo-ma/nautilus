@@ -32,7 +32,7 @@ Focus: Prove the new pipeline wires up. Ships classification + escalation + temp
 - **Commit**: `chore(scaffold): create reasoning-engine subpackage skeleton`
 - **References**: design §5 file tree.
 
-### Task 1.2 — Extend `pyproject.toml` with Phase 2 deps + extras
+### Task 1.2 [x] — Extend `pyproject.toml` with Phase 2 deps + extras
 - **Do**:
   - Add runtime deps to `[project].dependencies`: `fastapi>=0.115`, `uvicorn[standard]>=0.30`, `httpx>=0.27`, `elasticsearch>=8`, `neo4j>=5`, `mcp>=1.12`.
   - Add optional extras to `[project.optional-dependencies]`: `llm-anthropic = ["anthropic>=0.40"]`, `llm-openai = ["openai"]`.
