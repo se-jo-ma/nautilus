@@ -107,7 +107,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-1, AC-1.1_
   - _Design: Integration — fastapi_app.py mount_
 
-- [ ] 1.10 [VERIFY] Quality checkpoint: admin skeleton
+- [x] 1.10 [VERIFY] Quality checkpoint: admin skeleton
   - **Do**: Run quality commands after admin UI skeleton
   - **Verify**: `ruff check nautilus tests && pyright`
   - **Done when**: No lint errors, no type errors
@@ -115,7 +115,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1C — Audit Reader (Core Data Layer)
 
-- [ ] 1.11 Create AuditReader with seek-based JSONL pagination
+- [x] 1.11 Create AuditReader with seek-based JSONL pagination
   - **Do**:
     1. Create `nautilus/ui/audit_reader.py` with `AuditPage` dataclass (`entries`, `next_cursor`, `prev_cursor`, `total_estimate`) and `AuditReader` class
     2. Implement `read_page(cursor, agent_id, source_id, event_type, start, end, sort)` — seek to byte offset, read `page_size` lines, double-parse (outer AuditRecord → inner AuditEntry via `metadata["nautilus_audit_entry"]`), apply filters in-memory
