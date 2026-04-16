@@ -632,7 +632,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(rules): add NIST scope constraint and escalation rules`
   - _Requirements: AC-13.3, AC-13.4_
 
-- [ ] 1.59 Create NIST CUI extended hierarchy
+- [x] 1.59 Create NIST CUI extended hierarchy
   - **Do**:
     1. Create `rule-packs/data-routing-nist/hierarchies/cui-sub-extended.yaml` — extends CUI sub-category with ITAR, EAR, FTI, LES levels
   - **Files**: `rule-packs/data-routing-nist/hierarchies/cui-sub-extended.yaml`
