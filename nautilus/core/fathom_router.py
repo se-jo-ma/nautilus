@@ -217,12 +217,21 @@ class FathomRouter:
             scopes_by_source: dict[str, list[ScopeConstraint]] = {}
             for s in raw_scopes:
                 sid = str(s["source_id"])
+                # Pass through the optional temporal slots when a rule
+                # populated them — downstream ``build_scope_payload``
+                # flips to ``scope_hash_version == "v2"`` whenever any
+                # constraint carries a non-empty ``expires_at`` /
+                # ``valid_from`` (FR-19, D-7).
+                _expires_at = s.get("expires_at") if hasattr(s, "get") else None
+                _valid_from = s.get("valid_from") if hasattr(s, "get") else None
                 scopes_by_source.setdefault(sid, []).append(
                     ScopeConstraint(
                         source_id=sid,
                         field=str(s["field"]),
                         operator=s["operator"],  # validated by Pydantic Literal
                         value=s["value"],
+                        expires_at=str(_expires_at) if _expires_at else None,
+                        valid_from=str(_valid_from) if _valid_from else None,
                     )
                 )
 

@@ -53,7 +53,13 @@ agents:
     compartments: []
 
 rules:
-  user_rules_dirs: []
+  # VE2a exercises the ``expires_at`` branch of the attestation hash
+  # (FR-19, AC-12.1, design §7.5). The user rule under ``ve-rules/``
+  # asserts a ``scope_constraint`` with a future-dated ``expires_at``
+  # whenever ``context.purpose == "ve-expiring-probe"``, flipping the
+  # attestation payload to ``scope_hash_version == "v2"``.
+  user_rules_dirs:
+    - tests/fixtures/ve-rules
 
 analysis:
   keyword_map:

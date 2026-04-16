@@ -863,7 +863,7 @@ Five sequential tasks: one startup, three checks (REST + MCP + declare_handoff +
 - **Commit**: `chore(ve): add ve-config fixture + VE seed SQL; ignore VE artifacts`
 - **References**: FR-25, FR-27, AC-12.4, design §7.1.
 
-### Task 5.2 — VE2a: REST end-to-end — classification + escalation + pattern-matcher + temporal + attestation
+### Task 5.2 [x] — VE2a: REST end-to-end — classification + escalation + pattern-matcher + temporal + attestation
 - **Do**:
   - `curl -sf -H "X-API-Key: ${VE_API_KEY}" -H "Content-Type: application/json" -X POST http://127.0.0.1:18080/v1/request -d '{"agent_id":"orch-a","intent":"enrich incident with email phone dob ssn for threat hunting","context":{"clearance":"secret","purpose":"threat-hunt","session_id":"ve-s1","compartments":"cti","embedding":[0.1,0.2,0.3]}}' -o .ve-resp-rest.json`
   - Assertions via `jq`:

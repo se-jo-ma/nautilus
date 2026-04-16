@@ -266,12 +266,16 @@ class AnalysisConfig(BaseModel):
 class ApiConfig(BaseModel):
     """FastAPI/MCP API subsection of ``nautilus.yaml`` (design §3.11).
 
-    Minimal Phase-2 shell; later tasks extend with host/port/auth once the
-    HTTP surface is defined.
+    Phase-2 shell extended for Phase-5 VE surface (FR-26, D-11):
+    ``keys`` holds the API-key allow-list consumed by
+    :func:`nautilus.transport.auth.verify_api_key`. An empty list fails
+    closed (no caller accepted) which matches the auth-dependency
+    behaviour in :mod:`nautilus.transport.fastapi_app`.
     """
 
     host: str = "127.0.0.1"
     port: int = 8080
+    keys: list[str] = Field(default_factory=list)
 
 
 class MCPConfig(BaseModel):

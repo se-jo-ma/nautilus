@@ -235,7 +235,20 @@ class PgVectorAdapter(PostgresAdapter):
             records = await conn.fetch(sql, *params)
         duration_ms = int((time.perf_counter() - started) * 1000)
 
-        rows: list[dict[str, Any]] = [dict(r) for r in records]
+        # ``pgvector.asyncpg.register_vector`` decodes ``vector`` columns to
+        # ``numpy.ndarray`` which pydantic's JSON serializer cannot handle
+        # (PydanticSerializationError bubbles out of the FastAPI transport).
+        # Normalize the embedding column — and any ndarray cell — to a plain
+        # list so :class:`BrokerResponse` round-trips through FastAPI (FR-26,
+        # AC-12.1 VE2a REST end-to-end).
+        def _normalize(value: Any) -> Any:
+            if hasattr(value, "tolist"):
+                return value.tolist()
+            return value
+
+        rows: list[dict[str, Any]] = [
+            {k: _normalize(v) for k, v in dict(r).items()} for r in records
+        ]
         return AdapterResult(
             source_id=config.id,
             rows=rows,
