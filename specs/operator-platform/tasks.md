@@ -430,7 +430,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1J — Adapter SDK Package
 
-- [ ] 1.41 Create SDK package structure with pyproject.toml
+- [x] 1.41 Create SDK package structure with pyproject.toml
   - **Do**:
     1. Create `packages/nautilus-adapter-sdk/pyproject.toml` — `pydantic>=2.0` sole dep, Python `>=3.11`, package name `nautilus-adapter-sdk`
     2. Create `packages/nautilus-adapter-sdk/py.typed` marker (PEP 561)
