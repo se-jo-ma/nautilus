@@ -529,7 +529,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-20, AC-9.6, NFR-13_
   - _Design: Drift Guard_
 
-- [ ] 1.50 [VERIFY] Quality checkpoint: SDK + drift guard
+- [x] 1.50 [VERIFY] Quality checkpoint: SDK + drift guard
   - **Do**: Run quality commands
   - **Verify**: `ruff check tests/test_sdk_drift.py && pyright`
   - **Done when**: No lint errors, no type errors

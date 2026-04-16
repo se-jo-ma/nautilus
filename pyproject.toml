@@ -103,6 +103,9 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "ASYNC"]
 [tool.pyright]
 strict = ["nautilus", "tests"]
 include = ["nautilus", "tests"]
+extraPaths = ["packages/nautilus-adapter-sdk/src"]
+venvPath = "."
+venv = ".venv"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

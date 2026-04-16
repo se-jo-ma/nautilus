@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, get_args, get_origin
+from typing import Any, get_origin
 
 import pytest
 
@@ -29,28 +29,29 @@ _SDK_SRC = str(
 if _SDK_SRC not in sys.path:
     sys.path.insert(0, _SDK_SRC)
 
-from nautilus.core.models import AdapterResult as InternalAdapterResult
-from nautilus.core.models import ErrorRecord as InternalErrorRecord
-from nautilus.core.models import IntentAnalysis as InternalIntentAnalysis
-from nautilus.core.models import ScopeConstraint as InternalScopeConstraint
-from nautilus_adapter_sdk.types import AdapterResult as SDKAdapterResult
-from nautilus_adapter_sdk.types import ErrorRecord as SDKErrorRecord
-from nautilus_adapter_sdk.types import IntentAnalysis as SDKIntentAnalysis
-from nautilus_adapter_sdk.types import ScopeConstraint as SDKScopeConstraint
+from nautilus_adapter_sdk.types import AdapterResult as SDKAdapterResult  # noqa: E402
+from nautilus_adapter_sdk.types import ErrorRecord as SDKErrorRecord  # noqa: E402
+from nautilus_adapter_sdk.types import IntentAnalysis as SDKIntentAnalysis  # noqa: E402
+from nautilus_adapter_sdk.types import ScopeConstraint as SDKScopeConstraint  # noqa: E402
+
+from nautilus.core.models import AdapterResult as InternalAdapterResult  # noqa: E402
+from nautilus.core.models import ErrorRecord as InternalErrorRecord  # noqa: E402
+from nautilus.core.models import IntentAnalysis as InternalIntentAnalysis  # noqa: E402
+from nautilus.core.models import ScopeConstraint as InternalScopeConstraint  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
-def _field_names(model_cls: type) -> set[str]:
+def _field_names(model_cls: Any) -> set[str]:
     """Return public field names from a Pydantic v2 model."""
-    return set(model_cls.model_fields.keys())
+    return set(model_cls.model_fields.keys())  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
 
 
-def _field_types(model_cls: type) -> dict[str, Any]:
+def _field_types(model_cls: Any) -> dict[str, Any]:
     """Return ``{field_name: annotation}`` for a Pydantic v2 model."""
-    return {
+    return {  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
         name: info.annotation for name, info in model_cls.model_fields.items()
     }
 
