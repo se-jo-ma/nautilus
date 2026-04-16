@@ -800,7 +800,7 @@ After POC validated, clean up code. No new features.
   - **Done when**: No lint errors, no type errors
   - **Commit**: `chore(operator-platform): pass quality checkpoint` (if fixes needed)
 
-- [ ] 2.4 Modularize OTel span injection pattern in broker.py
+- [x] 2.4 Modularize OTel span injection pattern in broker.py
   - **Do**:
     1. Ensure OTel span calls are cleanly separated from business logic
     2. Extract span attribute construction into helper functions

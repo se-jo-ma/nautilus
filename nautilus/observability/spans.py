@@ -30,6 +30,19 @@ def adapter_span_name(source_id: str) -> str:
     return f"adapter.{source_id}"
 
 
+def build_request_attributes(
+    agent_id: str,
+    **extra: Any,
+) -> dict[str, Any]:
+    """Build a span-attribute dict for a top-level broker request.
+
+    Centralises the attribute schema so callers never construct raw dicts.
+    """
+    attrs: dict[str, Any] = {"agent_id": agent_id}
+    attrs.update(extra)
+    return attrs
+
+
 @contextmanager
 def broker_span(name: str, attributes: dict[str, Any] | None = None):
     """Yield an OTel span if available, otherwise a no-op span."""
