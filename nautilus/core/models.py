@@ -214,6 +214,7 @@ class AuditEntry(BaseModel):
     event_type: Literal["request", "handoff_declared"] | None = None
     handoff_id: str | None = None
     handoff_decision: HandoffDecision | None = None
+    trace_id: str | None = None
 
 
 class InferredHandoff(BaseModel):

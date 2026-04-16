@@ -735,7 +735,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: AC-15.4, AC-16.4_
   - _Design: Plugin Discovery_
 
-- [ ] 1.69 Add optional trace_id field to AuditEntry
+- [x] 1.69 Add optional trace_id field to AuditEntry
   - **Do**:
     1. In `nautilus/core/models.py`, add `trace_id: str | None = None` to `AuditEntry` model
     2. Backward compatible — default `None` when OTel absent
