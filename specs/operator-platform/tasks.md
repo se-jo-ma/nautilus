@@ -608,7 +608,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-24, FR-26, AC-13.1, AC-13.2, AC-13.7_
   - _Design: Component F — data-routing-nist_
 
-- [ ] 1.57 [P] Create NIST denial rules (AC-3, AC-4, SC-7, SC-16)
+- [x] 1.57 [P] Create NIST denial rules (AC-3, AC-4, SC-7, SC-16)
   - **Do**:
     1. Create `rule-packs/data-routing-nist/rules/ac-3-access-enforcement.yaml` — salience 170-190
     2. Create `rule-packs/data-routing-nist/rules/ac-4-information-flow.yaml` — primary flow control, salience 170-190
