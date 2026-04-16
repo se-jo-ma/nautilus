@@ -753,7 +753,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1S — POC Checkpoint
 
-- [ ] 1.71 POC Checkpoint: verify all workstreams end-to-end
+- [x] 1.71 POC Checkpoint: verify all workstreams end-to-end
   - **Do**:
     1. Verify admin UI module imports: `from nautilus.ui import create_admin_router`
     2. Verify OTel module imports: `from nautilus.observability import setup_otel`
@@ -772,7 +772,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 After POC validated, clean up code. No new features.
 
-- [ ] 2.1 Extract audit reader error handling (corrupt lines, missing file, invalid cursor)
+- [x] 2.1 Extract audit reader error handling (corrupt lines, missing file, invalid cursor)
   - **Do**:
     1. Add try/except around JSONL line parsing to skip corrupt lines with warning log
     2. Handle missing `audit.jsonl` gracefully — return empty `AuditPage` with "No audit data"

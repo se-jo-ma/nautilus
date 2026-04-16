@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import base64
 import json
-import os
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -25,6 +25,8 @@ from fathom.models import AuditRecord
 from nautilus.audit.logger import decode_nautilus_entry
 from nautilus.core.models import AuditEntry
 
+log = logging.getLogger(__name__)
+
 DEFAULT_PAGE_SIZE: int = 50
 
 
@@ -32,7 +34,7 @@ DEFAULT_PAGE_SIZE: int = 50
 class AuditPage:
     """One page of audit entries with cursor-based navigation."""
 
-    entries: list[AuditEntry] = field(default_factory=list)
+    entries: list[AuditEntry] = field(default_factory=list)  # pyright: ignore[reportUnknownVariableType]
     next_cursor: str | None = None
     prev_cursor: str | None = None
     total_estimate: int = 0
@@ -69,6 +71,7 @@ class AuditReader:
             offset = int(decoded)
             return max(offset, 0)
         except (ValueError, Exception):
+            log.warning("Invalid audit cursor %r — resetting to page 1", cursor)
             return 0
 
     # -- core reader ---------------------------------------------------
@@ -100,6 +103,7 @@ class AuditReader:
             navigation cursors.
         """
         if not self._path.exists():
+            log.warning("Audit file not found: %s — returning empty page", self._path)
             return AuditPage()
 
         file_size = self._path.stat().st_size
@@ -109,9 +113,10 @@ class AuditReader:
         total_estimate = self._estimate_total()
         offset = self._decode_cursor(cursor)
 
+        args = (offset, file_size, total_estimate, agent_id, source_id, event_type, start, end)
         if sort == "desc":
-            return self._read_desc(offset, file_size, total_estimate, agent_id, source_id, event_type, start, end)
-        return self._read_asc(offset, file_size, total_estimate, agent_id, source_id, event_type, start, end)
+            return self._read_desc(*args)
+        return self._read_asc(*args)
 
     # -- ascending (forward) -------------------------------------------
 
@@ -130,14 +135,13 @@ class AuditReader:
         next_offset: int | None = None
         prev_cursor: str | None = self._encode_cursor(max(offset - 1, 0)) if offset > 0 else None
 
-        with open(self._path, "r", encoding="utf-8") as fh:
+        with open(self._path, encoding="utf-8") as fh:
             fh.seek(offset)
             # If we seeked into the middle of a line, skip to next newline
             if offset > 0:
                 fh.readline()
 
             while len(entries) < self._page_size:
-                line_start = fh.tell()
                 line = fh.readline()
                 if not line:
                     break
@@ -151,7 +155,9 @@ class AuditReader:
                     entries.append(entry)
                 next_offset = fh.tell()
 
-        next_cursor = self._encode_cursor(next_offset) if next_offset is not None and next_offset < file_size else None
+        next_cursor: str | None = None
+        if next_offset is not None and next_offset < file_size:
+            next_cursor = self._encode_cursor(next_offset)
         return AuditPage(
             entries=entries,
             next_cursor=next_cursor,
@@ -195,7 +201,8 @@ class AuditReader:
                     break
 
         # next_cursor = further back in the file (older entries)
-        next_cursor = self._encode_cursor(consumed_up_to) if consumed_up_to > 0 and len(entries) >= self._page_size else None
+        has_older = consumed_up_to > 0 and len(entries) >= self._page_size
+        next_cursor = self._encode_cursor(consumed_up_to) if has_older else None
         # prev_cursor = toward end of file (newer entries)
         prev_cursor = self._encode_cursor(read_end) if read_end < file_size else None
 
@@ -220,7 +227,7 @@ class AuditReader:
         remaining = from_offset
         leftover = ""
 
-        with open(self._path, "r", encoding="utf-8") as fh:
+        with open(self._path, encoding="utf-8") as fh:
             while remaining > 0 and len(result) < max_lines:
                 read_size = min(chunk_size, remaining)
                 start_pos = remaining - read_size
@@ -260,6 +267,7 @@ class AuditReader:
             record = AuditRecord.model_validate(raw)
             return decode_nautilus_entry(record)
         except (json.JSONDecodeError, KeyError, Exception):
+            log.warning("Skipping corrupt audit line: %.120s", line)
             return None
 
     @staticmethod
@@ -280,9 +288,7 @@ class AuditReader:
             return False
         if start is not None and entry.timestamp < start:
             return False
-        if end is not None and entry.timestamp > end:
-            return False
-        return True
+        return not (end is not None and entry.timestamp > end)
 
     def _estimate_total(self) -> int:
         """Estimate total lines by sampling average line length."""
@@ -293,7 +299,7 @@ class AuditReader:
             return 0
         # Sample first few lines to estimate average line length
         sample_bytes = min(file_size, 4096)
-        with open(self._path, "r", encoding="utf-8") as fh:
+        with open(self._path, encoding="utf-8") as fh:
             sample = fh.read(sample_bytes)
         lines = [ln for ln in sample.split("\n") if ln.strip()]
         if not lines:
