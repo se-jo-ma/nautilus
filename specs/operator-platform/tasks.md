@@ -206,7 +206,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): add attestation page and result partial templates`
   - _Requirements: AC-4.1, AC-4.2, AC-4.4_
 
-- [ ] 1.20 Add audit and attestation route handlers in router.py
+- [x] 1.20 Add audit and attestation route handlers in router.py
   - **Do**:
     1. Add `GET /audit` — accepts `agent_id`, `source_id`, `event_type`, `start`, `end`, `cursor`, `sort` params. Uses `AuditReader.read_page()`. Renders full page or HTMX partial
     2. Add `GET /attestation` — renders attestation form page

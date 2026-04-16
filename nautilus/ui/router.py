@@ -1,7 +1,9 @@
 """Admin UI route handlers for the Nautilus operator dashboard.
 
-Implements the source-status page (FR-1, FR-2, AC-1.1, AC-1.3) and the
-decisions / audit-log viewer (FR-4, FR-5, AC-2.1, AC-2.3).
+Implements the source-status page (FR-1, FR-2, AC-1.1, AC-1.3), the
+decisions / audit-log viewer (FR-4, FR-5, AC-2.1, AC-2.3), the audit
+event log (FR-6, FR-7, FR-8, AC-3.1), and attestation verification
+(FR-9, AC-4.1, AC-4.2).
 Each endpoint serves a full page for normal requests or an HTMX partial
 when the ``HX-Request`` header is present.
 """
@@ -10,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -205,6 +207,149 @@ async def decision_detail(
 
     context = {"request": request, "decision": decision}
     return templates.TemplateResponse(request, "partials/decision_detail.html", context)
+
+
+@router.get("/audit")
+async def audit(
+    request: Request,
+    audit_path: Annotated[str, Depends(get_audit_path)],
+    user: Annotated[str, Depends(get_auth_user)],
+    agent_id: str | None = None,
+    source_id: str | None = None,
+    event_type: str | None = None,
+    start: str | None = None,
+    end: str | None = None,
+    cursor: str | None = None,
+    sort: str = "-timestamp",
+) -> HTMLResponse:
+    """Audit event log — paginated view of all audit entries.
+
+    Query params filter by ``agent_id``, ``source_id``, ``event_type``,
+    ``start``/``end`` date range.  Cursor-based pagination via ``cursor``.
+    ``sort`` accepts ``"-timestamp"`` (desc, default) or ``"timestamp"``
+    (asc).
+
+    When the ``HX-Request`` header is present, returns the table-body
+    partial (``audit_rows.html``) and pagination fragment; otherwise
+    returns the full page (``pages/audit.html``).
+    """
+    reader = AuditReader(audit_path)
+    start_dt = _parse_dt(start)
+    end_dt = _parse_dt(end)
+
+    # Map sort param to AuditReader's Literal["asc", "desc"]
+    sort_order: str = "asc" if sort == "timestamp" else "desc"
+
+    page = reader.read_page(
+        cursor=cursor,
+        agent_id=agent_id,
+        source_id=source_id,
+        event_type=event_type,
+        start=start_dt,
+        end=end_dt,
+        sort=sort_order,  # pyright: ignore[reportArgumentType]
+    )
+
+    entries = [
+        {
+            "timestamp": e.timestamp,
+            "request_id": e.request_id,
+            "agent_id": e.agent_id,
+            "event_type": getattr(e, "event_type", "decision"),
+            "sources_queried": (
+                ", ".join(e.sources_queried)
+                if e.sources_queried
+                else "—"
+            ),
+            "duration_ms": e.duration_ms,
+        }
+        for e in page.entries
+    ]
+
+    filters = {
+        "agent_id": agent_id or "",
+        "source_id": source_id or "",
+        "event_type": event_type or "",
+        "start": start or "",
+        "end": end or "",
+        "sort": sort,
+    }
+
+    context = {
+        "request": request,
+        "user": user,
+        "entries": entries,
+        "filters": filters,
+        "next_cursor": page.next_cursor,
+        "prev_cursor": page.prev_cursor,
+        "total_estimate": page.total_estimate,
+    }
+
+    is_htmx = request.headers.get("HX-Request") == "true"
+    if is_htmx:
+        rows = templates.get_template(
+            "partials/audit_rows.html"
+        ).render(entries=entries)
+        pagination = templates.get_template(
+            "partials/pagination.html"
+        ).render(
+            next_cursor=page.next_cursor,
+            prev_cursor=page.prev_cursor,
+            total_estimate=page.total_estimate,
+            filters=filters,
+        )
+        return HTMLResponse(content=rows + pagination)
+    return templates.TemplateResponse(
+        request, "pages/audit.html", context
+    )
+
+
+@router.get("/attestation")
+async def attestation(
+    request: Request,
+    user: Annotated[str, Depends(get_auth_user)],
+) -> HTMLResponse:
+    """Attestation verification page — form for verifying EdDSA JWTs.
+
+    Renders the attestation form.  ``signing_key_configured`` is hardcoded
+    to ``False`` for POC phase (AttestationService not yet implemented).
+    """
+    context = {
+        "request": request,
+        "user": user,
+        "signing_key_configured": False,
+    }
+    return templates.TemplateResponse(
+        request, "pages/attestation.html", context
+    )
+
+
+@router.post("/attestation/verify")
+async def attestation_verify(
+    request: Request,
+    user: Annotated[str, Depends(get_auth_user)],
+    token: str = Form(...),
+) -> HTMLResponse:
+    """Verify an attestation token (EdDSA JWT).
+
+    Accepts the ``token`` form field and returns an
+    ``attestation_result.html`` HTMX fragment with verification results.
+
+    POC stub: always returns an ``invalid`` result since
+    ``AttestationService`` is not yet implemented.
+    """
+    # POC stub — AttestationService not yet available
+    result = {
+        "valid": False,
+        "error": "AttestationService not implemented (POC stub)",
+        "token_preview": token[:64] + "..." if len(token) > 64 else token,
+        "claims": None,
+    }
+
+    context = {"request": request, "result": result}
+    return templates.TemplateResponse(
+        request, "partials/attestation_result.html", context
+    )
 
 
 def _parse_dt(value: str | None) -> datetime | None:
