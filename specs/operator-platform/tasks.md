@@ -260,7 +260,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): gate all admin routes with proxy_trust/api_key auth`
   - _Requirements: FR-10, AC-5.1, AC-5.2, AC-5.3_
 
-- [ ] 1.25 [VERIFY] Quality checkpoint: admin UI complete
+- [x] 1.25 [VERIFY] Quality checkpoint: admin UI complete
   - **Do**: Run full quality commands for admin UI module
   - **Verify**: `ruff check nautilus/ui/ && pyright`
   - **Done when**: No lint errors, no type errors
