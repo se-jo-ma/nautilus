@@ -180,14 +180,10 @@ class InfluxDBAdapter:
                 )
             elif op == "BETWEEN":
                 if not isinstance(value, (list, tuple)) or len(value) != 2:  # pyright: ignore[reportUnknownArgumentType]
-                    raise ScopeEnforcementError(
-                        "Operator 'BETWEEN' requires a 2-tuple/list value"
-                    )
+                    raise ScopeEnforcementError("Operator 'BETWEEN' requires a 2-tuple/list value")
                 lo = _flux_escape(value[0])
                 hi = _flux_escape(value[1])
-                filters.append(
-                    f'r["{field}"] >= {lo} and r["{field}"] <= {hi}'
-                )
+                filters.append(f'r["{field}"] >= {lo} and r["{field}"] <= {hi}')
             elif op == "IS NULL":
                 filters.append(f'not exists r["{field}"]')
 

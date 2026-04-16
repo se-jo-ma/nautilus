@@ -124,9 +124,7 @@ async def source_status(
     }
 
     is_htmx = request.headers.get("HX-Request") == "true"
-    template_name = (
-        "partials/source_table_body.html" if is_htmx else "pages/sources.html"
-    )
+    template_name = "partials/source_table_body.html" if is_htmx else "pages/sources.html"
     return templates.TemplateResponse(request, template_name, context)
 
 
@@ -211,9 +209,7 @@ async def decisions(
     if is_htmx:
         # Return just the table rows for HTMX swap
         rows = "".join(
-            templates.get_template("partials/decision_row.html").render(
-                decision=d
-            )
+            templates.get_template("partials/decision_row.html").render(decision=d)
             for d in decisions_list
         )
         if not decisions_list:
@@ -253,24 +249,16 @@ async def decision_detail(
             break
 
     if entry is None:
-        return HTMLResponse(
-            content='<div class="empty-state"><p>Decision not found</p></div>'
-        )
+        return HTMLResponse(content='<div class="empty-state"><p>Decision not found</p></div>')
 
     decision = {
         "request_id": entry.request_id,
         "timestamp": str(entry.timestamp),
         "agent_id": entry.agent_id,
         "rule_trace": entry.rule_trace,
-        "routing_decisions": [
-            rd.model_dump(mode="json") for rd in entry.routing_decisions
-        ],
-        "scope_constraints": [
-            sc.model_dump(mode="json") for sc in entry.scope_constraints
-        ],
-        "denial_records": [
-            dr.model_dump(mode="json") for dr in entry.denial_records
-        ],
+        "routing_decisions": [rd.model_dump(mode="json") for rd in entry.routing_decisions],
+        "scope_constraints": [sc.model_dump(mode="json") for sc in entry.scope_constraints],
+        "denial_records": [dr.model_dump(mode="json") for dr in entry.denial_records],
         "facts_asserted_summary": entry.facts_asserted_summary,
         "sources_queried": entry.sources_queried,
         "sources_denied": entry.sources_denied,
@@ -333,11 +321,7 @@ async def audit(
             "request_id": e.request_id,
             "agent_id": e.agent_id,
             "event_type": getattr(e, "event_type", "decision"),
-            "sources_queried": (
-                ", ".join(e.sources_queried)
-                if e.sources_queried
-                else "—"
-            ),
+            "sources_queried": (", ".join(e.sources_queried) if e.sources_queried else "—"),
             "duration_ms": e.duration_ms,
         }
         for e in page.entries
@@ -364,21 +348,15 @@ async def audit(
 
     is_htmx = request.headers.get("HX-Request") == "true"
     if is_htmx:
-        rows = templates.get_template(
-            "partials/audit_rows.html"
-        ).render(entries=entries)
-        pagination = templates.get_template(
-            "partials/pagination.html"
-        ).render(
+        rows = templates.get_template("partials/audit_rows.html").render(entries=entries)
+        pagination = templates.get_template("partials/pagination.html").render(
             next_cursor=page.next_cursor,
             prev_cursor=page.prev_cursor,
             total_estimate=page.total_estimate,
             filters=filters,
         )
         return HTMLResponse(content=rows + pagination)
-    return templates.TemplateResponse(
-        request, "pages/audit.html", context
-    )
+    return templates.TemplateResponse(request, "pages/audit.html", context)
 
 
 @router.get("/attestation")
@@ -401,9 +379,7 @@ async def attestation(
         "user": user,
         "signing_key_configured": False,
     }
-    return templates.TemplateResponse(
-        request, "pages/attestation.html", context
-    )
+    return templates.TemplateResponse(request, "pages/attestation.html", context)
 
 
 @router.post("/attestation/verify")
@@ -431,9 +407,7 @@ async def attestation_verify(
     }
 
     context = {"request": request, "user": user, "result": result}
-    return templates.TemplateResponse(
-        request, "partials/attestation_result.html", context
-    )
+    return templates.TemplateResponse(request, "partials/attestation_result.html", context)
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -442,7 +416,7 @@ def _parse_dt(value: str | None) -> datetime | None:
         return None
     try:
         return datetime.fromisoformat(value)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return None
 
 

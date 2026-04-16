@@ -889,7 +889,9 @@ class Broker:
         with broker_span(SPAN_ADAPTER_FAN_OUT):
             tasks, task_source_ids = await self._build_adapter_jobs(state, context)
             successful = await self._gather_adapter_results(
-                state, tasks, task_source_ids,
+                state,
+                tasks,
+                task_source_ids,
             )
         with broker_span(SPAN_SYNTHESIS):
             state.data = self._synthesizer.merge(successful)

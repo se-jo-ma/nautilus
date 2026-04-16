@@ -42,9 +42,7 @@ async def _source_event_generator(
             for s in sources
         ]
 
-        html = templates.get_template(
-            "partials/source_table_body.html"
-        ).render(sources=source_rows)
+        html = templates.get_template("partials/source_table_body.html").render(sources=source_rows)
 
         yield {"event": "source-update", "data": html}
 

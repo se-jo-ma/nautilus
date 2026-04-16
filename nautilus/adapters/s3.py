@@ -100,8 +100,7 @@ class S3Adapter:
             self._client_ctx = ctx
         except Exception as exc:
             raise AdapterError(
-                f"S3Adapter failed to create client for source "
-                f"'{config.id}': {exc}"
+                f"S3Adapter failed to create client for source '{config.id}': {exc}"
             ) from exc
 
     async def close(self) -> None:
@@ -177,9 +176,7 @@ class S3Adapter:
                     )
                 classification_filter = str(value)
             else:
-                raise ScopeEnforcementError(
-                    f"S3Adapter: unsupported scope field '{field}'"
-                )
+                raise ScopeEnforcementError(f"S3Adapter: unsupported scope field '{field}'")
 
         # Classification gate: reject early if the source classification
         # does not match the requested classification label.

@@ -126,6 +126,7 @@ def create_app(
         app.state.ready = True
         try:
             from nautilus.observability import setup_otel
+
             setup_otel(app)
         except ImportError:
             pass

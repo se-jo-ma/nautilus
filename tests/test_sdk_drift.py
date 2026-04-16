@@ -20,12 +20,7 @@ import pytest
 # ---------------------------------------------------------------------------
 # SDK uses src-layout in packages/; ensure importable without pip install.
 # ---------------------------------------------------------------------------
-_SDK_SRC = str(
-    Path(__file__).resolve().parent.parent
-    / "packages"
-    / "nautilus-adapter-sdk"
-    / "src"
-)
+_SDK_SRC = str(Path(__file__).resolve().parent.parent / "packages" / "nautilus-adapter-sdk" / "src")
 if _SDK_SRC not in sys.path:
     sys.path.insert(0, _SDK_SRC)
 
