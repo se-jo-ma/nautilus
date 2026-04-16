@@ -455,7 +455,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(sdk): add Adapter and Embedder protocols`
   - _Requirements: AC-9.3_
 
-- [ ] 1.43 [P] Create SDK types.py with Pydantic models
+- [x] 1.43 [P] Create SDK types.py with Pydantic models
   - **Do**:
     1. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/types.py`
     2. Mirror Pydantic models from `nautilus/core/models.py`: `IntentAnalysis`, `ScopeConstraint`, `AdapterResult`, `ErrorRecord`, plus `AuthConfig` variants and `EndpointSpec`
@@ -466,7 +466,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(sdk): add mirrored Pydantic types`
   - _Requirements: AC-9.3_
 
-- [ ] 1.44 [P] Create SDK config.py with SourceConfig (type: str)
+- [x] 1.44 [P] Create SDK config.py with SourceConfig (type: str)
   - **Do**:
     1. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/config.py`
     2. Define `SourceConfig` with `type: str` (not Literal union), `extra="allow"` for extension fields
