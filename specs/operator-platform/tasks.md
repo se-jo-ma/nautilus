@@ -48,7 +48,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-1, AC-1.1_
   - _Design: Component A — Admin UI_
 
-- [ ] 1.5 Create dependencies.py with shared admin deps (broker, auth, audit path)
+- [x] 1.5 Create dependencies.py with shared admin deps (broker, auth, audit path)
   - **Do**:
     1. Create `nautilus/ui/dependencies.py` with FastAPI dependency functions:
        - `get_broker(request)` → returns `request.app.state.broker`
