@@ -292,7 +292,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-11, AC-6.1_
   - _Design: Component B — instrumentation.py_
 
-- [ ] 1.28 [P] Create spans.py with manual pipeline span context managers
+- [x] 1.28 [P] Create spans.py with manual pipeline span context managers
   - **Do**:
     1. Create `nautilus/observability/spans.py` with `broker_span(name, attributes)` context manager
     2. Define span hierarchy constants: `broker.request`, `intent_analysis`, `fathom_routing`, `adapter_fan_out`, `adapter.{source_id}`, `synthesis`, `audit_emit`, `attestation_sign`
@@ -304,7 +304,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-12, AC-6.2_
   - _Design: Component B — spans.py_
 
-- [ ] 1.29 [P] Create metrics.py with 6 counters + 3 histograms
+- [x] 1.29 [P] Create metrics.py with 6 counters + 3 histograms
   - **Do**:
     1. Create `nautilus/observability/metrics.py` with `NautilusMetrics` class
     2. Define counters: `nautilus.requests.total`, `nautilus.routing.decisions.total`, `nautilus.scope.denials.total`, `nautilus.attestation.total`, `nautilus.adapter.errors.total`, `nautilus.session.exposure_flags.total`
