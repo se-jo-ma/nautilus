@@ -147,7 +147,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-1, FR-2, AC-1.1, AC-1.3_
   - _Design: Component A — router.py sources_
 
-- [ ] 1.14 [P] Create sources page template and source table partial
+- [x] 1.14 [P] Create sources page template and source table partial
   - **Do**:
     1. Create `nautilus/ui/templates/pages/sources.html` — extends `layouts/dashboard.html`, renders source cards/table with `id`, `type`, `classification`, `data_types`, `allowed_purposes`, last-query timestamp. SSE subscription via `hx-ext="sse"` + `sse-connect="/admin/sources/events"`
     2. Create `nautilus/ui/templates/partials/source_table_body.html` — `<tbody>` fragment for HTMX partial updates
@@ -157,7 +157,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): add sources page and table partial templates`
   - _Requirements: AC-1.1, AC-1.2, AC-1.3, AC-1.4, AC-1.5_
 
-- [ ] 1.15 [P] Create decisions page template and partials
+- [x] 1.15 [P] Create decisions page template and partials
   - **Do**:
     1. Create `nautilus/ui/templates/pages/decisions.html` — extends dashboard layout, filterable table with `timestamp`, `request_id`, `agent_id`, `sources_queried`, `sources_denied`, `duration_ms`. Form-controller pattern with hidden inputs for `agent_id`, `start`, `end`, `outcome`, `search`. `hx-push-url="true"` on filter form. Search input with `hx-trigger="keyup changed delay:500ms"`
     2. Create `nautilus/ui/templates/partials/decision_row.html` — single row fragment
