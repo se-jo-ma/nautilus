@@ -280,7 +280,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-30, AC-6.5, AC-6.6, AC-18.2_
   - _Design: Component B — observability/__init__.py_
 
-- [ ] 1.27 Create instrumentation.py for FastAPI auto-instrumentation
+- [x] 1.27 Create instrumentation.py for FastAPI auto-instrumentation
   - **Do**:
     1. Create `nautilus/observability/instrumentation.py` with `_setup(app, service_name)` function
     2. Auto-instrument FastAPI via `opentelemetry-instrumentation-fastapi`, excluding `/healthz` and `/readyz` via `OTEL_PYTHON_FASTAPI_EXCLUDED_URLS`
