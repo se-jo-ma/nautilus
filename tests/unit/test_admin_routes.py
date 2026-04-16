@@ -9,10 +9,8 @@ Covers:
 
 from __future__ import annotations
 
-import json
 import tempfile
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -24,13 +22,11 @@ from nautilus.config.models import SourceConfig
 from nautilus.core.models import (
     AuditEntry,
     DenialRecord,
-    ErrorRecord,
     RoutingDecision,
     ScopeConstraint,
 )
 from nautilus.ui.audit_reader import AuditPage
 from nautilus.ui.router import router
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -64,13 +60,15 @@ def _make_audit_entry(
         else []
     )
     return AuditEntry(
-        timestamp=datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
+        timestamp=datetime(2025, 6, 15, 12, 0, 0, tzinfo=UTC),
         request_id=request_id,
         agent_id=agent_id,
         raw_intent=raw_intent,
         facts_asserted_summary={"agent": 1, "source": 2},
         routing_decisions=[RoutingDecision(source_id="src-a", reason="matched")],
-        scope_constraints=[ScopeConstraint(source_id="src-a", field="dept", operator="=", value="eng")],
+        scope_constraints=[
+            ScopeConstraint(source_id="src-a", field="dept", operator="=", value="eng"),
+        ],
         denial_records=denial_records,
         error_records=[],
         rule_trace=rule_trace or ["rule-1 fired", "rule-2 fired"],
@@ -198,8 +196,8 @@ class TestDecisionDetail:
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
             audit_path = f.name
         app = _build_app(audit_path=audit_path)
-        with patch("nautilus.ui.router.AuditReader") as MockReader:
-            instance = MockReader.return_value
+        with patch("nautilus.ui.router.AuditReader") as mock_reader_cls:
+            instance = mock_reader_cls.return_value
             instance.read_page.return_value = page
             return TestClient(app)
 
@@ -208,8 +206,8 @@ class TestDecisionDetail:
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
             audit_path = f.name
         app = _build_app(audit_path=audit_path)
-        with patch("nautilus.ui.router.AuditReader") as MockReader:
-            instance = MockReader.return_value
+        with patch("nautilus.ui.router.AuditReader") as mock_reader_cls:
+            instance = mock_reader_cls.return_value
             instance.read_page.return_value = page
             client = TestClient(app)
             resp = client.get("/admin/decisions/req-001", headers=AUTH_HEADERS)
@@ -224,8 +222,8 @@ class TestDecisionDetail:
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
             audit_path = f.name
         app = _build_app(audit_path=audit_path)
-        with patch("nautilus.ui.router.AuditReader") as MockReader:
-            instance = MockReader.return_value
+        with patch("nautilus.ui.router.AuditReader") as mock_reader_cls:
+            instance = mock_reader_cls.return_value
             instance.read_page.return_value = page
             client = TestClient(app)
             resp = client.get("/admin/decisions/req-001", headers=AUTH_HEADERS)
@@ -236,8 +234,8 @@ class TestDecisionDetail:
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
             audit_path = f.name
         app = _build_app(audit_path=audit_path)
-        with patch("nautilus.ui.router.AuditReader") as MockReader:
-            instance = MockReader.return_value
+        with patch("nautilus.ui.router.AuditReader") as mock_reader_cls:
+            instance = mock_reader_cls.return_value
             instance.read_page.return_value = page
             client = TestClient(app)
             resp = client.get("/admin/decisions/nonexistent-id", headers=AUTH_HEADERS)
@@ -266,8 +264,8 @@ class TestDecisionsFilter:
         headers = {**AUTH_HEADERS}
         if htmx:
             headers["HX-Request"] = "true"
-        with patch("nautilus.ui.router.AuditReader") as MockReader:
-            instance = MockReader.return_value
+        with patch("nautilus.ui.router.AuditReader") as mock_reader_cls:
+            instance = mock_reader_cls.return_value
             instance.read_page.return_value = page
             client = TestClient(app)
             return client.get("/admin/decisions", headers=headers, params=params or {})

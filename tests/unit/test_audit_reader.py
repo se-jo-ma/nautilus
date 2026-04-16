@@ -16,7 +16,6 @@ import pytest
 
 from nautilus.ui.audit_reader import AuditPage, AuditReader
 
-
 # -- helpers ----------------------------------------------------------------
 
 def _make_audit_entry_dict(
@@ -234,7 +233,7 @@ class TestFilters:
 
     def test_agent_id_filter(self, tmp_path: Path) -> None:
         audit_file = tmp_path / "audit.jsonl"
-        entries = _make_200_line_file(audit_file)
+        _make_200_line_file(audit_file)
         reader = AuditReader(audit_file, page_size=200)
 
         page = reader.read_page(agent_id="agent-0", sort="asc")
