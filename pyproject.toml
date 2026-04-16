@@ -32,6 +32,10 @@ dependencies = [
     "elasticsearch>=8",
     "neo4j>=5",
     "mcp>=1.12",
+    "sse-starlette>=2.0",
+    "python-multipart>=0.0.9",
+    "influxdb-client>=1.40",
+    "aiobotocore>=2.12",
 ]
 
 [project.urls]
@@ -52,6 +56,13 @@ dev = [
     "respx>=0.21",
     "pytest-recording>=0.13",
     "testcontainers[elasticsearch,neo4j]>=4.0",
+]
+otel = [
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-api>=1.20",
+    "opentelemetry-instrumentation-fastapi>=0.41b0",
+    "opentelemetry-exporter-otlp-proto-http>=1.20",
+    "prometheus-client>=0.20",
 ]
 llm-anthropic = ["anthropic>=0.40"]
 llm-openai = ["openai>=1.50"]

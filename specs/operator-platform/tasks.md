@@ -6,7 +6,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1A — Infrastructure Setup
 
-- [ ] 1.1 Add runtime dependencies to pyproject.toml
+- [x] 1.1 Add runtime dependencies to pyproject.toml
   - **Do**:
     1. Add `sse-starlette`, `python-multipart` to `[project.dependencies]`
     2. Add `influxdb-client`, `aiobotocore` to `[project.dependencies]`
