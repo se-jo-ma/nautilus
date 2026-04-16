@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import importlib.metadata
 import logging
 import time
 import uuid
@@ -38,10 +39,12 @@ from fathom.audit import FileSink
 from nautilus.adapters.base import Adapter, AdapterError, ScopeEnforcementError
 from nautilus.adapters.elasticsearch import ElasticsearchAdapter
 from nautilus.adapters.embedder import Embedder, NoopEmbedder
+from nautilus.adapters.influxdb import InfluxDBAdapter
 from nautilus.adapters.neo4j import Neo4jAdapter
 from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
 from nautilus.adapters.rest import RestAdapter
+from nautilus.adapters.s3 import S3Adapter
 from nautilus.adapters.servicenow import ServiceNowAdapter
 from nautilus.analysis.fallback import FallbackIntentAnalyzer
 from nautilus.analysis.llm.base import LLMIntentProvider, LLMProvenance
@@ -105,6 +108,55 @@ except ImportError:
     _metrics = None  # type: ignore[assignment]
 
 log = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Adapter registry — static built-ins + entry-point discovery (design §3.5)
+# ---------------------------------------------------------------------------
+
+ADAPTER_REGISTRY: dict[str, type[Adapter]] = {
+    "postgres": PostgresAdapter,
+    "pgvector": PgVectorAdapter,
+    "elasticsearch": ElasticsearchAdapter,
+    "rest": RestAdapter,
+    "neo4j": Neo4jAdapter,
+    "servicenow": ServiceNowAdapter,
+    "influxdb": InfluxDBAdapter,
+    "s3": S3Adapter,
+}
+
+
+def _discover_adapters() -> dict[str, type[Adapter]]:
+    """Load adapter classes advertised via ``nautilus.adapters`` entry points.
+
+    Each entry point name is the ``source_type`` key and must resolve to an
+    :class:`Adapter` subclass.  Broken plugins are logged and skipped so one
+    bad third-party package can never take down the broker.
+
+    Returns a dict that can be merged over :data:`ADAPTER_REGISTRY`.
+    """
+    discovered: dict[str, type[Adapter]] = {}
+    eps = importlib.metadata.entry_points(group="nautilus.adapters")
+    for ep in eps:
+        try:
+            obj = ep.load()
+            if not (isinstance(obj, type) and issubclass(obj, Adapter)):
+                log.warning(
+                    "adapter entry-point '%s' resolved to %r, not an Adapter subclass; skipping",
+                    ep.name,
+                    obj,
+                )
+                continue
+            discovered[ep.name] = obj
+            log.debug("discovered adapter entry-point %s -> %s", ep.name, obj)
+        except Exception:  # noqa: BLE001
+            log.warning(
+                "failed to load adapter entry-point '%s' (%s); skipping",
+                ep.name,
+                ep.value,
+                exc_info=True,
+            )
+    return discovered
+
 
 if TYPE_CHECKING:
     from nautilus.analysis.base import IntentAnalyzer
@@ -328,9 +380,14 @@ class Broker:
         # loudly on missing embedder rather than silent zero vectors).
         broker_default_embedder: Embedder = NoopEmbedder(strict=True)
 
+        # Merge static registry with entry-point discovered plugins.
+        adapter_registry = {**ADAPTER_REGISTRY, **_discover_adapters()}
+
         adapters: dict[str, Adapter] = {}
         for source in registry:
-            adapters[source.id] = cls._build_adapter(source, broker_default_embedder)
+            adapters[source.id] = cls._build_adapter(
+                source, broker_default_embedder, adapter_registry
+            )
 
         audit_path = Path(config.audit.path)
         audit_logger = AuditLogger(sink=FileSink(path=audit_path))
@@ -503,30 +560,24 @@ class Broker:
     def _build_adapter(
         source: SourceConfig,
         broker_default_embedder: Embedder,
+        adapter_registry: dict[str, type[Adapter]] | None = None,
     ) -> Adapter:
         """Instantiate the right adapter class for ``source.type``.
 
-        Phase-1 dispatches to :class:`PostgresAdapter` / :class:`PgVectorAdapter`;
-        Phase-2 (design §3.5, §3.11) extends the table with four additive
-        adapter kinds — Elasticsearch, REST, Neo4j, ServiceNow. Each is
-        constructed with a ``None`` client/driver so the broker's
-        ``connect()`` lifecycle can lazy-initialise the real transport on
-        first ``arequest`` (mirrors the Phase-1 pattern).
+        Looks up ``source.type`` in the merged adapter registry (static
+        built-ins + entry-point discovered plugins).  ``pgvector`` is
+        special-cased because it requires the broker-default embedder.
         """
-        if source.type == "postgres":
-            return PostgresAdapter()
+        registry = adapter_registry if adapter_registry is not None else ADAPTER_REGISTRY
+
+        # pgvector needs the embedder kwarg — special-case it.
         if source.type == "pgvector":
             return PgVectorAdapter(broker_default_embedder=broker_default_embedder)
-        if source.type == "elasticsearch":
-            return ElasticsearchAdapter()
-        if source.type == "rest":
-            return RestAdapter()
-        if source.type == "neo4j":
-            return Neo4jAdapter()
-        if source.type == "servicenow":
-            return ServiceNowAdapter()
-        # pragma: no cover — config loader rejects unknown types upstream.
-        raise ConfigError(f"Unsupported source type '{source.type}' for id='{source.id}'")
+
+        adapter_cls = registry.get(source.type)
+        if adapter_cls is None:
+            raise ConfigError(f"Unsupported source type '{source.type}' for id='{source.id}'")
+        return adapter_cls()
 
     # ------------------------------------------------------------------
     # Public API

@@ -723,7 +723,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1R — Entry-Point Discovery + AuditEntry trace_id
 
-- [ ] 1.68 Add entry-point adapter discovery in broker.py
+- [x] 1.68 Add entry-point adapter discovery in broker.py
   - **Do**:
     1. In `nautilus/core/broker.py`, add `importlib.metadata.entry_points(group="nautilus.adapters")` discovery at startup
     2. Merge discovered adapters with static `ADAPTER_REGISTRY`
