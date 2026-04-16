@@ -72,7 +72,9 @@ class InfluxDBAdapter:
             return
 
         try:
-            from influxdb_client import InfluxDBClient  # pyright: ignore[reportMissingTypeStubs]
+            from influxdb_client import (
+                InfluxDBClient,  # pyright: ignore[reportMissingTypeStubs, reportPrivateImportUsage]
+            )
 
             # Phase 1: connection is the URL; token/org/bucket carried in config
             # metadata or env. ``InfluxDBClient`` accepts keyword args.
@@ -129,7 +131,7 @@ class InfluxDBAdapter:
                 elif op == "<=" or op == "<":
                     range_stop = _flux_escape(value)
                 elif op == "BETWEEN":
-                    if not isinstance(value, (list, tuple)) or len(value) != 2:
+                    if not isinstance(value, (list, tuple)) or len(value) != 2:  # pyright: ignore[reportUnknownArgumentType]
                         raise ScopeEnforcementError(
                             "Operator 'BETWEEN' requires a 2-tuple/list value"
                         )
@@ -157,14 +159,14 @@ class InfluxDBAdapter:
                     raise ScopeEnforcementError(
                         f"Operator 'IN' requires a list value, got {type(value).__name__}"
                     )
-                or_parts = [f'r["{field}"] == {_flux_escape(v)}' for v in value]
+                or_parts = [f'r["{field}"] == {_flux_escape(v)}' for v in value]  # pyright: ignore[reportUnknownVariableType]
                 filters.append(f"({' or '.join(or_parts)})")
             elif op == "NOT IN":
                 if not isinstance(value, list):
                     raise ScopeEnforcementError(
                         f"Operator 'NOT IN' requires a list value, got {type(value).__name__}"
                     )
-                and_parts = [f'r["{field}"] != {_flux_escape(v)}' for v in value]
+                and_parts = [f'r["{field}"] != {_flux_escape(v)}' for v in value]  # pyright: ignore[reportUnknownVariableType]
                 filters.append(f"({' and '.join(and_parts)})")
             elif op == "LIKE":
                 if not isinstance(value, str):
@@ -177,12 +179,14 @@ class InfluxDBAdapter:
                     f'strings.containsStr(v: r["{field}"], substr: {_flux_escape(pattern)})'
                 )
             elif op == "BETWEEN":
-                if not isinstance(value, (list, tuple)) or len(value) != 2:
+                if not isinstance(value, (list, tuple)) or len(value) != 2:  # pyright: ignore[reportUnknownArgumentType]
                     raise ScopeEnforcementError(
                         "Operator 'BETWEEN' requires a 2-tuple/list value"
                     )
+                lo = _flux_escape(value[0])
+                hi = _flux_escape(value[1])
                 filters.append(
-                    f'r["{field}"] >= {_flux_escape(value[0])} and r["{field}"] <= {_flux_escape(value[1])}'
+                    f'r["{field}"] >= {lo} and r["{field}"] <= {hi}'
                 )
             elif op == "IS NULL":
                 filters.append(f'not exists r["{field}"]')

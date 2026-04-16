@@ -715,7 +715,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-28, AC-16.1, AC-16.2, AC-16.3, AC-16.6_
   - _Design: Component G — S3 Adapter_
 
-- [ ] 1.67 [VERIFY] Quality checkpoint: adapters
+- [x] 1.67 [VERIFY] Quality checkpoint: adapters
   - **Do**: Run quality commands on new adapters
   - **Verify**: `ruff check nautilus/adapters/influxdb.py nautilus/adapters/s3.py && pyright`
   - **Done when**: No lint errors, no type errors

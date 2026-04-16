@@ -15,6 +15,7 @@ asyncio event loop without blocking.
 
 from __future__ import annotations
 
+import contextlib
 import time
 from typing import Any, ClassVar
 
@@ -59,7 +60,7 @@ class S3Adapter:
         These are passed via ``config.connection`` as a Python dict (parsed
         upstream by the config loader) or directly via named config fields.
         """
-        from aiobotocore.session import AioSession
+        from aiobotocore.session import AioSession  # pyright: ignore[reportMissingTypeStubs]
 
         self._config = config
 
@@ -68,7 +69,7 @@ class S3Adapter:
         # a plain string, treat it as the endpoint URL with env-based auth.
         conn: Any = config.connection
         if isinstance(conn, dict):
-            conn_dict: dict[str, Any] = conn
+            conn_dict: dict[str, Any] = conn  # pyright: ignore[reportUnknownVariableType]
         else:
             # Fallback: treat connection string as endpoint_url, rely on
             # environment variables for auth (standard boto credential chain).
@@ -111,10 +112,8 @@ class S3Adapter:
         client_ctx = getattr(self, "_client_ctx", None)
         self._client = None
         if client_ctx is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await client_ctx.__aexit__(None, None, None)
-            except Exception:
-                pass  # best-effort cleanup
 
     async def execute(
         self,
@@ -184,13 +183,15 @@ class S3Adapter:
 
         # Classification gate: reject early if the source classification
         # does not match the requested classification label.
-        if classification_filter is not None:
-            if self._config.classification != classification_filter:
-                return AdapterResult(
-                    source_id=self._config.id,
-                    rows=[],
-                    duration_ms=0,
-                )
+        if (
+            classification_filter is not None
+            and self._config.classification != classification_filter
+        ):
+            return AdapterResult(
+                source_id=self._config.id,
+                rows=[],
+                duration_ms=0,
+            )
 
         started = time.perf_counter()
 
@@ -219,6 +220,8 @@ class S3Adapter:
 
     async def _get_object(self, key: str) -> list[dict[str, Any]]:
         """Fetch a single object by exact key and return metadata + body."""
+        if self._client is None:
+            raise AdapterError("S3Adapter is not connected")
         response = await self._client.get_object(
             Bucket=self._bucket,
             Key=key,
@@ -242,6 +245,8 @@ class S3Adapter:
         limit: int,
     ) -> list[dict[str, Any]]:
         """List objects with optional prefix, applying tag filters post-list."""
+        if self._client is None:
+            raise AdapterError("S3Adapter is not connected")
         list_kwargs: dict[str, Any] = {"Bucket": self._bucket, "MaxKeys": limit}
         if prefix:
             list_kwargs["Prefix"] = prefix
@@ -259,9 +264,8 @@ class S3Adapter:
             }
 
             # Apply tag filters if any are specified.
-            if tag_filters:
-                if not await self._matches_tags(key, tag_filters):
-                    continue
+            if tag_filters and not await self._matches_tags(key, tag_filters):
+                continue
 
             rows.append(row)
             if len(rows) >= limit:
@@ -275,6 +279,8 @@ class S3Adapter:
         tag_filters: list[tuple[str, str, str]],
     ) -> bool:
         """Check whether an object's tags satisfy all tag filter constraints."""
+        if self._client is None:
+            raise AdapterError("S3Adapter is not connected")
         try:
             tag_response = await self._client.get_object_tagging(
                 Bucket=self._bucket,
@@ -294,10 +300,9 @@ class S3Adapter:
             elif op == "!=":
                 if actual == expected:
                     return False
-            elif op == "IN":
+            elif op == "IN" and (actual is None or actual not in expected):
                 # Value was stringified from a list; for IN we check membership.
-                if actual is None or actual not in expected:
-                    return False
+                return False
 
         return True
 
