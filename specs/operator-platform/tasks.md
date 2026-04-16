@@ -842,7 +842,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `refactor(ui): verify air-gap compliance — zero external URLs`
   - _Requirements: NFR-1, AC-17.5, FR-29_
 
-- [ ] 2.8 [VERIFY] Quality checkpoint: refactoring complete
+- [x] 2.8 [VERIFY] Quality checkpoint: refactoring complete
   - **Do**: Run full quality suite
   - **Verify**: `ruff check nautilus tests && ruff format --check nautilus tests && pyright`
   - **Done when**: All lint, format, and type checks pass
@@ -852,7 +852,7 @@ After POC validated, clean up code. No new features.
 
 ## Phase 3: Testing
 
-- [ ] 3.1 Unit tests for AuditReader (pagination, cursors, double-parse, filters)
+- [x] 3.1 Unit tests for AuditReader (pagination, cursors, double-parse, filters)
   - **Do**:
     1. Create `tests/unit/test_audit_reader.py`
     2. Test: 200-line JSONL file paginated in 4 pages (page_size=50), cursor round-trip correct
@@ -864,7 +864,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(ui): add unit tests for AuditReader`
   - _Requirements: FR-6, FR-7, FR-8, AC-3.2, AC-3.6_
 
-- [ ] 3.2 Unit tests for admin UI source and decision routes
+- [x] 3.2 Unit tests for admin UI source and decision routes
   - **Do**:
     1. Create `tests/unit/test_admin_routes.py`
     2. Test: `GET /admin/sources` returns 200 with HTML content-type, mock broker with 3 sources all rendered
