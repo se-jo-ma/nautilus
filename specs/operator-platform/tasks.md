@@ -73,7 +73,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: AC-17.4, AC-17.5, FR-29_
   - _Design: Component A — templates_
 
-- [ ] 1.7 [P] Create static assets (htmx.min.js, htmx-ext-sse.min.js, styles.css)
+- [x] 1.7 [P] Create static assets (htmx.min.js, htmx-ext-sse.min.js, styles.css)
   - **Do**:
     1. Create `nautilus/ui/static/htmx.min.js` — vendored HTMX 2.0.x (download or placeholder with comment noting version)
     2. Create `nautilus/ui/static/htmx-ext-sse.min.js` — vendored SSE extension
