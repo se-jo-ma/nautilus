@@ -878,7 +878,7 @@ Five sequential tasks: one startup, three checks (REST + MCP + declare_handoff +
 - **Commit**: None
 - **References**: FR-1, FR-2, FR-6, FR-7, FR-17, FR-19, FR-25, AC-1.3, AC-3.1, AC-7.4, AC-12.1, NFR-5, NFR-15.
 
-### Task 5.3 — VE2b: MCP stdio tool-call round-trip + `Broker.declare_handoff` between two agents
+### Task 5.3 [x] — VE2b: MCP stdio tool-call round-trip + `Broker.declare_handoff` between two agents
 - **Do**:
   - MCP round-trip: spawn an `mcp` client subprocess speaking stdio to a co-located `nautilus serve --transport mcp --mcp-mode stdio --config tests/fixtures/ve-config.yaml` instance; issue one `tools/call` for `nautilus_request` with `agent_id="orch-a"`, `intent="query vulns"`, `context={"session_id":"ve-mcp-1","clearance":"secret","purpose":"ops"}`.
   - Assert: response is a valid `BrokerResponse`; exactly one new line appended to `/tmp/ve-audit.jsonl`; that line's `.session_id_source == "stdio_request_id"` (no `context.session_id` supplied in a second test invocation) or `"context"` (when supplied).
