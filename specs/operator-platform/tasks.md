@@ -962,7 +962,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(rules): add YAML validation tests for NIST and HIPAA packs`
   - _Requirements: FR-24, FR-25, FR-26, AC-13.6, AC-14.7_
 
-- [ ] 3.11 [VERIFY] Quality checkpoint: integration + rule pack tests
+- [x] 3.11 [VERIFY] Quality checkpoint: integration + rule pack tests
   - **Do**: Run all tests
   - **Verify**: `ruff check tests/ && pytest -v`
   - **Done when**: All tests pass
@@ -972,13 +972,13 @@ After POC validated, clean up code. No new features.
 
 ## Phase 4: Quality Gates
 
-- [ ] 4.1 [VERIFY] V4 Full local CI: ruff check + pyright + pytest
+- [x] 4.1 [VERIFY] V4 Full local CI: ruff check + pyright + pytest
   - **Do**: Run complete local CI suite
   - **Verify**: `ruff check nautilus tests && ruff format --check nautilus tests && pyright && pytest -m unit && pytest -m integration`
   - **Done when**: All commands pass with zero errors
   - **Commit**: `chore(operator-platform): pass local CI` (if fixes needed)
 
-- [ ] 4.2 Create PR and verify CI
+- [x] 4.2 Create PR and verify CI
   - **Do**:
     1. Verify current branch is a feature branch: `git branch --show-current`
     2. Push branch: `git push -u origin $(git branch --show-current)`
@@ -987,13 +987,13 @@ After POC validated, clean up code. No new features.
   - **Done when**: PR created, all CI checks green
   - **Commit**: None
 
-- [ ] 4.3 [VERIFY] V5 CI pipeline passes
+- [x] 4.3 [VERIFY] V5 CI pipeline passes
   - **Do**: Verify GitHub Actions/CI passes after push
   - **Verify**: `gh pr checks`
   - **Done when**: All checks show passing
   - **Commit**: None
 
-- [ ] 4.4 [VERIFY] V6 AC checklist
+- [x] 4.4 [VERIFY] V6 AC checklist
   - **Do**:
     1. Read `specs/operator-platform/requirements.md`, verify each AC programmatically:
        - AC-1.1: `grep -r 'GET.*sources' nautilus/ui/router.py`
@@ -1011,7 +1011,7 @@ After POC validated, clean up code. No new features.
   - **Done when**: All acceptance criteria confirmed met
   - **Commit**: None
 
-- [ ] VE1 [VERIFY] E2E startup: start dev server and wait for ready
+- [x] VE1 [VERIFY] E2E startup: start dev server and wait for ready
   - **Do**:
     1. Start dev server in background: `python -m nautilus serve --config nautilus.yaml --transport rest &`
     2. Record PID: `echo $! > /tmp/ve-pids.txt`
@@ -1020,7 +1020,7 @@ After POC validated, clean up code. No new features.
   - **Done when**: Dev server running and responding on port 8000
   - **Commit**: None
 
-- [ ] VE2 [VERIFY] E2E check: test admin UI pages render
+- [x] VE2 [VERIFY] E2E check: test admin UI pages render
   - **Do**:
     1. `curl -sf http://localhost:8000/admin/sources` — verify 200 with HTML content
     2. `curl -sf http://localhost:8000/admin/audit` — verify 200 with HTML content
@@ -1030,7 +1030,7 @@ After POC validated, clean up code. No new features.
   - **Done when**: All four admin pages return HTML content
   - **Commit**: None
 
-- [ ] VE3 [VERIFY] E2E cleanup: stop server and free port
+- [x] VE3 [VERIFY] E2E cleanup: stop server and free port
   - **Do**:
     1. Kill by PID: `kill $(cat /tmp/ve-pids.txt) 2>/dev/null; sleep 2; kill -9 $(cat /tmp/ve-pids.txt) 2>/dev/null || true`
     2. Kill by port fallback: `lsof -ti :8000 | xargs -r kill 2>/dev/null || true`
@@ -1044,7 +1044,7 @@ After POC validated, clean up code. No new features.
 
 ## Phase 5: PR Lifecycle
 
-- [ ] 5.1 PR creation and initial push
+- [x] 5.1 PR creation and initial push
   - **Do**:
     1. Ensure all Phase 1-4 tasks complete
     2. If PR not yet created (from 4.2), create now: `gh pr create`
@@ -1053,7 +1053,7 @@ After POC validated, clean up code. No new features.
   - **Verify**: `gh pr view --json state | grep -q 'OPEN'`
   - **Commit**: None
 
-- [ ] 5.2 CI monitoring and fix loop
+- [x] 5.2 CI monitoring and fix loop
   - **Do**:
     1. Check CI status: `gh pr checks`
     2. If any check fails, read failure details, fix locally, push
@@ -1062,7 +1062,7 @@ After POC validated, clean up code. No new features.
   - **Verify**: `gh pr checks | grep -v 'pass\|✓' | wc -l | grep -q '^0$' || gh pr checks`
   - **Commit**: `fix(operator-platform): resolve CI failures` (if fixes needed)
 
-- [ ] 5.3 Review comment resolution
+- [x] 5.3 Review comment resolution
   - **Do**:
     1. Check for review comments: `gh pr view --json reviews`
     2. Address any requested changes
@@ -1071,7 +1071,7 @@ After POC validated, clean up code. No new features.
   - **Verify**: `gh pr view --json reviewDecision`
   - **Commit**: `fix(operator-platform): address review comments` (if fixes needed)
 
-- [ ] 5.4 Final validation
+- [x] 5.4 Final validation
   - **Do**:
     1. Verify zero test regressions: `pytest`
     2. Verify code is modular/reusable
