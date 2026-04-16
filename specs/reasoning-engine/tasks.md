@@ -904,7 +904,7 @@ Five sequential tasks: one startup, three checks (REST + MCP + declare_handoff +
 - **Commit**: None
 - **References**: FR-11, FR-12, FR-33, NFR-13, AC-5.1, AC-5.2, AC-5.3, AC-5.4.
 
-### Task 5.5 — VE3: clean shutdown + container teardown + archive audit.jsonl
+### Task 5.5 [x] — VE3: clean shutdown + container teardown + archive audit.jsonl
 - **Do**:
   - Kill serve process: `if [ -f .ve-serve-pid.txt ]; then kill "$(cat .ve-serve-pid.txt)" 2>/dev/null; sleep 2; kill -9 "$(cat .ve-serve-pid.txt)" 2>/dev/null || true; fi`
   - Force-remove containers: `for f in .ve-pg-cid.txt .ve-es-cid.txt; do [ -f "$f" ] && docker rm -f "$(cat $f)" 2>/dev/null || true; done`

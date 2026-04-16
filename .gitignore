@@ -9,6 +9,7 @@
 .ve-*.txt
 .ve-*.log
 .ve-*.json
+.ve-archive/
 ve-runtime/
 
 CLAUDE.md
