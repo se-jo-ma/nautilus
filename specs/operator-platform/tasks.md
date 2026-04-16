@@ -376,7 +376,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(grafana): add attestation dashboard`
   - _Requirements: FR-14, AC-7.1_
 
-- [ ] 1.36 Create Grafana provisioning configs (datasources.yml, dashboards.yml)
+- [x] 1.36 Create Grafana provisioning configs (datasources.yml, dashboards.yml)
   - **Do**:
     1. Create `observability/grafana/provisioning/datasources.yml` — Tempo (traces), Prometheus (metrics), Loki (logs) with cross-links (Tempo→Prometheus exemplars, Loki→Tempo derived fields)
     2. Create `observability/grafana/provisioning/dashboards.yml` — auto-provision from `dashboards/` directory
