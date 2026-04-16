@@ -168,7 +168,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): add decisions page and detail modal templates`
   - _Requirements: AC-2.1, AC-2.2, AC-2.3, AC-2.4_
 
-- [ ] 1.16 Add decisions route handlers in router.py
+- [x] 1.16 Add decisions route handlers in router.py
   - **Do**:
     1. Add `GET /decisions` to `router.py` — accepts `agent_id`, `start`, `end`, `outcome`, `search` query params. Reads audit entries via `AuditReader`, renders full page or HTMX partial
     2. Add `GET /decisions/{request_id}` — returns `decision_detail.html` modal fragment for a specific request
