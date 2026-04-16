@@ -230,3 +230,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+audit.jsonl
+.next.md
+test-audit.jsonl
+specs/.current-spec
+specs/.current-epic
+specs/.index/index-state.json
+specs/core-broker/.ralph-state.json
+specs/.index/index.md
+specs/_epics/design-mk2/.epic-state.json
