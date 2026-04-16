@@ -268,7 +268,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1G — OTel Module
 
-- [ ] 1.26 Create observability package with __init__.py and no-op guards
+- [x] 1.26 Create observability package with __init__.py and no-op guards
   - **Do**:
     1. Create `nautilus/observability/__init__.py` with `setup_otel(app, service_name)` that tries to import `_setup` from `instrumentation.py`, catching `ImportError` for graceful no-op
     2. Create `nautilus/observability/_noop.py` with no-op stubs for span context manager and metrics (used when OTel not installed)
