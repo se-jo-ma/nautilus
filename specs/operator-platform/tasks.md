@@ -936,7 +936,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(ui): add integration test for admin auth gate`
   - _Requirements: FR-10, AC-5.2, NFR-8_
 
-- [ ] 3.9 Integration test: admin UI full flow (GET /admin/sources → 200 with data)
+- [x] 3.9 Integration test: admin UI full flow (GET /admin/sources → 200 with data)
   - **Do**:
     1. Create `tests/integration/test_admin_flow.py`
     2. Test: `GET /admin/sources` → 200 with source data rendered in HTML
@@ -949,7 +949,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(ui): add integration test for admin UI full flow`
   - _Requirements: FR-1, FR-2, AC-1.1_
 
-- [ ] 3.10 Unit tests for NIST and HIPAA rule pack YAML validation
+- [x] 3.10 Unit tests for NIST and HIPAA rule pack YAML validation
   - **Do**:
     1. Create `tests/unit/test_rule_packs.py`
     2. Test: all NIST pack YAML files parse correctly
