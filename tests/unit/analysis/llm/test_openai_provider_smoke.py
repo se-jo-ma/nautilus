@@ -30,7 +30,7 @@ from nautilus.core.models import IntentAnalysis
 # When the openai SDK is not installed, AsyncOpenAI is None and the constructor
 # raises LLMProviderError. Patch it to a MagicMock so offline tests can still
 # construct providers without the real SDK.
-if op_mod.AsyncOpenAI is None:
+if op_mod.AsyncOpenAI is None:  # pyright: ignore[reportUnnecessaryComparison]
     op_mod.AsyncOpenAI = MagicMock()  # type: ignore[assignment]
 
 

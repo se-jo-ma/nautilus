@@ -3,6 +3,7 @@
 import glob
 import os
 import re
+from typing import Any, cast
 
 import pytest
 import yaml
@@ -26,14 +27,18 @@ def _discover_yaml(base_dir: str) -> list[str]:
     return sorted(glob.glob(pattern, recursive=True))
 
 
-def _collect_salience_values(data: dict) -> list[int]:
+def _collect_salience_values(data: dict[str, Any]) -> list[int]:
     """Extract all salience integer values from a parsed YAML document."""
     values: list[int] = []
-    if isinstance(data.get("salience"), int):
-        values.append(data["salience"])
-    for rule in data.get("rules", []):
-        if isinstance(rule, dict) and isinstance(rule.get("salience"), int):
-            values.append(rule["salience"])
+    sal = data.get("salience")
+    if isinstance(sal, int):
+        values.append(sal)
+    rules: list[Any] = data.get("rules", [])
+    for rule_obj in rules:
+        if isinstance(rule_obj, dict):
+            rule_sal = cast(dict[str, Any], rule_obj).get("salience")
+            if isinstance(rule_sal, int):
+                values.append(rule_sal)
     return values
 
 
@@ -48,6 +53,7 @@ def _parse_salience_band(band_str: str) -> tuple[int, int] | None:
 # ---------------------------------------------------------------------------
 # NIST pack YAML parsing
 # ---------------------------------------------------------------------------
+
 
 class TestNISTPack:
     """All NIST rule-pack YAML files parse correctly."""
@@ -66,6 +72,7 @@ class TestNISTPack:
 # HIPAA pack YAML parsing
 # ---------------------------------------------------------------------------
 
+
 class TestHIPAAPack:
     """All HIPAA rule-pack YAML files parse correctly."""
 
@@ -82,6 +89,7 @@ class TestHIPAAPack:
 # ---------------------------------------------------------------------------
 # Compliance disclaimer in README.md
 # ---------------------------------------------------------------------------
+
 
 class TestComplianceDisclaimer:
     """Both packs contain a compliance disclaimer in README.md."""
@@ -107,9 +115,10 @@ class TestComplianceDisclaimer:
 # Salience band validation
 # ---------------------------------------------------------------------------
 
+
 def _rule_files_with_salience() -> list[tuple[str, str]]:
     """Collect (path, pack_name) for rule files that contain salience values."""
-    result = []
+    result: list[tuple[str, str]] = []
     for pack_dir, pack_name in [(NIST_DIR, "NIST"), (HIPAA_DIR, "HIPAA")]:
         rules_dir = os.path.join(pack_dir, "rules")
         for path in _discover_yaml(rules_dir):
@@ -152,8 +161,7 @@ class TestSalienceBands:
             lo, hi = band
             for val in salience_values:
                 assert lo <= val <= hi, (
-                    f"Salience {val} outside expected band {lo}-{hi} "
-                    f"in {os.path.basename(path)}"
+                    f"Salience {val} outside expected band {lo}-{hi} in {os.path.basename(path)}"
                 )
         else:
             # No explicit band or action — verify each value falls in a

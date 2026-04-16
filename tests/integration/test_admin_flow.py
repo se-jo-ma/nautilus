@@ -28,11 +28,11 @@ from nautilus.ui.router import router
 AUTH_HEADERS = {"X-Forwarded-User": "test-operator"}
 
 
-def _make_source(id: str, type: str = "postgres", **kwargs: Any) -> SourceConfig:
+def _make_source(id: str, type: str = "postgres", **kwargs: Any) -> SourceConfig:  # noqa: A002
     """Build a minimal SourceConfig for testing."""
     return SourceConfig(
         id=id,
-        type=type,
+        type=type,  # pyright: ignore[reportArgumentType]
         description=f"Test source {id}",
         classification="internal",
         data_types=["structured"],
@@ -47,7 +47,7 @@ def _make_audit_entry_dict(
     agent_id: str = "agent-1",
     source_id: str = "pg",
     ts: datetime | None = None,
-) -> dict:
+) -> dict[str, object]:
     """Return a minimal AuditEntry-shaped dict."""
     if ts is None:
         ts = datetime(2025, 6, 15, 12, 0, 0, tzinfo=UTC)
@@ -78,19 +78,26 @@ def _make_audit_entry_dict(
     }
 
 
-def _make_audit_record_line(entry_dict: dict) -> str:
+def _make_audit_record_line(entry_dict: dict[str, object]) -> str:
     """Wrap an AuditEntry dict inside a Fathom AuditRecord JSONL line."""
     entry_json = json.dumps(entry_dict, separators=(",", ":"))
-    return json.dumps({
-        "timestamp": entry_dict["timestamp"],
-        "session_id": entry_dict.get("session_id") or entry_dict["request_id"],
-        "modules_traversed": [],
-        "rules_fired": entry_dict.get("rule_trace", []),
-        "decision": "allow",
-        "reason": "queried=1 denied=0 skipped=0 errored=0",
-        "duration_us": entry_dict["duration_ms"] * 1000,
-        "metadata": {"nautilus_audit_entry": entry_json},
-    })
+    ts = entry_dict["timestamp"]
+    session_id = entry_dict.get("session_id") or entry_dict["request_id"]
+    rule_trace = entry_dict.get("rule_trace", [])
+    duration_ms = entry_dict["duration_ms"]
+    assert isinstance(duration_ms, int)
+    return json.dumps(
+        {
+            "timestamp": ts,
+            "session_id": session_id,
+            "modules_traversed": [],
+            "rules_fired": rule_trace,
+            "decision": "allow",
+            "reason": "queried=1 denied=0 skipped=0 errored=0",
+            "duration_us": duration_ms * 1000,
+            "metadata": {"nautilus_audit_entry": entry_json},
+        }
+    )
 
 
 def _build_app(
@@ -150,7 +157,8 @@ class TestAdminSourcesFlow:
     """GET /admin/sources -> 200 with source data rendered in HTML."""
 
     def test_sources_returns_200_with_html(
-        self, three_sources: list[SourceConfig],
+        self,
+        three_sources: list[SourceConfig],
     ) -> None:
         app = _build_app(sources=three_sources)
         client = TestClient(app)
@@ -159,7 +167,8 @@ class TestAdminSourcesFlow:
         assert "text/html" in resp.headers["content-type"]
 
     def test_all_sources_rendered_in_html(
-        self, three_sources: list[SourceConfig],
+        self,
+        three_sources: list[SourceConfig],
     ) -> None:
         app = _build_app(sources=three_sources)
         client = TestClient(app)
@@ -169,7 +178,8 @@ class TestAdminSourcesFlow:
             assert src.id in body, f"Source {src.id} not found in rendered HTML"
 
     def test_source_types_rendered(
-        self, three_sources: list[SourceConfig],
+        self,
+        three_sources: list[SourceConfig],
     ) -> None:
         app = _build_app(sources=three_sources)
         client = TestClient(app)
@@ -180,7 +190,8 @@ class TestAdminSourcesFlow:
         assert "elasticsearch" in body
 
     def test_connection_string_not_exposed(
-        self, three_sources: list[SourceConfig],
+        self,
+        three_sources: list[SourceConfig],
     ) -> None:
         """Source connection strings must never appear in rendered HTML."""
         app = _build_app(sources=three_sources)
