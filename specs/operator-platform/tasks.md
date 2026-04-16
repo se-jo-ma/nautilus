@@ -348,7 +348,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1H — Grafana Stack
 
-- [ ] 1.33 [P] Create Grafana overview dashboard JSON
+- [x] 1.33 [P] Create Grafana overview dashboard JSON
   - **Do**:
     1. Create `observability/grafana/dashboards/overview.json` — Grafana dashboard with panels: request rate (`nautilus.requests.total`), decision distribution (`nautilus.routing.decisions.total`), error rate, latency histogram (`nautilus.request.duration`). Templated datasource UIDs
   - **Files**: `observability/grafana/dashboards/overview.json`
@@ -358,7 +358,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-14, AC-7.1_
   - _Design: Component C — overview.json_
 
-- [ ] 1.34 [P] Create Grafana adapters dashboard JSON
+- [x] 1.34 [P] Create Grafana adapters dashboard JSON
   - **Do**:
     1. Create `observability/grafana/dashboards/adapters.json` — panels: per-adapter latency (`nautilus.adapter.latency`), error breakdown (`nautilus.adapter.errors.total`), throughput per source
   - **Files**: `observability/grafana/dashboards/adapters.json`
