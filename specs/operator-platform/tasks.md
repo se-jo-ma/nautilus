@@ -587,7 +587,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `docs(sdk): add API reference pages`
   - _Requirements: AC-12.3_
 
-- [ ] 1.55 [VERIFY] Quality checkpoint: SDK docs + template
+- [x] 1.55 [VERIFY] Quality checkpoint: SDK docs + template
   - **Do**: Validate template and doc structure
   - **Verify**: `test -f templates/adapter/copier.yml && test -f docs/sdk/mkdocs.yml && echo OK`
   - **Done when**: All SDK-related files exist
@@ -595,7 +595,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1O — NIST Rule Pack
 
-- [ ] 1.56 Create NIST pack structure and metadata
+- [x] 1.56 Create NIST pack structure and metadata
   - **Do**:
     1. Create `rule-packs/data-routing-nist/pack.yaml` — pack metadata with compliance disclaimer
     2. Create `rule-packs/data-routing-nist/README.md` — documentation with compliance disclaimer
