@@ -877,13 +877,13 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(ui): add unit tests for admin routes`
   - _Requirements: FR-2, FR-4, FR-5, AC-1.1, AC-1.3, AC-2.3_
 
-- [ ] 3.3 [VERIFY] Quality checkpoint: UI tests
+- [x] 3.3 [VERIFY] Quality checkpoint: UI tests
   - **Do**: Run quality commands including new tests
   - **Verify**: `ruff check tests/unit/test_audit_reader.py tests/unit/test_admin_routes.py && pytest tests/unit/test_audit_reader.py tests/unit/test_admin_routes.py -v`
   - **Done when**: Tests pass, no lint errors
   - **Commit**: `chore(operator-platform): pass quality checkpoint` (if fixes needed)
 
-- [ ] 3.4 Unit tests for attestation verification
+- [x] 3.4 Unit tests for attestation verification
   - **Do**:
     1. Create `tests/unit/test_admin_attestation.py`
     2. Test: valid token → "valid" result fragment
