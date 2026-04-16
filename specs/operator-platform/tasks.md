@@ -227,7 +227,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): wire all admin routes into create_admin_router`
   - _Requirements: FR-1_
 
-- [ ] 1.22 [VERIFY] Quality checkpoint: all admin views
+- [x] 1.22 [VERIFY] Quality checkpoint: all admin views
   - **Do**: Run quality commands after all admin UI views
   - **Verify**: `ruff check nautilus/ui/ && pyright`
   - **Done when**: No lint errors, no type errors
@@ -235,7 +235,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1E — SSE Endpoint
 
-- [ ] 1.23 Create SSE source status endpoint
+- [x] 1.23 Create SSE source status endpoint
   - **Do**:
     1. Create `nautilus/ui/sse.py` with `GET /sources/events` endpoint using `sse-starlette` `EventSourceResponse`
     2. Generator reads `broker.sources` periodically and yields SSE events on health changes

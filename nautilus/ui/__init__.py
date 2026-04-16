@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+import nautilus.ui.sse as _sse  # noqa: F401  # register SSE routes
 from nautilus.ui.router import router as _source_router
 
 
