@@ -703,7 +703,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-27, AC-15.1, AC-15.2, AC-15.3, AC-15.6_
   - _Design: Component G — InfluxDB Adapter_
 
-- [ ] 1.66 Create S3 adapter
+- [x] 1.66 Create S3 adapter
   - **Do**:
     1. Create `nautilus/adapters/s3.py` with `S3Adapter` class implementing `Adapter` Protocol
     2. `source_type = "s3"`, async `connect()` via `aiobotocore`, `execute()` maps scope constraints to prefix restrictions, tag filtering, classification label matching, `close()` releases session idempotently
