@@ -649,7 +649,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1P — HIPAA Rule Pack
 
-- [ ] 1.61 Create HIPAA pack structure and metadata
+- [x] 1.61 Create HIPAA pack structure and metadata
   - **Do**:
     1. Create `rule-packs/data-routing-hipaa/pack.yaml` — pack metadata with compliance disclaimer
     2. Create `rule-packs/data-routing-hipaa/README.md` — documentation with disclaimer
