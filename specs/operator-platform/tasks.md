@@ -367,7 +367,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(grafana): add adapters dashboard`
   - _Requirements: FR-14, AC-7.1_
 
-- [ ] 1.35 [P] Create Grafana attestation dashboard JSON
+- [x] 1.35 [P] Create Grafana attestation dashboard JSON
   - **Do**:
     1. Create `observability/grafana/dashboards/attestation.json` — panels: attestation success/failure rate (`nautilus.attestation.total`), verification latency
   - **Files**: `observability/grafana/dashboards/attestation.json`
