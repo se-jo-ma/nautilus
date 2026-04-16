@@ -125,6 +125,11 @@ def create_app(
         app.state.api_keys = keys
         app.state.ready = True
         try:
+            from nautilus.observability import setup_otel
+            setup_otel(app)
+        except ImportError:
+            pass
+        try:
             yield
         finally:
             app.state.ready = False

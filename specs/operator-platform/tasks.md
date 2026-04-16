@@ -317,7 +317,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-13, AC-6.3, AC-6.4_
   - _Design: Component B — metrics.py_
 
-- [ ] 1.30 Wire setup_otel() into fastapi_app.py lifespan
+- [x] 1.30 Wire setup_otel() into fastapi_app.py lifespan
   - **Do**:
     1. In `create_app()` lifespan, after `app.state.ready = True`, call `from nautilus.observability import setup_otel; setup_otel(app)`
     2. Import guarded — if `nautilus.observability` import fails, skip silently
