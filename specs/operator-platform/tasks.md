@@ -249,7 +249,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1F — Admin UI Auth
 
-- [ ] 1.24 Gate all /admin/* routes with auth dependency
+- [x] 1.24 Gate all /admin/* routes with auth dependency
   - **Do**:
     1. Ensure all routes in `router.py` and `sse.py` use `Depends(get_auth_user)` from `dependencies.py`
     2. Verify that unauthenticated requests return HTTP 401

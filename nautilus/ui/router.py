@@ -205,7 +205,7 @@ async def decision_detail(
         "duration_ms": entry.duration_ms,
     }
 
-    context = {"request": request, "decision": decision}
+    context = {"request": request, "user": user, "decision": decision}
     return templates.TemplateResponse(request, "partials/decision_detail.html", context)
 
 
@@ -346,7 +346,7 @@ async def attestation_verify(
         "claims": None,
     }
 
-    context = {"request": request, "result": result}
+    context = {"request": request, "user": user, "result": result}
     return templates.TemplateResponse(
         request, "partials/attestation_result.html", context
     )
