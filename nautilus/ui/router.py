@@ -8,17 +8,19 @@ Each endpoint serves a full page for normal requests or an HTMX partial
 when the ``HX-Request`` header is present.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from nautilus.core.broker import Broker
 from nautilus.ui.audit_reader import AuditReader
-from nautilus.ui.dependencies import get_audit_path, get_auth_user, get_broker
+from nautilus.ui.dependencies import get_auth_user
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 
@@ -26,11 +28,66 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 
+# ---------------------------------------------------------------------------
+# Error helpers
+# ---------------------------------------------------------------------------
+
+_BROKER_NOT_READY_HTML = (
+    "<!doctype html><html><head><title>Service Unavailable</title>"
+    '<meta http-equiv="refresh" content="5"></head>'
+    "<body><h1>503 &mdash; Broker starting&hellip;</h1>"
+    "<p>The data-routing broker is still initialising. "
+    "This page will refresh automatically.</p></body></html>"
+)
+
+
+def _broker_not_ready() -> HTMLResponse:
+    """Return a 503 HTML page when the broker is not yet available."""
+    return HTMLResponse(content=_BROKER_NOT_READY_HTML, status_code=503)
+
+
+def _error_page(title: str, detail: str, *, status_code: int = 500) -> HTMLResponse:
+    """Return a minimal HTML error page."""
+    html = (
+        f"<!doctype html><html><head><title>{title}</title></head>"
+        f"<body><h1>{status_code} &mdash; {title}</h1>"
+        f"<p>{detail}</p></body></html>"
+    )
+    return HTMLResponse(content=html, status_code=status_code)
+
+
+async def _safe_broker(request: Request) -> Broker | None:
+    """Return the broker or *None* if it is not yet initialised."""
+    return getattr(request.app.state, "broker", None)  # type: ignore[no-any-return]
+
+
+async def _safe_audit_path(request: Request) -> str | None:
+    """Return the audit path, or *None* when the broker is unavailable."""
+    broker: Broker | None = getattr(request.app.state, "broker", None)
+    if broker is None:
+        return None
+    return str(broker._config.audit.path)  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
+
+
+async def _safe_auth_user(request: Request) -> str | HTMLResponse:
+    """Authenticate, returning an HTML error response on failure.
+
+    Wraps :func:`get_auth_user` so that authentication failures are
+    captured and converted into proper HTML pages instead of raw JSON
+    ``HTTPException`` bodies.  Callers must check the return type.
+    """
+    try:
+        return await get_auth_user(request)
+    except HTTPException as exc:
+        title = "Unauthorized" if exc.status_code == 401 else "Forbidden"
+        return _error_page(title, str(exc.detail), status_code=exc.status_code)
+
+
 @router.get("/sources")
 async def source_status(
     request: Request,
-    broker: Annotated[Broker, Depends(get_broker)],
-    user: Annotated[str, Depends(get_auth_user)],
+    broker: Annotated[Broker | None, Depends(_safe_broker)],
+    user: Annotated[str | HTMLResponse, Depends(_safe_auth_user)],
 ) -> HTMLResponse:
     """Source status page — lists configured sources with metadata.
 
@@ -42,6 +99,11 @@ async def source_status(
     partial (``partials/source_table_body.html``) for HTMX swap; otherwise
     returns the full page (``pages/sources.html``).
     """
+    if isinstance(user, HTMLResponse):
+        return user
+    if broker is None:
+        return _broker_not_ready()
+
     sources = broker.sources
     source_rows = [
         {
@@ -71,8 +133,8 @@ async def source_status(
 @router.get("/decisions")
 async def decisions(
     request: Request,
-    audit_path: Annotated[str, Depends(get_audit_path)],
-    user: Annotated[str, Depends(get_auth_user)],
+    audit_path: Annotated[str | None, Depends(_safe_audit_path)],
+    user: Annotated[str | HTMLResponse, Depends(_safe_auth_user)],
     agent_id: str | None = None,
     start: str | None = None,
     end: str | None = None,
@@ -89,6 +151,11 @@ async def decisions(
     partial (``partials/decision_row.html`` rows) for HTMX swap; otherwise
     returns the full page (``pages/decisions.html``).
     """
+    if isinstance(user, HTMLResponse):
+        return user
+    if audit_path is None:
+        return _broker_not_ready()
+
     reader = AuditReader(audit_path)
     start_dt = _parse_dt(start)
     end_dt = _parse_dt(end)
@@ -162,8 +229,8 @@ async def decisions(
 async def decision_detail(
     request: Request,
     request_id: str,
-    audit_path: Annotated[str, Depends(get_audit_path)],
-    user: Annotated[str, Depends(get_auth_user)],
+    audit_path: Annotated[str | None, Depends(_safe_audit_path)],
+    user: Annotated[str | HTMLResponse, Depends(_safe_auth_user)],
 ) -> HTMLResponse:
     """Decision detail modal — returns the full trace for a specific request.
 
@@ -171,6 +238,11 @@ async def decision_detail(
     routing decisions, scope constraints, denial records, and facts summary
     for the given ``request_id``.
     """
+    if isinstance(user, HTMLResponse):
+        return user
+    if audit_path is None:
+        return _broker_not_ready()
+
     reader = AuditReader(audit_path)
     page = reader.read_page()
 
@@ -212,8 +284,8 @@ async def decision_detail(
 @router.get("/audit")
 async def audit(
     request: Request,
-    audit_path: Annotated[str, Depends(get_audit_path)],
-    user: Annotated[str, Depends(get_auth_user)],
+    audit_path: Annotated[str | None, Depends(_safe_audit_path)],
+    user: Annotated[str | HTMLResponse, Depends(_safe_auth_user)],
     agent_id: str | None = None,
     source_id: str | None = None,
     event_type: str | None = None,
@@ -233,6 +305,11 @@ async def audit(
     partial (``audit_rows.html``) and pagination fragment; otherwise
     returns the full page (``pages/audit.html``).
     """
+    if isinstance(user, HTMLResponse):
+        return user
+    if audit_path is None:
+        return _broker_not_ready()
+
     reader = AuditReader(audit_path)
     start_dt = _parse_dt(start)
     end_dt = _parse_dt(end)
@@ -307,13 +384,18 @@ async def audit(
 @router.get("/attestation")
 async def attestation(
     request: Request,
-    user: Annotated[str, Depends(get_auth_user)],
+    user: Annotated[str | HTMLResponse, Depends(_safe_auth_user)],
 ) -> HTMLResponse:
     """Attestation verification page — form for verifying EdDSA JWTs.
 
-    Renders the attestation form.  ``signing_key_configured`` is hardcoded
-    to ``False`` for POC phase (AttestationService not yet implemented).
+    Renders the attestation form.  When no signing key is configured the
+    template displays an "Attestation not configured" message.
+
+    ``signing_key_configured`` is hardcoded to ``False`` for POC phase
+    (AttestationService not yet implemented).
     """
+    if isinstance(user, HTMLResponse):
+        return user
     context = {
         "request": request,
         "user": user,
@@ -327,7 +409,7 @@ async def attestation(
 @router.post("/attestation/verify")
 async def attestation_verify(
     request: Request,
-    user: Annotated[str, Depends(get_auth_user)],
+    user: Annotated[str | HTMLResponse, Depends(_safe_auth_user)],
     token: str = Form(...),
 ) -> HTMLResponse:
     """Verify an attestation token (EdDSA JWT).
@@ -338,6 +420,8 @@ async def attestation_verify(
     POC stub: always returns an ``invalid`` result since
     ``AttestationService`` is not yet implemented.
     """
+    if isinstance(user, HTMLResponse):
+        return user
     # POC stub — AttestationService not yet available
     result = {
         "valid": False,

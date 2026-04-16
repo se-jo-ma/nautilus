@@ -783,7 +783,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `refactor(ui): add error handling to audit reader`
   - _Design: Error Handling — Audit Reader_
 
-- [ ] 2.2 Extract admin UI error handling (broker not ready, auth failure)
+- [x] 2.2 Extract admin UI error handling (broker not ready, auth failure)
   - **Do**:
     1. Add 503 "Broker starting..." template response when `broker is None`
     2. Ensure all routes return proper error HTML (not raw JSON exceptions)
