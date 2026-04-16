@@ -6,6 +6,7 @@ Each endpoint serves a full page for normal requests or an HTMX partial
 when the ``HX-Request`` header is present.
 """
 
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -62,7 +63,7 @@ async def source_status(
     template_name = (
         "partials/source_table_body.html" if is_htmx else "pages/sources.html"
     )
-    return templates.TemplateResponse(template_name, context)
+    return templates.TemplateResponse(request, template_name, context)
 
 
 @router.get("/decisions")
@@ -86,8 +87,6 @@ async def decisions(
     partial (``partials/decision_row.html`` rows) for HTMX swap; otherwise
     returns the full page (``pages/decisions.html``).
     """
-    from datetime import datetime
-
     reader = AuditReader(audit_path)
     start_dt = _parse_dt(start)
     end_dt = _parse_dt(end)
@@ -154,7 +153,7 @@ async def decisions(
                 "<p>No decisions found</p></div></td></tr>"
             )
         return HTMLResponse(content=rows)
-    return templates.TemplateResponse("pages/decisions.html", context)
+    return templates.TemplateResponse(request, "pages/decisions.html", context)
 
 
 @router.get("/decisions/{request_id}")
@@ -205,15 +204,13 @@ async def decision_detail(
     }
 
     context = {"request": request, "decision": decision}
-    return templates.TemplateResponse("partials/decision_detail.html", context)
+    return templates.TemplateResponse(request, "partials/decision_detail.html", context)
 
 
-def _parse_dt(value: str | None) -> "datetime | None":
+def _parse_dt(value: str | None) -> datetime | None:
     """Parse an ISO datetime string, returning *None* on failure."""
     if not value:
         return None
-    from datetime import datetime
-
     try:
         return datetime.fromisoformat(value)
     except (ValueError, TypeError):

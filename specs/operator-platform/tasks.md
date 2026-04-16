@@ -178,7 +178,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): add decisions page and detail routes`
   - _Requirements: FR-4, FR-5, AC-2.1, AC-2.3_
 
-- [ ] 1.17 [VERIFY] Quality checkpoint: sources + decisions views
+- [x] 1.17 [VERIFY] Quality checkpoint: sources + decisions views
   - **Do**: Run quality commands
   - **Verify**: `ruff check nautilus/ui/ && pyright`
   - **Done when**: No lint errors, no type errors
