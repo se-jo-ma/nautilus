@@ -517,7 +517,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1L — SDK Drift Guard
 
-- [ ] 1.49 Create SDK drift-guard test
+- [x] 1.49 Create SDK drift-guard test
   - **Do**:
     1. Create `tests/test_sdk_drift.py` — compares SDK type signatures against Nautilus-internal types using `inspect.signature()` and Pydantic schema comparison
     2. Compare: `Adapter` protocol methods, `SourceConfig` fields, `IntentAnalysis`/`ScopeConstraint`/`AdapterResult` field names and types
