@@ -406,7 +406,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1I — Benchmarking
 
-- [ ] 1.39 Create Locust load harness
+- [x] 1.39 Create Locust load harness
   - **Do**:
     1. Create `benchmarks/locustfile.py` with `NautilusBenchUser` hitting `POST /v1/request` with configurable API key
     2. Create `benchmarks/conftest.py` with fixtures for report generation
