@@ -184,7 +184,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Done when**: No lint errors, no type errors
   - **Commit**: `chore(operator-platform): pass quality checkpoint` (if fixes needed)
 
-- [ ] 1.18 [P] Create audit page template and partials
+- [x] 1.18 [P] Create audit page template and partials
   - **Do**:
     1. Create `nautilus/ui/templates/pages/audit.html` — extends dashboard layout, paginated table with filters: `agent_id` (text), `source_id` (dropdown), `event_type` (dropdown), time range (start/end). Sort by `timestamp` (default desc) or `duration_ms`. `hx-push-url="true"` for bookmarkable state
     2. Create `nautilus/ui/templates/partials/audit_rows.html` — `<tbody>` fragment with row data + inline expandable detail showing all AuditEntry fields
@@ -196,7 +196,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): add audit page and partial templates`
   - _Requirements: AC-3.1, AC-3.2, AC-3.3, AC-3.4, AC-3.5_
 
-- [ ] 1.19 [P] Create attestation page template and result partial
+- [x] 1.19 [P] Create attestation page template and result partial
   - **Do**:
     1. Create `nautilus/ui/templates/pages/attestation.html` — extends dashboard layout, textarea for token input, "Verify" button posting to `/admin/attestation/verify`. Shows "Attestation not configured" if no signing key
     2. Create `nautilus/ui/templates/partials/attestation_result.html` — fragment showing valid/invalid, payload claims (`request_id`, `scope_hash`, `rule_trace_hash`, `timestamp`), expiration status
