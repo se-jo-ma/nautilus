@@ -550,7 +550,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-22, AC-11.1, AC-11.2, AC-11.3_
   - _Design: Component H — templates/adapter/_
 
-- [ ] 1.52 Add CI workflow and README to Copier template
+- [x] 1.52 Add CI workflow and README to Copier template
   - **Do**:
     1. Create `templates/adapter/{{project_name}}/.github/workflows/ci.yml.jinja` — lint + type check + compliance suite
     2. Create `templates/adapter/{{project_name}}/README.md.jinja` — project description, install, usage
