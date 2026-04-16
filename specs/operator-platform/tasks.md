@@ -477,7 +477,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(sdk): add SourceConfig with str type field`
   - _Requirements: FR-19, AC-9.5_
 
-- [ ] 1.45 Create SDK exceptions.py and scope.py
+- [x] 1.45 Create SDK exceptions.py and scope.py
   - **Do**:
     1. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/exceptions.py` — `AdapterError(Exception)`, `ScopeEnforcementError(AdapterError)`
     2. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/scope.py` — `validate_operator()`, `validate_field()`, `render_field()` mirrored from `nautilus/adapters/base.py`
