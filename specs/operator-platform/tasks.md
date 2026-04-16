@@ -907,7 +907,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(otel): add unit tests for spans and metrics`
   - _Requirements: FR-12, FR-13, AC-6.2, AC-6.3, AC-6.4_
 
-- [ ] 3.6 Unit tests for InfluxDB and S3 scope mapping
+- [x] 3.6 Unit tests for InfluxDB and S3 scope mapping
   - **Do**:
     1. Create `tests/unit/test_adapter_scope.py`
     2. Test: InfluxDB scope mapping — ScopeConstraint → Flux filter fragments for measurement, tag, time range
