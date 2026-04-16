@@ -36,10 +36,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, FastAPI, Request, Response, status
+from fastapi.staticfiles import StaticFiles
 
 from nautilus.core.broker import Broker
 from nautilus.core.models import BrokerRequest, BrokerResponse
 from nautilus.transport.auth import api_key_header, proxy_trust_dependency, verify_api_key
+from nautilus.ui import create_admin_router
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -271,6 +273,19 @@ def create_app(
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
             return {"status": "not_ready", "reason": type(exc).__name__}
         return {"status": "ok"}
+
+    # ------------------------------------------------------------------
+    # Admin UI — operator-facing dashboard (FR-1, AC-1.1)
+    # ------------------------------------------------------------------
+
+    app.include_router(create_admin_router())
+
+    _ui_static_dir = Path(__file__).resolve().parent.parent / "ui" / "static"
+    app.mount(
+        "/admin/static",
+        StaticFiles(directory=str(_ui_static_dir)),
+        name="admin-static",
+    )
 
     return app
 

@@ -95,7 +95,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: AC-17.4_
   - _Design: Component A — macros_
 
-- [ ] 1.9 Mount admin router + static files in fastapi_app.py
+- [x] 1.9 Mount admin router + static files in fastapi_app.py
   - **Do**:
     1. In `create_app()`, after route registrations, add `from nautilus.ui import create_admin_router` and `app.include_router(create_admin_router())`
     2. Add `from fastapi.staticfiles import StaticFiles` and mount static dir: `app.mount("/admin/static", StaticFiles(directory=<ui_static_path>), name="admin-static")`
