@@ -1,0 +1,17 @@
+{% for source in sources %}
+<tr>
+    <td>{{ source.id }}</td>
+    <td><span class="badge">{{ source.type }}</span></td>
+    <td><span class="badge">{{ source.classification }}</span></td>
+    <td>{{ source.description }}</td>
+    <td>{{ source.data_types | join(", ") }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5">
+        <div class="empty-state">
+            <p>No sources configured</p>
+        </div>
+    </td>
+</tr>
+{% endfor %}

@@ -127,7 +127,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-6, FR-7, FR-8, AC-3.1, AC-3.2, AC-3.6_
   - _Design: Component A — audit_reader.py_
 
-- [ ] 1.12 [VERIFY] Quality checkpoint: audit reader
+- [x] 1.12 [VERIFY] Quality checkpoint: audit reader
   - **Do**: Run quality commands after audit reader
   - **Verify**: `ruff check nautilus/ui/audit_reader.py && pyright`
   - **Done when**: No lint errors, no type errors
@@ -135,7 +135,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1D — Admin UI Views (Sources, Decisions, Audit, Attestation)
 
-- [ ] 1.13 Create router.py with source status page route
+- [x] 1.13 Create router.py with source status page route
   - **Do**:
     1. Create `nautilus/ui/router.py` with `router = APIRouter(prefix="/admin", tags=["admin"])`
     2. Implement `GET /sources` — reads `broker.sources`, derives last-query timestamp from recent audit entries, renders `pages/sources.html` (full page) or `partials/source_table_body.html` (HTMX partial based on `HX-Request` header)
