@@ -1,4 +1,9 @@
-"""Nautilus Adapter SDK — public API."""
+"""Nautilus Adapter SDK — public API.
+
+Re-exports all public types, protocols, configuration models, scope
+helpers, and exceptions so consumers can import directly from
+``nautilus_adapter_sdk``.
+"""
 
 __version__ = "0.1.0"
 

@@ -12,7 +12,11 @@ from pydantic import BaseModel
 
 
 class IntentAnalysis(BaseModel):
-    """Structured intent output forwarded to adapters."""
+    """Structured intent analysis forwarded to adapters by the broker.
+
+    Contains the parsed user intent, requested data types, stated purpose,
+    and a confidence score used for routing decisions.
+    """
 
     raw_intent: str
     normalized_intent: str
@@ -22,7 +26,11 @@ class IntentAnalysis(BaseModel):
 
 
 class ScopeConstraint(BaseModel):
-    """Per-source WHERE-clause fragment passed to adapter execute()."""
+    """Per-source WHERE-clause fragment passed to :meth:`Adapter.execute`.
+
+    Adapters use these constraints to restrict query results at the
+    data-source level (e.g., field-level redaction, row filtering).
+    """
 
     source_id: str
     operator: str
@@ -33,7 +41,11 @@ class ScopeConstraint(BaseModel):
 
 
 class AdapterResult(BaseModel):
-    """Single adapter execution result."""
+    """Result returned by an adapter after executing a scoped query.
+
+    The ``metadata`` dict should include provenance info such as row
+    counts, query duration, or classification tags.
+    """
 
     source_id: str
     data: Any
@@ -41,7 +53,10 @@ class AdapterResult(BaseModel):
 
 
 class ErrorRecord(BaseModel):
-    """Adapter error report."""
+    """Structured error report emitted when an adapter fails.
+
+    Captured by the broker for audit logging and operator dashboards.
+    """
 
     source_id: str
     error: str
@@ -49,14 +64,21 @@ class ErrorRecord(BaseModel):
 
 
 class AuthConfig(BaseModel):
-    """Adapter authentication configuration."""
+    """Authentication credentials for connecting to a data source.
+
+    The ``auth_type`` field selects the authentication strategy
+    (e.g., ``"bearer"``, ``"basic"``, ``"api_key"``).
+    """
 
     auth_type: str
     credentials: dict[str, Any]
 
 
 class EndpointSpec(BaseModel):
-    """Adapter endpoint specification."""
+    """HTTP endpoint specification for REST-based adapters.
+
+    Provides URL, method, optional headers, and a per-request timeout.
+    """
 
     url: str
     method: str = "GET"

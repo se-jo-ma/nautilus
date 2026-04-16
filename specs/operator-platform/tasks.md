@@ -811,7 +811,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `refactor(otel): clean up span injection pattern in broker`
   - _Design: Integration — OTel guards_
 
-- [ ] 2.5 Clean up SDK types — add docstrings and validate model configs
+- [x] 2.5 Clean up SDK types — add docstrings and validate model configs
   - **Do**:
     1. Add comprehensive docstrings to all SDK public APIs (protocols, types, config, exceptions, scope)
     2. Ensure `SourceConfig` has `model_config = ConfigDict(extra="allow")`
