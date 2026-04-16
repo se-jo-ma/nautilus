@@ -924,7 +924,7 @@ After POC validated, clean up code. No new features.
   - **Done when**: All unit tests pass
   - **Commit**: `chore(operator-platform): pass quality checkpoint` (if fixes needed)
 
-- [ ] 3.8 Integration test: admin UI auth gate (401 without auth)
+- [x] 3.8 Integration test: admin UI auth gate (401 without auth)
   - **Do**:
     1. Create `tests/integration/test_admin_auth.py`
     2. Test: request without auth header to `/admin/sources` returns 401
