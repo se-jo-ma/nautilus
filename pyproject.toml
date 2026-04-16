@@ -56,6 +56,11 @@ dev = [
     "respx>=0.21",
     "pytest-recording>=0.13",
     "testcontainers[elasticsearch,neo4j]>=4.0",
+    "locust>=2.0",
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+    "copier>=9.0",
 ]
 otel = [
     "opentelemetry-sdk>=1.20",
@@ -66,6 +71,14 @@ otel = [
 ]
 llm-anthropic = ["anthropic>=0.40"]
 llm-openai = ["openai>=1.50"]
+
+[project.entry-points."fathom.packs"]
+data-routing-nist = "nautilus.rule_packs.data_routing_nist"
+data-routing-hipaa = "nautilus.rule_packs.data_routing_hipaa"
+
+[project.entry-points."nautilus.adapters"]
+influxdb = "nautilus.adapters.influxdb"
+s3 = "nautilus.adapters.s3"
 
 [build-system]
 requires = ["setuptools>=77.0"]
@@ -78,6 +91,7 @@ exclude = ["tests*", "specs*", "docs*"]
 [tool.setuptools.package-data]
 "nautilus.analysis.llm.prompts" = ["*.txt"]
 "nautilus.rules" = ["**/*.yaml"]
+"nautilus.ui" = ["templates/**/*", "static/*"]
 
 [tool.ruff]
 line-length = 100

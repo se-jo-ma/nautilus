@@ -17,7 +17,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(deps): add admin-ui, otel, influxdb, s3 dependencies`
   - _Requirements: FR-30, AC-18.1, AC-18.2_
 
-- [ ] 1.2 Add dev dependencies, entry points, and package-data to pyproject.toml
+- [x] 1.2 Add dev dependencies, entry points, and package-data to pyproject.toml
   - **Do**:
     1. Add `locust`, `mkdocs`, `mkdocs-material`, `mkdocstrings[python]`, `copier` to `[project.optional-dependencies] dev`
     2. Add `[project.entry-points."fathom.packs"]` with `data-routing-nist` and `data-routing-hipaa`
