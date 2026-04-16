@@ -217,7 +217,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(ui): add audit and attestation routes`
   - _Requirements: FR-6, FR-8, FR-9, AC-3.1, AC-4.1, AC-4.2, AC-4.3_
 
-- [ ] 1.21 Wire create_admin_router to include all routes from router.py
+- [x] 1.21 Wire create_admin_router to include all routes from router.py
   - **Do**:
     1. Update `nautilus/ui/__init__.py` to import router from `router.py` and include it in the admin router returned by `create_admin_router()`
     2. Set up `Jinja2Templates` pointed at `nautilus/ui/templates/`
