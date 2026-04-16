@@ -620,7 +620,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(rules): add NIST denial rules (AC-3, AC-4, SC-7, SC-16)`
   - _Requirements: AC-13.3, AC-13.4_
 
-- [ ] 1.58 [P] Create NIST scope constraint and escalation rules
+- [x] 1.58 [P] Create NIST scope constraint and escalation rules
   - **Do**:
     1. Create `rule-packs/data-routing-nist/rules/ac-6-least-privilege.yaml` — salience 130-150
     2. Create `rule-packs/data-routing-nist/rules/ac-16-security-attributes.yaml` — salience 130-150
