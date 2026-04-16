@@ -85,7 +85,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: AC-17.1, AC-17.2, AC-17.5, FR-29_
   - _Design: Component A — static assets_
 
-- [ ] 1.8 Create macros/table.html with reusable table Jinja2 macros
+- [x] 1.8 Create macros/table.html with reusable table Jinja2 macros
   - **Do**:
     1. Create `nautilus/ui/templates/macros/table.html` with macros: `render_table(headers, rows)`, `render_sort_header(field, label, current_sort)`, `render_filter_form(filters)`, `render_empty_state(message)`
   - **Files**: `nautilus/ui/templates/macros/table.html`
