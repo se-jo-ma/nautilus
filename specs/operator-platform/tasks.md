@@ -340,7 +340,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-12, FR-13, AC-6.2, AC-6.3, AC-6.4_
   - _Design: Integration — broker.py OTel spans_
 
-- [ ] 1.32 [VERIFY] Quality checkpoint: OTel module
+- [x] 1.32 [VERIFY] Quality checkpoint: OTel module
   - **Do**: Run quality commands after OTel integration
   - **Verify**: `ruff check nautilus/observability/ nautilus/core/broker.py nautilus/transport/fastapi_app.py && pyright`
   - **Done when**: No lint errors, no type errors

@@ -9,15 +9,17 @@ from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
     OTLPSpanExporter,
 )
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.fastapi import (  # pyright: ignore[reportMissingTypeStubs]
+    FastAPIInstrumentor,
+)
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from prometheus_client import start_http_server  # noqa: F401
+from prometheus_client import start_http_server  # noqa: F401  # pyright: ignore[reportUnusedImport]
 
 
-def _setup(app: Any, service_name: str = "nautilus") -> None:
+def setup(app: Any, service_name: str = "nautilus") -> None:
     """Instrument *app* with OpenTelemetry tracing and metrics.
 
     1. Create TracerProvider with OTLP HTTP exporter (traces -> Tempo)

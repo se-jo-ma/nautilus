@@ -8,9 +8,9 @@ try:
     from opentelemetry import metrics
 
     _meter = metrics.get_meter("nautilus")
-    _HAS_OTEL = True
+    _has_otel = True
 except ImportError:
-    _HAS_OTEL = False
+    _has_otel = False
 
 
 class _NoOpInstrument:
@@ -35,7 +35,7 @@ class NautilusMetrics:
     """
 
     def __init__(self) -> None:
-        if _HAS_OTEL:
+        if _has_otel:
             # -- Counters --
             self.requests_total = _meter.create_counter(
                 "nautilus.requests.total",

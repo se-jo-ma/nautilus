@@ -17,8 +17,8 @@ def setup_otel(app: Any, service_name: str = "nautilus") -> None:
         return
 
     try:
-        from nautilus.observability.instrumentation import _setup  # type: ignore[import-not-found]
+        from nautilus.observability.instrumentation import setup  # type: ignore[import-not-found]
 
-        _setup(app, service_name)
+        setup(app, service_name)
     except ImportError:
         pass

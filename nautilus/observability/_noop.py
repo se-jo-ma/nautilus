@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from contextlib import contextmanager
-from collections.abc import Iterator
 from typing import Any
 
 
 @contextmanager
-def NoOpSpan(name: str = "", **kwargs: Any) -> Iterator[_NoOpSpanObj]:  # noqa: N802
+def NoOpSpan(name: str = "", **kwargs: Any) -> Generator[NoOpSpanObj]:  # noqa: N802
     """Context manager that yields a no-op span object."""
-    yield _NoOpSpanObj()
+    yield NoOpSpanObj()
 
 
-class _NoOpSpanObj:
+class NoOpSpanObj:
     """Dummy span with no-op methods."""
 
     def set_attribute(self, key: str, value: Any) -> None:  # noqa: ARG002

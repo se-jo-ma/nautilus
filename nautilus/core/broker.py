@@ -91,14 +91,16 @@ from nautilus.synthesis.basic import BasicSynthesizer
 
 try:
     from nautilus.observability.metrics import NautilusMetrics
-    from nautilus.observability.spans import broker_span
+    from nautilus.observability.spans import broker_span  # pyright: ignore[reportAssignmentType]
     _metrics = NautilusMetrics()
 except ImportError:
     from contextlib import contextmanager as _cm
 
+    from nautilus.observability._noop import NoOpSpanObj
+
     @_cm
     def broker_span(name, attributes=None):  # type: ignore[misc]
-        yield None
+        yield NoOpSpanObj()
 
     _metrics = None  # type: ignore[assignment]
 

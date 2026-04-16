@@ -9,9 +9,9 @@ try:
     from opentelemetry import trace
 
     _tracer = trace.get_tracer("nautilus")
-    _HAS_OTEL = True
+    _has_otel = True
 except ImportError:
-    _HAS_OTEL = False
+    _has_otel = False
 
 from nautilus.observability._noop import NoOpSpan
 
@@ -33,7 +33,7 @@ def adapter_span_name(source_id: str) -> str:
 @contextmanager
 def broker_span(name: str, attributes: dict[str, Any] | None = None):
     """Yield an OTel span if available, otherwise a no-op span."""
-    if not _HAS_OTEL:
+    if not _has_otel:
         with NoOpSpan(name) as span:
             yield span
         return

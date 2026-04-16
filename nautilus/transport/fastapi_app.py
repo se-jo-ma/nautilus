@@ -44,7 +44,7 @@ from nautilus.transport.auth import api_key_header, proxy_trust_dependency, veri
 from nautilus.ui import create_admin_router
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncGenerator
 
 
 _READY_PROBE_KEY = "_ready_probe_"
@@ -110,7 +110,7 @@ def create_app(
         )
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         """ASGI lifespan — build/setup broker on startup, close on shutdown."""
         if existing_broker is not None:
             broker = existing_broker
