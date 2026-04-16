@@ -895,7 +895,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(ui): add unit tests for attestation verification`
   - _Requirements: FR-9, AC-4.2, AC-4.4_
 
-- [ ] 3.5 Unit tests for OTel spans and metrics
+- [x] 3.5 Unit tests for OTel spans and metrics
   - **Do**:
     1. Create `tests/unit/test_otel_spans.py`
     2. Test: mock tracer captures expected span hierarchy (broker.request → intent_analysis → fathom_routing → adapter_fan_out → synthesis → audit_emit → attestation_sign)
