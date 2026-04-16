@@ -563,7 +563,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1N — SDK Docs
 
-- [ ] 1.53 Create MkDocs SDK documentation site
+- [x] 1.53 Create MkDocs SDK documentation site
   - **Do**:
     1. Create `docs/sdk/mkdocs.yml` — Material theme config, `mkdocstrings` plugin, nav structure
     2. Create `docs/sdk/docs/index.md` — SDK overview and quickstart
