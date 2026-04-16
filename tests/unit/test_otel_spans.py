@@ -22,7 +22,6 @@ from nautilus.observability.spans import (
     build_request_attributes,
 )
 
-
 # ------------------------------------------------------------------
 # Span constants
 # ------------------------------------------------------------------
@@ -175,10 +174,9 @@ class TestBrokerSpan:
             assert span is not None
 
     def test_nested_spans(self) -> None:
-        with broker_span("outer") as outer:
-            with broker_span("inner") as inner:
-                assert outer is not None
-                assert inner is not None
+        with broker_span("outer") as outer, broker_span("inner") as inner:
+            assert outer is not None
+            assert inner is not None
 
 
 # ------------------------------------------------------------------

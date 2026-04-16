@@ -20,7 +20,6 @@ from nautilus.adapters.s3 import S3Adapter
 from nautilus.config.models import SourceConfig
 from nautilus.core.models import ScopeConstraint
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -233,7 +232,7 @@ class TestS3ScopeMapping:
     @pytest.mark.asyncio
     async def test_key_equals_fetches_exact_object(self, adapter: S3Adapter) -> None:
         scope = [_sc("key", "=", "path/to/file.txt", source_id="docs")]
-        result = await adapter.execute(
+        await adapter.execute(
             intent=AsyncMock(),
             scope=scope,
             context={},

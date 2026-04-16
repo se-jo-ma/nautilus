@@ -918,7 +918,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `test(adapters): add unit tests for InfluxDB and S3 scope mapping`
   - _Requirements: AC-15.2, AC-16.2_
 
-- [ ] 3.7 [VERIFY] Quality checkpoint: unit tests complete
+- [x] 3.7 [VERIFY] Quality checkpoint: unit tests complete
   - **Do**: Run all unit tests
   - **Verify**: `ruff check tests/ && pytest -m unit -v`
   - **Done when**: All unit tests pass

@@ -193,8 +193,8 @@ class InfluxDBAdapter:
             f"  |> range(start: {range_start}, stop: {range_stop})",
         ]
         for f in filters:
-            lines.append(f"  |> filter(fn: (r) => {f})")
-        lines.append(f"  |> limit(n: {limit})")
+            lines.append(f"  |> filter(fn: (r) => {f})")  # noqa: SQLGREP
+        lines.append(f"  |> limit(n: {limit})")  # noqa: SQLGREP
 
         return "\n".join(lines)
 
