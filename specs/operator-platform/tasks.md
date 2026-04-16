@@ -487,7 +487,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(sdk): add exception hierarchy and scope validators`
   - _Requirements: AC-9.3_
 
-- [ ] 1.46 Wire SDK __init__.py re-exports
+- [x] 1.46 Wire SDK __init__.py re-exports
   - **Do**:
     1. Update `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/__init__.py` to re-export all public API: `Adapter`, `Embedder`, `IntentAnalysis`, `ScopeConstraint`, `AdapterResult`, `SourceConfig`, `ErrorRecord`, `AdapterError`, `ScopeEnforcementError`, `validate_operator`, `validate_field`, `render_field`
   - **Files**: `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/__init__.py`
