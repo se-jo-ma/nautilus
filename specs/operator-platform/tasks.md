@@ -576,7 +576,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-23, AC-12.1, AC-12.2, AC-12.4_
   - _Design: Component I — docs/sdk/_
 
-- [ ] 1.54 Create SDK API reference docs
+- [x] 1.54 Create SDK API reference docs
   - **Do**:
     1. Create `docs/sdk/docs/reference/protocol.md` — auto-generated via `mkdocstrings` from `protocols.py`
     2. Create `docs/sdk/docs/reference/types.md` — auto-generated from `types.py`
