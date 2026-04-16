@@ -138,12 +138,19 @@ def _discover_adapters() -> dict[str, type[Adapter]]:
     eps = importlib.metadata.entry_points(group="nautilus.adapters")
     for ep in eps:
         try:
-            obj = ep.load()
-            if not (isinstance(obj, type) and issubclass(obj, Adapter)):
+            obj: object = ep.load()
+            if not isinstance(obj, type):
                 log.warning(
-                    "adapter entry-point '%s' resolved to %r, not an Adapter subclass; skipping",
+                    "adapter entry-point '%s' resolved to non-class %s; skipping",
                     ep.name,
-                    obj,
+                    type(obj).__name__,
+                )
+                continue
+            if not issubclass(obj, Adapter):  # type: ignore[arg-type]  # runtime_checkable Protocol w/ ClassVar
+                log.warning(
+                    "adapter entry-point '%s' resolved to %s, not an Adapter subclass; skipping",
+                    ep.name,
+                    obj.__name__,
                 )
                 continue
             discovered[ep.name] = obj

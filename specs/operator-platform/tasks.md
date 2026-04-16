@@ -745,7 +745,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(models): add optional trace_id to AuditEntry for OTel correlation`
   - _Requirements: UQ-4 resolution_
 
-- [ ] 1.70 [VERIFY] Quality checkpoint: broker changes
+- [x] 1.70 [VERIFY] Quality checkpoint: broker changes
   - **Do**: Run quality commands after broker modifications
   - **Verify**: `ruff check nautilus/core/ && pyright`
   - **Done when**: No lint errors, no type errors
