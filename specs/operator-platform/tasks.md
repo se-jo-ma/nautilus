@@ -386,7 +386,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(grafana): add datasource and dashboard provisioning`
   - _Requirements: AC-7.2, AC-7.3_
 
-- [ ] 1.37 Create docker-compose.otel.yml and prometheus.yml
+- [x] 1.37 Create docker-compose.otel.yml and prometheus.yml
   - **Do**:
     1. Create `observability/docker-compose.otel.yml` — services: grafana (port 3000), tempo, prometheus, loki. Volume mounts for provisioning and dashboards
     2. Create `observability/prometheus.yml` — scrape config targeting Nautilus `/metrics` endpoint
