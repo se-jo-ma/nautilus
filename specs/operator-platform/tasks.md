@@ -674,7 +674,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(rules): add HIPAA rules (minimum necessary, PHI, breach)`
   - _Requirements: AC-14.3, AC-14.4, AC-14.5, AC-14.6_
 
-- [ ] 1.63 Create HIPAA role restrictions and PHI hierarchy
+- [x] 1.63 Create HIPAA role restrictions and PHI hierarchy
   - **Do**:
     1. Create `rule-packs/data-routing-hipaa/rules/role-restrictions.yaml` — purpose-based role restrictions
     2. Create `rule-packs/data-routing-hipaa/hierarchies/phi-level.yaml` — PHI sensitivity hierarchy: de-identified, limited, standard, sensitive
