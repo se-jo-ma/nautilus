@@ -62,7 +62,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-10, AC-5.1, AC-5.4_
   - _Design: Component A — dependencies.py_
 
-- [ ] 1.6 [P] Create base.html root template and dashboard layout
+- [x] 1.6 [P] Create base.html root template and dashboard layout
   - **Do**:
     1. Create `nautilus/ui/templates/base.html` — HTML5 root with `<head>` referencing vendored `/admin/static/htmx.min.js`, `/admin/static/htmx-ext-sse.min.js`, `/admin/static/styles.css`. Nav links to /admin/sources, /admin/decisions, /admin/audit, /admin/attestation. Display `{{ user }}` in header. Block `content` for child templates.
     2. Create `nautilus/ui/templates/layouts/dashboard.html` — extends `base.html`, adds sidebar + content grid layout
