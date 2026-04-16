@@ -641,7 +641,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(rules): add extended CUI hierarchy (ITAR, EAR, FTI, LES)`
   - _Requirements: AC-13.5_
 
-- [ ] 1.60 [VERIFY] Quality checkpoint: NIST pack
+- [x] 1.60 [VERIFY] Quality checkpoint: NIST pack
   - **Do**: Validate all NIST pack YAML files parse correctly
   - **Verify**: `python -c "import yaml; import glob; [yaml.safe_load(open(f)) for f in glob.glob('rule-packs/data-routing-nist/**/*.yaml', recursive=True)]; print('ALL_VALID')"`
   - **Done when**: All YAML files valid
@@ -684,7 +684,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(rules): add HIPAA role restrictions and PHI hierarchy`
   - _Requirements: AC-14.4, AC-14.5_
 
-- [ ] 1.64 [VERIFY] Quality checkpoint: HIPAA pack
+- [x] 1.64 [VERIFY] Quality checkpoint: HIPAA pack
   - **Do**: Validate all HIPAA pack YAML files
   - **Verify**: `python -c "import yaml; import glob; [yaml.safe_load(open(f)) for f in glob.glob('rule-packs/data-routing-hipaa/**/*.yaml', recursive=True)]; print('ALL_VALID')"`
   - **Done when**: All YAML files valid
@@ -692,7 +692,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1Q — Ecosystem Adapters
 
-- [ ] 1.65 Create InfluxDB adapter
+- [x] 1.65 Create InfluxDB adapter
   - **Do**:
     1. Create `nautilus/adapters/influxdb.py` with `InfluxDBAdapter` class implementing `Adapter` Protocol
     2. `source_type = "influxdb"`, async `connect()` via `influxdb-client-python`, `execute()` builds Flux query with scope constraints mapped to measurement/tag/time filters, `close()` releases HTTP client idempotently
