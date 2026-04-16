@@ -328,7 +328,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-11, AC-6.1_
   - _Design: Integration — fastapi_app.py setup_otel_
 
-- [ ] 1.31 Instrument broker.py pipeline stages with OTel spans
+- [x] 1.31 Instrument broker.py pipeline stages with OTel spans
   - **Do**:
     1. In `nautilus/core/broker.py`, add `from nautilus.observability.spans import broker_span` (guarded by ImportError)
     2. Wrap `arequest()` pipeline stages: `intent_analysis`, `fathom_routing`, `adapter_fan_out` (with per-source children), `synthesis`, `audit_emit`, `attestation_sign`

@@ -89,6 +89,19 @@ from nautilus.core.temporal import TemporalFilter
 from nautilus.rules import BUILT_IN_RULES_DIR
 from nautilus.synthesis.basic import BasicSynthesizer
 
+try:
+    from nautilus.observability.metrics import NautilusMetrics
+    from nautilus.observability.spans import broker_span
+    _metrics = NautilusMetrics()
+except ImportError:
+    from contextlib import contextmanager as _cm
+
+    @_cm
+    def broker_span(name, attributes=None):  # type: ignore[misc]
+        yield None
+
+    _metrics = None  # type: ignore[assignment]
+
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -577,16 +590,27 @@ class Broker:
         """
         context = dict(context) if context else {}
         state = _new_request_state(context, intent)
-        try:
-            await self._run_pipeline(agent_id, intent, context, state)
-        except PolicyEngineError:
-            self._emit_audit(agent_id, state, None)
-            raise
-        except Exception as exc:  # noqa: BLE001 — any unexpected error must still audit
-            state.errored.append(_broker_error(exc, state.request_id))
-            self._emit_audit(agent_id, state, None)
-            raise
-        self._emit_audit(agent_id, state, state.attestation_token)
+        _started = time.perf_counter()
+        with broker_span("broker.request", {"agent_id": agent_id}):
+            if _metrics is not None:
+                _metrics.requests_total.add(1)
+            try:
+                await self._run_pipeline(agent_id, intent, context, state)
+            except PolicyEngineError:
+                with broker_span("audit_emit"):
+                    self._emit_audit(agent_id, state, None)
+                raise
+            except Exception as exc:  # noqa: BLE001 — any unexpected error must still audit
+                state.errored.append(_broker_error(exc, state.request_id))
+                with broker_span("audit_emit"):
+                    self._emit_audit(agent_id, state, None)
+                raise
+            with broker_span("audit_emit"):
+                self._emit_audit(agent_id, state, state.attestation_token)
+            if _metrics is not None:
+                _metrics.request_duration.record(
+                    time.perf_counter() - _started,
+                )
         return self._build_response(state)
 
     async def declare_handoff(
@@ -798,22 +822,31 @@ class Broker:
         state: _RequestState,
     ) -> None:
         """Happy-path pipeline body — mutates ``state`` in place."""
-        await self._analyze_intent(intent, context, state)
-        await self._route(agent_id, context, state)
+        with broker_span("intent_analysis"):
+            await self._analyze_intent(intent, context, state)
+        with broker_span("fathom_routing"):
+            await self._route(agent_id, context, state)
+            if _metrics is not None:
+                _metrics.routing_decisions_total.add(1)
         self._merge_context_scope_constraints(context, state)
         self._apply_temporal_filter(state)
-        tasks, task_source_ids = await self._build_adapter_jobs(state, context)
-        successful = await self._gather_adapter_results(state, tasks, task_source_ids)
-        state.data = self._synthesizer.merge(successful)
-        if self._attestation is not None:
-            token, scope_hash_version, nautilus_payload = self._sign(
-                request_id=state.request_id,
-                agent_id=agent_id,
-                sources_queried=state.sources_queried,
-                scope_by_source=state.scope_by_source,
-                rule_trace=state.rule_trace,
-                session_id=state.session_id,
+        with broker_span("adapter_fan_out"):
+            tasks, task_source_ids = await self._build_adapter_jobs(state, context)
+            successful = await self._gather_adapter_results(
+                state, tasks, task_source_ids,
             )
+        with broker_span("synthesis"):
+            state.data = self._synthesizer.merge(successful)
+        if self._attestation is not None:
+            with broker_span("attestation_sign"):
+                token, scope_hash_version, nautilus_payload = self._sign(
+                    request_id=state.request_id,
+                    agent_id=agent_id,
+                    sources_queried=state.sources_queried,
+                    scope_by_source=state.scope_by_source,
+                    rule_trace=state.rule_trace,
+                    session_id=state.session_id,
+                )
             state.attestation_token = token
             state.scope_hash_version = scope_hash_version
             await self._emit_attestation(token, nautilus_payload)
