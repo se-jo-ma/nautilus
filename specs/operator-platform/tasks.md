@@ -29,7 +29,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(deps): add dev deps, entry points, package-data for ui`
   - _Requirements: FR-1, FR-24, FR-25, AC-13.2, AC-14.2, AC-17.3_
 
-- [ ] 1.3 [VERIFY] Quality checkpoint: deps resolve
+- [x] 1.3 [VERIFY] Quality checkpoint: deps resolve
   - **Do**: Run quality commands to verify deps and types
   - **Verify**: `ruff check nautilus tests && pyright`
   - **Done when**: No lint errors, no type errors after dep changes
@@ -37,7 +37,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1B — Admin UI Skeleton
 
-- [ ] 1.4 Create nautilus/ui package with __init__.py and create_admin_router factory
+- [x] 1.4 Create nautilus/ui package with __init__.py and create_admin_router factory
   - **Do**:
     1. Create `nautilus/ui/__init__.py` exporting `create_admin_router()` that returns an `APIRouter(prefix="/admin", tags=["admin"])`
     2. Router includes placeholder routes (will be filled in subsequent tasks)
