@@ -398,7 +398,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-15, AC-7.2, AC-7.5_
   - _Design: Component C — docker-compose.otel.yml_
 
-- [ ] 1.38 [VERIFY] Quality checkpoint: grafana stack
+- [x] 1.38 [VERIFY] Quality checkpoint: grafana stack
   - **Do**: Validate all JSON dashboards and YAML configs
   - **Verify**: `python -c "import json,yaml; [json.load(open(f'observability/grafana/dashboards/{d}')) for d in ['overview.json','adapters.json','attestation.json']]; [yaml.safe_load(open(f'observability/{y}')) for y in ['grafana/provisioning/datasources.yml','grafana/provisioning/dashboards.yml','docker-compose.otel.yml','prometheus.yml']]; print('ALL_VALID')"`
   - **Done when**: All files parse as valid JSON/YAML
@@ -418,7 +418,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-16, AC-8.1, AC-8.2, AC-8.3_
   - _Design: Component D — benchmarks/_
 
-- [ ] 1.40 Create Dockerfile.bench for Dockerized benchmarks
+- [x] 1.40 Create Dockerfile.bench for Dockerized benchmarks
   - **Do**:
     1. Create `benchmarks/Dockerfile.bench` — FROM python image, install locust + nautilus deps, copy benchmarks dir, set entrypoint to locust
     2. Create `benchmarks/README.md` with usage instructions
