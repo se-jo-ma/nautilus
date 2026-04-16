@@ -662,7 +662,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-25, FR-26, AC-14.1, AC-14.2, AC-14.8_
   - _Design: Component F — data-routing-hipaa_
 
-- [ ] 1.62 Create HIPAA rules (minimum necessary, PHI access, hierarchy, breach, roles)
+- [x] 1.62 Create HIPAA rules (minimum necessary, PHI access, hierarchy, breach, roles)
   - **Do**:
     1. Create `rule-packs/data-routing-hipaa/rules/minimum-necessary.yaml` — scope constraints per purpose (treatment, payment, operations), salience 130-150
     2. Create `rule-packs/data-routing-hipaa/rules/phi-access-control.yaml` — denial rules for unauthorized PHI, salience 170-190
