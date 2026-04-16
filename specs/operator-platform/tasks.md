@@ -537,7 +537,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1M — Copier Template
 
-- [ ] 1.51 Create Copier adapter scaffold template
+- [x] 1.51 Create Copier adapter scaffold template
   - **Do**:
     1. Create `templates/adapter/copier.yml` — template config with questions: `project_name`, `module_name`, `adapter_type`, `author`
     2. Create `templates/adapter/{{project_name}}/pyproject.toml.jinja` — entry point `nautilus.adapters`, SDK dep
