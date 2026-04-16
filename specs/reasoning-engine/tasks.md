@@ -889,7 +889,7 @@ Five sequential tasks: one startup, three checks (REST + MCP + declare_handoff +
 - **Commit**: `chore(ve): add VE MCP + declare_handoff client scripts`
 - **References**: FR-8, FR-10, FR-27, AC-4.1, AC-4.3, AC-13.1, AC-13.3, NFR-15.
 
-### Task 5.4 — VE2c: forensic worker over synthesized audit emits `InferredHandoff`
+### Task 5.4 [x] — VE2c: forensic worker over synthesized audit emits `InferredHandoff`
 - **Do**:
   - Append a synthetic undeclared-handoff signal block to `/tmp/ve-audit.jsonl` (one `request` entry from `orch-c` on `session_id="ve-inferred-1"` followed by one from `orch-d` on the same `session_id` within window, sharing a source — NO matching `handoff_declared` event).
   - Run the forensic worker: `uv run python -m nautilus.forensics.handoff_worker --audit /tmp/ve-audit.jsonl --offsets /tmp/ve-forensic.offsets --out /tmp/ve-inferred.jsonl --window-s 3600`
