@@ -496,7 +496,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - **Commit**: `feat(sdk): wire all public API re-exports`
   - _Requirements: FR-18, AC-9.3_
 
-- [ ] 1.47 [VERIFY] Quality checkpoint: SDK package
+- [x] 1.47 [VERIFY] Quality checkpoint: SDK package
   - **Do**: Validate SDK package structure and imports
   - **Verify**: `test -f packages/nautilus-adapter-sdk/py.typed && test -f packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/protocols.py && echo OK`
   - **Done when**: Package structure complete, all files exist
@@ -504,7 +504,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
 
 ### 1K — SDK Compliance Suite
 
-- [ ] 1.48 Create AdapterComplianceSuite in SDK testing module
+- [x] 1.48 Create AdapterComplianceSuite in SDK testing module
   - **Do**:
     1. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/testing/__init__.py` — re-export `AdapterComplianceSuite`
     2. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/testing/compliance.py` — `AdapterComplianceSuite` class with test methods: `test_connect_execute_close_lifecycle`, `test_scope_enforcement_valid_operator`, `test_scope_enforcement_invalid_operator`, `test_idempotent_close`, `test_error_path_returns_error_record`. Parameterized via `adapter` and `source_config` fixtures
