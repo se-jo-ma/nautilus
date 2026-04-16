@@ -1,0 +1,34 @@
+{
+  "source": "spec",
+  "name": "reasoning-engine",
+  "basePath": "./specs/reasoning-engine",
+  "phase": "execution",
+  "taskIndex": 39,
+  "totalTasks": 79,
+  "taskIteration": 1,
+  "maxTaskIterations": 5,
+  "globalIteration": 40,
+  "maxGlobalIterations": 100,
+  "commitSpec": true,
+  "quickMode": false,
+  "granularity": "fine",
+  "discoveredSkills": [],
+  "awaitingApproval": false,
+  "recoveryMode": false,
+  "maxFixTasksPerOriginal": 3,
+  "maxFixTaskDepth": 3,
+  "fixTaskMap": {},
+  "modificationMap": {},
+  "maxModificationsPerTask": 3,
+  "maxModificationDepth": 2,
+  "nativeTaskMap": {},
+  "nativeSyncEnabled": true,
+  "nativeSyncFailureCount": 0,
+  "relatedSpecs": [
+    {
+      "name": "core-broker",
+      "relevance": "high",
+      "reason": "Direct predecessor; reasoning-engine extends Phase 1 broker/adapter/audit surfaces"
+    }
+  ]
+}

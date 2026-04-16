@@ -12,7 +12,7 @@ sources:
   - id: internal_vulns
     type: pgvector
     description: "Internal vulnerability embeddings (test fixture)"
-    classification: cui
+    classification: unclassified
     data_types: [vulnerability, scan_result]
     allowed_purposes: [threat-analysis]
     connection: ${TEST_PGV_DSN}

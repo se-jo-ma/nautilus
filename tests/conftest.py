@@ -5,6 +5,11 @@ Phase-1 MVP fixtures land here. The ``pg_container`` fixture boots a
 ``vector`` extension, and loads ``tests/fixtures/seed.sql`` so both the
 ``PostgresAdapter`` and ``PgVectorAdapter`` integration paths can share a
 single database (design §13.3 / §15 step 13).
+
+``poc_tmp_cleanup`` (autouse, session-scoped) sweeps any stray
+``/tmp/poc-*.jsonl`` artifacts left behind by earlier runs so the Task 1.15
+POC gate starts each session on a clean slate. Windows hosts (no ``/tmp``)
+no-op silently.
 """
 
 from __future__ import annotations
@@ -16,6 +21,26 @@ from typing import Any
 
 import pytest
 from testcontainers.postgres import PostgresContainer  # pyright: ignore[reportMissingTypeStubs]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def poc_tmp_cleanup() -> Iterator[None]:
+    """Sweep stray ``/tmp/poc-*.jsonl`` artifacts at session start/end.
+
+    The Task 1.15 POC spec nominally writes attestation to
+    ``/tmp/poc-attestation.jsonl``; the integration test redirects under
+    ``tmp_path`` but if any earlier run (or hand-invoked verify step) leaked
+    files onto ``/tmp``, clear them so assertions are never cross-contaminated.
+    """
+    tmp_dir = Path("/tmp")
+    if tmp_dir.exists():
+        for stale in tmp_dir.glob("poc-*.jsonl"):
+            stale.unlink(missing_ok=True)
+    yield
+    if tmp_dir.exists():
+        for stale in tmp_dir.glob("poc-*.jsonl"):
+            stale.unlink(missing_ok=True)
+
 
 # Resolve the seed SQL alongside this conftest so the file stays portable
 # regardless of the pytest invocation cwd.
