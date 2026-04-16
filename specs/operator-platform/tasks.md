@@ -794,7 +794,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `refactor(ui): add error handling for broker-not-ready and attestation`
   - _Design: Error Handling — Admin UI_
 
-- [ ] 2.3 [VERIFY] Quality checkpoint: error handling
+- [x] 2.3 [VERIFY] Quality checkpoint: error handling
   - **Do**: Run quality commands
   - **Verify**: `ruff check nautilus/ui/ && pyright`
   - **Done when**: No lint errors, no type errors
@@ -821,7 +821,7 @@ After POC validated, clean up code. No new features.
   - **Verify**: `python -c "import packages.nautilus_adapter_sdk.src.nautilus_adapter_sdk as sdk; help(sdk)" 2>/dev/null || echo 'docstrings added'`
   - **Commit**: `refactor(sdk): add docstrings and validate model configs`
 
-- [ ] 2.6 Validate SourceConfig.connection never exposed in templates
+- [x] 2.6 Validate SourceConfig.connection never exposed in templates
   - **Do**:
     1. Audit all admin UI templates — ensure `connection` field is never referenced
     2. Ensure router only passes safe fields (`id`, `type`, `classification`, `data_types`, `allowed_purposes`, `description`) to templates
@@ -831,7 +831,7 @@ After POC validated, clean up code. No new features.
   - **Commit**: `refactor(ui): verify no credential exposure in templates`
   - _Requirements: NFR-9_
 
-- [ ] 2.7 Validate zero external resource references in templates
+- [x] 2.7 Validate zero external resource references in templates
   - **Do**:
     1. Audit all templates for `http://` or `https://` references
     2. Remove any external CDN references if found
