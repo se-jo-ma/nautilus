@@ -443,7 +443,7 @@ Focus: Validate each workstream end-to-end. Skip tests, accept shortcuts, hardco
   - _Requirements: FR-18, AC-9.1, AC-9.2, AC-9.4_
   - _Design: Component E — SDK package_
 
-- [ ] 1.42 [P] Create SDK protocols.py with Adapter and Embedder protocols
+- [x] 1.42 [P] Create SDK protocols.py with Adapter and Embedder protocols
   - **Do**:
     1. Create `packages/nautilus-adapter-sdk/src/nautilus_adapter_sdk/protocols.py`
     2. Define `Adapter` Protocol: `source_type: ClassVar[str]`, async `connect(config)`, `execute(intent, scope, context)`, `close()`
