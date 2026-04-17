@@ -239,3 +239,11 @@ specs/.index/index-state.json
 specs/core-broker/.ralph-state.json
 specs/.index/index.md
 specs/_epics/design-mk2/.epic-state.json
+specs/operator-platform/.ralph-state.json
+
+**/*.progress*
+**/.progress-task-**
+
+specs/operator-platform/.progress-task-2-1.md
+**/.tasks.lock
+**/.git-commit.lock
