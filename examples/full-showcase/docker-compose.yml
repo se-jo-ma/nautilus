@@ -187,6 +187,17 @@ services:
       neo4j:
         condition: service_healthy
 
+  # ── Demo queries (one-shot — populates audit log) ─────────────────────
+  demo-queries:
+    image: python:3.12-slim
+    working_dir: /seed
+    volumes:
+      - ./seed:/seed:ro
+    entrypoint: ["python", "demo-queries.py"]
+    depends_on:
+      nautilus:
+        condition: service_healthy
+
   # ── Grafana ───────────────────────────────────────────────────────────
   grafana:
     image: grafana/grafana:11.1.0

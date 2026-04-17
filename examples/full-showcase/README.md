@@ -241,42 +241,47 @@ docker compose --profile docs up -d docs
 
 Open http://localhost:8001 to browse the Nautilus Adapter SDK documentation — protocol reference, compliance test suite, and adapter development guide.
 
+## Full Mode (ServiceNow + LLM Intent Analysis)
+
+The base showcase uses pattern-matching intent analysis and 5 locally-containerized data sources. If you have an Anthropic API key and/or ServiceNow credentials, you can unlock the remaining features:
+
+| Credential | Feature Unlocked |
+|-----------|-----------------|
+| `ANTHROPIC_API_KEY` | Claude-backed intent analysis (falls back to pattern matching on timeout/error) |
+| `SNOW_INSTANCE` + `SNOW_USER` + `SNOW_PASS` | ServiceNow incident table as a 6th data source |
+
+### Setup
+
+```bash
+# 1. Create .env from the template
+cp .env.example .env
+
+# 2. Fill in the credentials you have (leave others blank)
+#    ANTHROPIC_API_KEY=sk-ant-...
+#    SNOW_INSTANCE=dev12345       (just the subdomain)
+#    SNOW_USER=admin
+#    SNOW_PASS=your-password
+
+# 3. Start with the full compose stack
+docker compose -f docker-compose.yml -f docker-compose.full.yml up --build -d
+```
+
+This swaps `nautilus.yaml` for `nautilus.full.yaml`, which adds:
+- A `snow_incidents` source (ServiceNow Table API, cui-basic classification)
+- `analysis.mode: llm-first` with Anthropic provider (pattern matching as fallback)
+- An `incident` keyword map entry for routing incident/outage/ticket intents
+
+The LLM analyzer produces richer intent analysis (entity extraction, confidence scores, reasoning) compared to pattern matching. You'll see the difference in the audit trail and decision viewer.
+
+### Partial Credentials
+
+You don't need both — each works independently:
+- **Only `ANTHROPIC_API_KEY`**: LLM analysis activates; ServiceNow source errors on startup (other 5 sources work fine)
+- **Only ServiceNow creds**: Pattern matching stays active; ServiceNow source connects and serves incident data
+
 ## Features NOT Demonstrated Here
 
-These features exist in the codebase but require additional setup beyond this showcase:
-
-### ServiceNow Adapter
-Requires a ServiceNow instance (SaaS — cannot be containerized locally). To configure:
-```yaml
-sources:
-  - id: incidents
-    type: servicenow
-    description: "ServiceNow incident table"
-    classification: cui-basic
-    data_types: [incident, change, problem]
-    connection: https://your-instance.service-now.com
-    auth:
-      type: basic
-      username: ${SNOW_USER}
-      password: ${SNOW_PASS}
-    endpoints:
-      - path: /api/now/table/incident
-        method: GET
-        query_params: [sysparm_query, sysparm_limit]
-```
-
-### LLM Intent Analysis
-Switch from pattern matching to LLM-backed analysis:
-```yaml
-analysis:
-  mode: llm-first    # LLM primary, pattern-matching fallback
-  provider:
-    type: anthropic
-    api_key_env: ANTHROPIC_API_KEY
-    model: claude-sonnet-4-5
-    timeout_s: 2.0
-  keyword_map: { ... }  # still needed for fallback
-```
+These features exist in the codebase but require configuration beyond this showcase:
 
 ### MCP Transport
 Expose Nautilus as an MCP tool server alongside REST:

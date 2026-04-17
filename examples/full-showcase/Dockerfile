@@ -1,4 +1,4 @@
-# Nautilus full-showcase image — includes OTel instrumentation extras.
+# Nautilus full-showcase image — includes OTel + LLM extras.
 #
 # Build from repo root:
 #   docker compose -f examples/full-showcase/docker-compose.yml build
@@ -13,11 +13,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY pyproject.toml uv.lock README.md /app/
-RUN uv sync --frozen --no-dev --no-install-project --extra otel
+RUN uv sync --frozen --no-dev --no-install-project --extra otel --extra llm-anthropic --extra llm-openai
 
 COPY nautilus /app/nautilus
 COPY rule-packs /app/rule-packs
-RUN uv sync --frozen --no-dev --extra otel
+RUN uv sync --frozen --no-dev --extra otel --extra llm-anthropic --extra llm-openai
 
 FROM python:3.14-slim AS runtime
 
