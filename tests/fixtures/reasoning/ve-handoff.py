@@ -102,7 +102,7 @@ async def _main() -> int:
         await broker.aclose()
         await broker.aclose()
 
-    if not isinstance(decision, HandoffDecision):
+    if not isinstance(decision, HandoffDecision):  # pyright: ignore[reportUnnecessaryIsInstance]
         raise AssertionError(f"declare_handoff did not return HandoffDecision: {type(decision)!r}")
     if decision.action != "deny":
         raise AssertionError(

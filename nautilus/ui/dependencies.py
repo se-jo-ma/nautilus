@@ -36,7 +36,14 @@ async def get_auth_user(request: Request) -> str:
         return await proxy_trust_dependency(request)
     # api_key mode — resolve header via the shared security scheme, then
     # verify against the configured allow-list.
-    header_value: str = await api_key_header(request)
+    header_value: str | None = await api_key_header(request)
+    if header_value is None:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-API-Key header",
+        )
     keys: list[str] = list(getattr(request.app.state, "api_keys", []) or [])
     verify_api_key(header_value, keys)
     return header_value
@@ -45,7 +52,7 @@ async def get_auth_user(request: Request) -> str:
 async def get_audit_path(request: Request) -> str:
     """Return the audit JSONL file path from the broker's configuration."""
     broker: Broker = request.app.state.broker  # type: ignore[assignment]
-    return str(broker._config.audit.path)  # noqa: SLF001
+    return str(broker._config.audit.path)  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
 
 
 __all__ = [
