@@ -36,13 +36,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, FastAPI, Request, Response, status
+from fastapi.staticfiles import StaticFiles
 
 from nautilus.core.broker import Broker
 from nautilus.core.models import BrokerRequest, BrokerResponse
 from nautilus.transport.auth import api_key_header, proxy_trust_dependency, verify_api_key
+from nautilus.ui import create_admin_router
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncGenerator
 
 
 _READY_PROBE_KEY = "_ready_probe_"
@@ -108,7 +110,7 @@ def create_app(
         )
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         """ASGI lifespan — build/setup broker on startup, close on shutdown."""
         if existing_broker is not None:
             broker = existing_broker
@@ -122,6 +124,12 @@ def create_app(
         app.state.auth_mode = mode
         app.state.api_keys = keys
         app.state.ready = True
+        try:
+            from nautilus.observability import setup_otel
+
+            setup_otel(app)
+        except ImportError:
+            pass
         try:
             yield
         finally:
@@ -271,6 +279,29 @@ def create_app(
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
             return {"status": "not_ready", "reason": type(exc).__name__}
         return {"status": "ok"}
+
+    # ------------------------------------------------------------------
+    # Root redirect — / → /admin
+    # ------------------------------------------------------------------
+
+    @app.get("/", include_in_schema=False)
+    async def root_redirect() -> Response:  # pyright: ignore[reportUnusedFunction]
+        from fastapi.responses import RedirectResponse
+
+        return RedirectResponse(url="/admin", status_code=302)
+
+    # ------------------------------------------------------------------
+    # Admin UI — operator-facing dashboard (FR-1, AC-1.1)
+    # ------------------------------------------------------------------
+
+    app.include_router(create_admin_router())
+
+    _ui_static_dir = Path(__file__).resolve().parent.parent / "ui" / "static"
+    app.mount(
+        "/admin/static",
+        StaticFiles(directory=str(_ui_static_dir)),
+        name="admin-static",
+    )
 
     return app
 

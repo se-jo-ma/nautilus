@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import importlib.metadata
 import logging
 import time
 import uuid
@@ -38,10 +39,12 @@ from fathom.audit import FileSink
 from nautilus.adapters.base import Adapter, AdapterError, ScopeEnforcementError
 from nautilus.adapters.elasticsearch import ElasticsearchAdapter
 from nautilus.adapters.embedder import Embedder, NoopEmbedder
+from nautilus.adapters.influxdb import InfluxDBAdapter
 from nautilus.adapters.neo4j import Neo4jAdapter
 from nautilus.adapters.pgvector import PgVectorAdapter
 from nautilus.adapters.postgres import PostgresAdapter
 from nautilus.adapters.rest import RestAdapter
+from nautilus.adapters.s3 import S3Adapter
 from nautilus.adapters.servicenow import ServiceNowAdapter
 from nautilus.analysis.fallback import FallbackIntentAnalyzer
 from nautilus.analysis.llm.base import LLMIntentProvider, LLMProvenance
@@ -86,10 +89,80 @@ from nautilus.core.models import (
 from nautilus.core.session import AsyncSessionStore, InMemorySessionStore, SessionStore
 from nautilus.core.session_pg import PostgresSessionStore
 from nautilus.core.temporal import TemporalFilter
+from nautilus.observability.metrics import NautilusMetrics
+from nautilus.observability.spans import (
+    SPAN_ADAPTER_FAN_OUT,
+    SPAN_ATTESTATION_SIGN,
+    SPAN_AUDIT_EMIT,
+    SPAN_BROKER_REQUEST,
+    SPAN_FATHOM_ROUTING,
+    SPAN_INTENT_ANALYSIS,
+    SPAN_SYNTHESIS,
+    broker_span,
+    build_request_attributes,
+)
 from nautilus.rules import BUILT_IN_RULES_DIR
 from nautilus.synthesis.basic import BasicSynthesizer
 
+_metrics = NautilusMetrics()
+
 log = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Adapter registry — static built-ins + entry-point discovery (design §3.5)
+# ---------------------------------------------------------------------------
+
+ADAPTER_REGISTRY: dict[str, type[Adapter]] = {
+    "postgres": PostgresAdapter,
+    "pgvector": PgVectorAdapter,
+    "elasticsearch": ElasticsearchAdapter,
+    "rest": RestAdapter,
+    "neo4j": Neo4jAdapter,
+    "servicenow": ServiceNowAdapter,
+    "influxdb": InfluxDBAdapter,
+    "s3": S3Adapter,
+}
+
+
+def _discover_adapters() -> dict[str, type[Adapter]]:
+    """Load adapter classes advertised via ``nautilus.adapters`` entry points.
+
+    Each entry point name is the ``source_type`` key and must resolve to an
+    :class:`Adapter` subclass.  Broken plugins are logged and skipped so one
+    bad third-party package can never take down the broker.
+
+    Returns a dict that can be merged over :data:`ADAPTER_REGISTRY`.
+    """
+    discovered: dict[str, type[Adapter]] = {}
+    eps = importlib.metadata.entry_points(group="nautilus.adapters")
+    for ep in eps:
+        try:
+            obj: object = ep.load()
+            if not isinstance(obj, type):
+                log.warning(
+                    "adapter entry-point '%s' resolved to non-class %s; skipping",
+                    ep.name,
+                    type(obj).__name__,
+                )
+                continue
+            if not issubclass(obj, Adapter):  # type: ignore[arg-type]  # runtime_checkable Protocol w/ ClassVar
+                log.warning(
+                    "adapter entry-point '%s' resolved to %s, not an Adapter subclass; skipping",
+                    ep.name,
+                    obj.__name__,
+                )
+                continue
+            discovered[ep.name] = obj
+            log.debug("discovered adapter entry-point %s -> %s", ep.name, obj)
+        except Exception:  # noqa: BLE001
+            log.warning(
+                "failed to load adapter entry-point '%s' (%s); skipping",
+                ep.name,
+                ep.value,
+                exc_info=True,
+            )
+    return discovered
+
 
 if TYPE_CHECKING:
     from nautilus.analysis.base import IntentAnalyzer
@@ -313,9 +386,14 @@ class Broker:
         # loudly on missing embedder rather than silent zero vectors).
         broker_default_embedder: Embedder = NoopEmbedder(strict=True)
 
+        # Merge static registry with entry-point discovered plugins.
+        adapter_registry = {**ADAPTER_REGISTRY, **_discover_adapters()}
+
         adapters: dict[str, Adapter] = {}
         for source in registry:
-            adapters[source.id] = cls._build_adapter(source, broker_default_embedder)
+            adapters[source.id] = cls._build_adapter(
+                source, broker_default_embedder, adapter_registry
+            )
 
         audit_path = Path(config.audit.path)
         audit_logger = AuditLogger(sink=FileSink(path=audit_path))
@@ -488,30 +566,24 @@ class Broker:
     def _build_adapter(
         source: SourceConfig,
         broker_default_embedder: Embedder,
+        adapter_registry: dict[str, type[Adapter]] | None = None,
     ) -> Adapter:
         """Instantiate the right adapter class for ``source.type``.
 
-        Phase-1 dispatches to :class:`PostgresAdapter` / :class:`PgVectorAdapter`;
-        Phase-2 (design §3.5, §3.11) extends the table with four additive
-        adapter kinds — Elasticsearch, REST, Neo4j, ServiceNow. Each is
-        constructed with a ``None`` client/driver so the broker's
-        ``connect()`` lifecycle can lazy-initialise the real transport on
-        first ``arequest`` (mirrors the Phase-1 pattern).
+        Looks up ``source.type`` in the merged adapter registry (static
+        built-ins + entry-point discovered plugins).  ``pgvector`` is
+        special-cased because it requires the broker-default embedder.
         """
-        if source.type == "postgres":
-            return PostgresAdapter()
+        registry = adapter_registry if adapter_registry is not None else ADAPTER_REGISTRY
+
+        # pgvector needs the embedder kwarg — special-case it.
         if source.type == "pgvector":
             return PgVectorAdapter(broker_default_embedder=broker_default_embedder)
-        if source.type == "elasticsearch":
-            return ElasticsearchAdapter()
-        if source.type == "rest":
-            return RestAdapter()
-        if source.type == "neo4j":
-            return Neo4jAdapter()
-        if source.type == "servicenow":
-            return ServiceNowAdapter()
-        # pragma: no cover — config loader rejects unknown types upstream.
-        raise ConfigError(f"Unsupported source type '{source.type}' for id='{source.id}'")
+
+        adapter_cls = registry.get(source.type)
+        if adapter_cls is None:
+            raise ConfigError(f"Unsupported source type '{source.type}' for id='{source.id}'")
+        return adapter_cls()
 
     # ------------------------------------------------------------------
     # Public API
@@ -577,16 +649,25 @@ class Broker:
         """
         context = dict(context) if context else {}
         state = _new_request_state(context, intent)
-        try:
-            await self._run_pipeline(agent_id, intent, context, state)
-        except PolicyEngineError:
-            self._emit_audit(agent_id, state, None)
-            raise
-        except Exception as exc:  # noqa: BLE001 — any unexpected error must still audit
-            state.errored.append(_broker_error(exc, state.request_id))
-            self._emit_audit(agent_id, state, None)
-            raise
-        self._emit_audit(agent_id, state, state.attestation_token)
+        _started = time.perf_counter()
+        with broker_span(SPAN_BROKER_REQUEST, build_request_attributes(agent_id)):
+            _metrics.requests_total.add(1)
+            try:
+                await self._run_pipeline(agent_id, intent, context, state)
+            except PolicyEngineError:
+                with broker_span(SPAN_AUDIT_EMIT):
+                    self._emit_audit(agent_id, state, None)
+                raise
+            except Exception as exc:  # noqa: BLE001 — any unexpected error must still audit
+                state.errored.append(_broker_error(exc, state.request_id))
+                with broker_span(SPAN_AUDIT_EMIT):
+                    self._emit_audit(agent_id, state, None)
+                raise
+            with broker_span(SPAN_AUDIT_EMIT):
+                self._emit_audit(agent_id, state, state.attestation_token)
+            _metrics.request_duration.record(
+                time.perf_counter() - _started,
+            )
         return self._build_response(state)
 
     async def declare_handoff(
@@ -798,22 +879,32 @@ class Broker:
         state: _RequestState,
     ) -> None:
         """Happy-path pipeline body — mutates ``state`` in place."""
-        await self._analyze_intent(intent, context, state)
-        await self._route(agent_id, context, state)
+        with broker_span(SPAN_INTENT_ANALYSIS):
+            await self._analyze_intent(intent, context, state)
+        with broker_span(SPAN_FATHOM_ROUTING):
+            await self._route(agent_id, context, state)
+            _metrics.routing_decisions_total.add(1)
         self._merge_context_scope_constraints(context, state)
         self._apply_temporal_filter(state)
-        tasks, task_source_ids = await self._build_adapter_jobs(state, context)
-        successful = await self._gather_adapter_results(state, tasks, task_source_ids)
-        state.data = self._synthesizer.merge(successful)
-        if self._attestation is not None:
-            token, scope_hash_version, nautilus_payload = self._sign(
-                request_id=state.request_id,
-                agent_id=agent_id,
-                sources_queried=state.sources_queried,
-                scope_by_source=state.scope_by_source,
-                rule_trace=state.rule_trace,
-                session_id=state.session_id,
+        with broker_span(SPAN_ADAPTER_FAN_OUT):
+            tasks, task_source_ids = await self._build_adapter_jobs(state, context)
+            successful = await self._gather_adapter_results(
+                state,
+                tasks,
+                task_source_ids,
             )
+        with broker_span(SPAN_SYNTHESIS):
+            state.data = self._synthesizer.merge(successful)
+        if self._attestation is not None:
+            with broker_span(SPAN_ATTESTATION_SIGN):
+                token, scope_hash_version, nautilus_payload = self._sign(
+                    request_id=state.request_id,
+                    agent_id=agent_id,
+                    sources_queried=state.sources_queried,
+                    scope_by_source=state.scope_by_source,
+                    rule_trace=state.rule_trace,
+                    session_id=state.session_id,
+                )
             state.attestation_token = token
             state.scope_hash_version = scope_hash_version
             await self._emit_attestation(token, nautilus_payload)

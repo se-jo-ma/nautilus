@@ -1,0 +1,43 @@
+<div class="card" style="margin-top:1rem">
+    <h2>
+        {% if result.valid %}
+        <span class="badge badge-success">Valid</span>
+        {% else %}
+        <span class="badge badge-danger">Invalid</span>
+        {% endif %}
+        Verification Result
+    </h2>
+
+    {% if result.error %}
+    <p class="text-error" style="margin-top:0.5rem">{{ result.error }}</p>
+    {% endif %}
+
+    <p class="text-sm text-muted" style="margin-top:0.5rem">
+        <strong>Token:</strong> <code>{{ result.token_preview }}</code>
+    </p>
+
+    {% if result.claims %}
+    <h3 style="margin-top:1rem;font-size:0.875rem;font-weight:600">Claims</h3>
+    <div class="table-wrap" style="margin-top:0.5rem">
+        <table>
+            <thead>
+                <tr><th>Claim</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+                {% for key, value in result.claims.items() %}
+                <tr>
+                    <td><strong>{{ key }}</strong></td>
+                    <td>
+                        {% if value is mapping or value is iterable and value is not string %}
+                        <pre style="margin:0;font-size:0.8125rem"><code>{{ value | tojson(indent=2) }}</code></pre>
+                        {% else %}
+                        <code>{{ value }}</code>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
